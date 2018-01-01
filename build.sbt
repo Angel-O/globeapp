@@ -33,6 +33,7 @@ lazy val ui = (project in file("ui"))
         libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
         libraryDependencies += "com.thoughtworks.binding" %%% "futurebinding" % "latest.release",
         libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+        //https:/stackoverflow.com/questions/43717198/symbol-type-none-scalacheck-shrink-is-missing-from-the-classpath
         libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.+"
 
     )
