@@ -83,7 +83,7 @@ object Components {
       document.querySelectorAll(selector)
     }
 
-    implicit final class CustomTags2(x: dom.Runtime.TagsAndTags2.type) extends Dynamic{
+    implicit final class CustomTags2(x: dom.Runtime.TagsAndTags2.type) {
       
       // base components
       def Button() = new ButtonBuilder()
@@ -126,22 +126,8 @@ object Components {
       def BrowserRouter() = new BrowserRouterBuilder()
       def Route() = new RouteBuilder()
       
-      //hoc TEMPORARILY DISABLED : Use tags registry for hoc components
-      //def RegistrationForm() = new RegistrationFormBuilder()
-      
-//      type BuilderFunction = Function[Seq[Any], ComponentBuilder]
-//      
-//      private val fields = mutable.Map.empty[String, BuilderFunction].withDefault {key => throw new NoSuchFieldError(key)}
-//
-//      def selectDynamic(key: String) = fields(key)
-//
-//      def updateDynamic(key: String)(value: BuilderFunction) = fields(key) = value
-//
-//      def applyDynamic(key: String)(args: BuilderFunction*) = fields(key)
-//      
-//      def RegisterTag(builder: BuilderFunction, tagName: String) = {
-//        this.tagName = builder
-//      }
+      //hoc can also use tags registry for hoc components
+      def RegistrationForm() = new RegistrationFormBuilder()
     }
     
     implicit def toComponentBuilder(x: HTMLElement):ComponentBuilder = {

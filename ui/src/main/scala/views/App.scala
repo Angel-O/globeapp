@@ -45,14 +45,14 @@ object App {
 						label={ "click me" } 
 						onClick={() => navigateToForm(history)}/>.build.bind } 
      
-    val form = customTags.RegistrationForm()
+    //val form = customTags.RegistrationForm()
     
     val registerPage = new RoutingView() {
         @dom override def element = 
           <ModalCard 
 						label={"Launch form"} 
 						title={"Register now"} 
-						content={<div>{form}</div>}
+						content={<div><RegistrationForm/></div>}
 						onSave={() => navigateToHome(history)}/>.build.bind }
       
     val routes = Map(
