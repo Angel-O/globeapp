@@ -11,6 +11,8 @@ import components.Components.Implicits._
 import router.BrowserHistory
 import router.RoutingView
 
+import Tags.customTags
+
 object App {
   
   def main(args: Array[String]): Unit = {
@@ -42,13 +44,15 @@ object App {
           <Button 
 						label={ "click me" } 
 						onClick={() => navigateToForm(history)}/>.build.bind } 
-      
+     
+    val form = customTags.RegistrationForm()
+    
     val registerPage = new RoutingView() {
         @dom override def element = 
           <ModalCard 
 						label={"Launch form"} 
 						title={"Register now"} 
-						content={<div><RegistrationForm/></div>}
+						content={<div>{form}</div>}
 						onSave={() => navigateToHome(history)}/>.build.bind }
       
     val routes = Map(

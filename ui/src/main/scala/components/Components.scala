@@ -126,22 +126,22 @@ object Components {
       def BrowserRouter() = new BrowserRouterBuilder()
       def Route() = new RouteBuilder()
       
-      //hoc
-      def RegistrationForm() = new RegistrationFormBuilder()
+      //hoc TEMPORARILY DISABLED : Use tags registry for hoc components
+      //def RegistrationForm() = new RegistrationFormBuilder()
       
-      type BuilderFunction = Function[Seq[Any], ComponentBuilder]
-      
-      private val fields = mutable.Map.empty[String, BuilderFunction].withDefault {key => throw new NoSuchFieldError(key)}
-
-      def selectDynamic(key: String) = fields(key)
-
-      def updateDynamic(key: String)(value: BuilderFunction) = fields(key) = value
-
-      def applyDynamic(key: String)(args: BuilderFunction*) = fields(key)
-      
-      def RegisterTag(builder: BuilderFunction, tagName: String) = {
-        this.tagName = builder
-      }
+//      type BuilderFunction = Function[Seq[Any], ComponentBuilder]
+//      
+//      private val fields = mutable.Map.empty[String, BuilderFunction].withDefault {key => throw new NoSuchFieldError(key)}
+//
+//      def selectDynamic(key: String) = fields(key)
+//
+//      def updateDynamic(key: String)(value: BuilderFunction) = fields(key) = value
+//
+//      def applyDynamic(key: String)(args: BuilderFunction*) = fields(key)
+//      
+//      def RegisterTag(builder: BuilderFunction, tagName: String) = {
+//        this.tagName = builder
+//      }
     }
     
     implicit def toComponentBuilder(x: HTMLElement):ComponentBuilder = {
@@ -229,8 +229,9 @@ object Components {
         //this is equivalent to ----> toHtml(this)
       }
       
-      def register(tagName: String, tag: ComponentBuilder, params: Seq[Any] = Seq.empty) = 
-        CustomTags2(dom.Runtime.TagsAndTags2).RegisterTag(params => tag, tagName)
+//      import components.Components.Implicits.CustomTags2
+//      def register(tagName: String, tag: ComponentBuilder, params: Seq[Any] = Seq.empty) = 
+//        CustomTags2(dom.Runtime.TagsAndTags2).RegisterTag(params => tag, tagName)
     }
 
     trait BulmaCssClasses {
