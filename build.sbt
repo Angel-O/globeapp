@@ -11,6 +11,7 @@ lazy val commonSettings = Seq(
 lazy val root = (project in file(".")).aggregate(ui, server)//.dependsOn(ui, server)
 
 lazy val ui = (project in file("ui"))
+    .dependsOn(tags)
     .enablePlugins(ScalaJSPlugin, WorkbenchPlugin)
     .settings(
 //        inThisBuild(List(
@@ -18,6 +19,10 @@ lazy val ui = (project in file("ui"))
 //            workbenchDefaultRootObject := Some(("./index-dev.html", "./")),
 //            workbenchStartMode := WorkbenchStartModes.OnCompile    
 //        )),
+        // include the macro classes and resources in the main jar
+        mappings in (Compile, packageBin) ++= mappings.in(tags, Compile, packageBin).value,
+        // include the macro sources in the main source jar
+        mappings in (Compile, packageSrc) ++= mappings.in(tags, Compile, packageSrc).value,
         commonSettings,
         name := "ui",
         autoCompilerPlugins := true,
@@ -27,7 +32,9 @@ lazy val ui = (project in file("ui"))
         libraryDependencies += scalaTest % Test,
         libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
         libraryDependencies += "com.thoughtworks.binding" %%% "futurebinding" % "latest.release",
-        libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+        libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+        libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.+"
+
     )
 
 lazy val server = (project in file("server"))
@@ -36,3 +43,16 @@ lazy val server = (project in file("server"))
         name := "server",
         libraryDependencies += scalaTest % Test
       )
+
+lazy val scalaReflect = Def.setting { "org.scala-lang" % "scala-reflect" % scalaVersion.value }
+
+lazy val tags = (project in file("tags"))
+    .enablePlugins(ScalaJSPlugin)
+    .settings(
+        commonSettings,
+        name := "tags",
+        autoCompilerPlugins := true,
+        libraryDependencies += scalaReflect.value,
+        libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
+        libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+    )
