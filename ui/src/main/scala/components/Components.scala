@@ -118,6 +118,8 @@ object Components {
       def TextareaInput() = new TextareaInputBuilder()
       def TextInput() = new TextInputBuilder()
       
+      def Tile() = new TileBuilder()
+      
       
       // util
       def Wrapper(x: HTMLElement) = new GenricComponentBuilder(x)
@@ -258,6 +260,13 @@ object Components {
       val HAS_ICONS_LEFT = "has-icons-left"
       val FIELD = "field"
       val CONTROL = "control"
+      val PARENT = "is-parent"
+      val CHILD = "is-child"
+      val TILE = "tile"
+      val VERTICAL = "is-vertical"
+      val ANCESTOR = "is-ancestor"
+      val WARNING = "is-warning"
+      val IS_ = "is-"
     }
     
     trait HTMLClassManipulator{
