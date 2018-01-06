@@ -8,26 +8,42 @@ import Components.Implicits.ComponentBuilder
 import Components.Implicits.autoBinding
 import Components.Implicits.toBindingSeq
 import Components.Implicits.toComponentBuilder
+import components.Components.Implicits.Color
+import org.scalajs.dom.raw.Event
 
-case class TileBuilder() extends ComponentBuilder{
+case class TileBuilder() extends ComponentBuilder with Color{
   def render = this
   
   var isAncestor: Boolean = false
   var isParent: Boolean = _
-  var isChild: Boolean = _ //NO NEED TO Set it!!
   var isVertical: Boolean = _ //TODO can a child be vertical???
-  var size: Int = _
+  var width: Int = _ //TODO throw exception if it's out of range
   var children: Seq[TileBuilder] = Seq.empty
-  var content: HTMLElement = _ // TODO allow for strings as welll...
+  var content: HTMLElement = _ // TODO allow for strings as well...
   
-  lazy val hasSize = size > 0
+  var onClick, onHover: () => Unit = () => {} //do nothing by default
+  
+  private var isChild: Boolean = _ //NO NEED TO Set it from outside!!
+  
+  private val handleOnClick = (e: Event) => onClick()
+  private val handleOnHover = (e: Event) => onHover()
+  
+  lazy val hasWidth = width > 0
   lazy val className = getClassName(
         (true, TILE), 
         (isAncestor, ANCESTOR),
         (isParent, PARENT),
         (isChild, CHILD),
         (isVertical, VERTICAL), 
-        (hasSize, s"$IS_$size"))
+        
+        // TODO allow only one notification modifier or set priority...this logic could be handled in the 
+        // Color trait...
+        (isPrimary, getClassName((true, NOTIFICATION), (true, PRIMARY))),
+        (isWarning, getClassName((true, NOTIFICATION), (true, WARNING))),
+        (isInfo, getClassName((true, NOTIFICATION), (true, INFO))),
+        (isSuccess, getClassName((true, NOTIFICATION), (true, SUCCESS))),
+        (isDanger, getClassName((true, NOTIFICATION), (true, DANGER))),
+        (hasWidth, s"$IS_$width"))
   
   @dom private def element = {
     // a tile will either have a content or sub-tiles (aka children).
@@ -40,16 +56,22 @@ case class TileBuilder() extends ComponentBuilder{
     val childrenTiles = toBindingSeq(tileContent)    
     
     //TODO allow for articles, not just divs...
+    val elem = 
     <div class={className}>
       { childrenTiles.flatMap(_.bind) }
     </div>.asInstanceOf[HTMLElement]
+    
+    elem.addEventListener("click", handleOnClick)
+    elem.addEventListener("mouseenter", handleOnHover)
+    
+    elem
   }
   
   @dom def build = {
     
     if(!isAncestor){
       if(isParent){
-        children.foreach(x => x.isChild == true)
+        children.foreach(x => x.isChild = true)
       }      
     }
     element.bind

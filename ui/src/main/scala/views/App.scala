@@ -40,84 +40,8 @@ object App {
   private def mapViewsToURIs(): List[(String, RoutingView)] = {
     
     import Navigators._
-    val homePage = new RoutingView() { 
-        @dom override def element =
-          <div>
-						<Tile 
-							isAncestor={true}
-							children={Seq(
-							    <Tile 
-										isVertical={true} 
-										size={8}
-										children={Seq(
-										    <Tile children={Seq(
-										        <Tile 
-															isParent={true}
-															isVertical={true} 
-															children={Seq(
-													      <Tile content={
-													        <div>
-																		<p class="title">Vertical...</p>
-              											<p class="subtitle">Top tile</p>
-																	</div>}
-													    	/>,
-													      <Tile content={
-													        <div>
-																		<p class="title">...tiles</p>
-              											<p class="subtitle">Bottom tile</p>
-																	</div>}
-													    	/>)}
-														/>,
-														<Tile 
-															isParent={true} 
-															children={Seq(
-										            <Tile 
-																	content={
-										                <div>
-																			<p class="title">Middle tile</p>
-              												<p class="subtitle">With an image</p>
-              												<figure class="image is-4by3">
-                												<img src="https://bulma.io/images/placeholders/640x480.png"/>
-              												</figure>
-																		</div>}
-										        		/>)}
-										    		/>
-														)}
-										    />,
-										    <Tile isParent={true} 
-														children={Seq(
-										        <Tile content={
-										          <div>
-										      			<p class="title">Wide tile</p>
-            										<p class="subtitle">Aligned with the right tile</p>
-            										<div class="content">
-              										<!-- Content -->
-            										</div>
-															</div>}
-										        />)}
-										    />
-										    )}
-									/>, 
-							    <Tile 
-										isParent={true}
-							    	children={Seq(
-							    	    <Tile
-													content={
-													  <div class="content">
-            									<p class="title">Tall tile</p>
-            									<p class="subtitle">With even more content</p>
-            									<div class="content">
-																<Button 
-																		label={ "click me" } 
-																		onClick={() => navigateToForm(history)}/>
-              									<!-- Content -->
-            									</div>
-          									</div>}
-												/>)}
-							    />)}
-						/>
-					</div>
-    } 
+    import HomePage.{ homePage => home }
+    val homePage = home 
      
     //val form = customTags.RegistrationForm()
     
@@ -128,10 +52,6 @@ object App {
 						title={"Register now"} 
 						content={<div><RegistrationForm/></div>}
 						onSave={() => navigateToHome(history)}/>.build.bind }
-    
-//    val dashboardView = new RoutingView() {
-//        @dom override def element = <Tile/>
-//    }
       
     val routes = Map(
         HomePageURI -> homePage, 

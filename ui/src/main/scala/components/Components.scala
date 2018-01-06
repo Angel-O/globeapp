@@ -221,6 +221,15 @@ object Components {
 //      def register(tagName: String, tag: ComponentBuilder, params: Seq[Any] = Seq.empty) = 
 //        CustomTags2(dom.Runtime.TagsAndTags2).RegisterTag(params => tag, tagName)
     }
+    
+    trait Color {
+      var isPrimary: Boolean = _
+      var isLink: Boolean = _
+      var isInfo: Boolean = _
+      var isSuccess: Boolean = _
+      var isWarning: Boolean = _
+      var isDanger: Boolean = _
+    }
 
     trait BulmaCssClasses {
       val ACTIVE = "is-active"
@@ -267,6 +276,8 @@ object Components {
       val ANCESTOR = "is-ancestor"
       val WARNING = "is-warning"
       val IS_ = "is-"
+      val NOTIFICATION = "notification"
+      val INFO = "is-info"
     }
     
     trait HTMLClassManipulator{
