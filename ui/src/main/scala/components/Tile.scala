@@ -53,13 +53,22 @@ case class TileBuilder() extends ComponentBuilder with Color{
     // can be easily rendered with a flatMap atfer being wrapped into a bindingSeq
     var tileContent = if (content == null) children else Seq(toComponentBuilder(content))
     
-    val childrenTiles = toBindingSeq(tileContent)    
+    val childrenTiles = toBindingSeq(tileContent) 
+    
+    var contextualTokens = 0
+    if (className.contains(ANCESTOR)) contextualTokens += 1
+    if (className.contains(PARENT)) contextualTokens += 1
+    if (className.contains(CHILD)) contextualTokens += 1
+        
+    if (contextualTokens > 1){
+      throw new IllegalArgumentException(s"Tiles can be either ancestor, parent or child")
+    }
     
     //TODO allow for articles, not just divs...
     val elem = 
-    <div class={className}>
-      { childrenTiles.flatMap(_.bind) }
-    </div>.asInstanceOf[HTMLElement]
+      <div class={className}>
+        { childrenTiles.flatMap(_.bind) }
+    	</div>.asInstanceOf[HTMLElement]
     
     elem.addEventListener("click", handleOnClick)
     elem.addEventListener("mouseenter", handleOnHover)
@@ -68,6 +77,10 @@ case class TileBuilder() extends ComponentBuilder with Color{
   }
   
   @dom def build = {
+    
+    if(!isChild && content != null){
+      throw new IllegalArgumentException("Only children tiles can have content")
+    }
     
     if(!isAncestor){
       if(isParent){
