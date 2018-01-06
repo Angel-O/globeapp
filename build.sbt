@@ -42,7 +42,16 @@ lazy val server = (project in file("server"))
     .settings(
         commonSettings,
         name := "server",
-        libraryDependencies += scalaTest % Test
+        libraryDependencies += scalaTest % Test,
+        libraryDependencies ++= { 
+            val akkaVersion = "2.5.8"
+            Seq("com.typesafe.akka" %% "akka-actor"      % akkaVersion, 
+                "com.typesafe.akka" %% "akka-http-core"  % "10.0.11",
+                "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.11", 
+                "com.typesafe.akka" %% "akka-slf4j"      % akkaVersion,
+                "ch.qos.logback"    %  "logback-classic" % "1.2.3",
+                "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % Test)
+        }
       )
 
 lazy val scalaReflect = Def.setting { "org.scala-lang" % "scala-reflect" % scalaVersion.value }
