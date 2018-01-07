@@ -215,15 +215,16 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 object FieldValidators{
   
   import FormValidators._
+  val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r
   
   def validateName(value: String) = {    
     validateRequiredField(fieldValue = value, fieldName = "Name")
     .|>(validateAlphaNumericField(value, fieldName = "Name"))
-    .|>(validateFieldLength(fieldName = "Name", fieldValue = value, minLength = 2, maxLength = 10))
+    .|>(validateFieldLength(fieldName = "Name", fieldLength = value.length, minLength = 2, maxLength = 10))
   }
   def validateMessage(value: String) = { //TODO add remaining chars counter
     validateRequiredField(fieldValue = value, fieldName = "Message")
-    .|>(validateFieldLength(fieldName = "Message", fieldValue = value, minLength = 20, maxLength = 150))
+    .|>(validateFieldLength(fieldName = "Message", fieldLength = value.length, minLength = 20, maxLength = 150))
   }
   def validateWhereDidYouHearAboutUs(value: String) = {
     validateRequiredField(fieldValue = value)
@@ -243,13 +244,12 @@ object FieldValidators{
     validateRequiredField(fieldValue = value, fieldName = "Email")
     .|>(emailIsValid(value))
   }
-  def validatePassword(value: String) = {
-    val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r 
+  def validatePassword(value: String) = { 
     validateRequiredField(fieldValue = value, fieldName = "Password")
     .|>(validateFieldWithRegex(
         fieldValue = value, fieldName = "Password", regexPattern = passwordRegex, 
         customErrorMessage = Some("Invalid charachters: password cannot contain spaces")))
-    .|>(validateFieldLength(fieldName = "Password", fieldValue = value, minLength = 4, maxLength = 12))
+    .|>(validateFieldLength(fieldName = "Password", fieldLength = value.length, minLength = 4, maxLength = 12))
   }
   def validateConfirmPassword(password: String, confirmPassword: String) = {
     validateRequiredField(password, customErrorMessage = Some("Please confirm your password"))

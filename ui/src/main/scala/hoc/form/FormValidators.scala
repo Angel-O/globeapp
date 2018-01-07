@@ -48,8 +48,7 @@ object FormValidators {
     else Success("")
   }
   
-  def validateFieldLength(fieldName: String, fieldValue: String, minLength: Int, maxLength: Int) = {
-    val fieldLength = fieldValue.length
+  def validateFieldLength(fieldName: String, fieldLength: Int, minLength: Int, maxLength: Int) = {
     if (fieldLength > maxLength) Error(s"$fieldName field cannot exceed $maxLength characters")
     else if (fieldLength < minLength) Error(s"$fieldName field must be at least $minLength characters long")
     else Success(s"$fieldName field is valid")
