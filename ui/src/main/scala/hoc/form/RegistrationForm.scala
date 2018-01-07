@@ -77,8 +77,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 				<div class={FIELD}>
         	<TextInput
       			label={"Name"} 			
-    				onChange={handleNameChange}
-    				inputValue={name.value}/>
+    				onChange={handleNameChange}/>
 					 { renderValidation(nameValidation.bind).bind }	
 				</div>
 				<div class={FIELD}>
@@ -96,12 +95,12 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 					 { renderValidation(passwordValidation.bind).bind }	
 				</div>
 				<div class={FIELD}>
-				  { val pwd = password.bind
+				  { val pwdVal = passwordValidation.bind
 				    <PasswordInput
       				label={"Confirm password"} 			
     					onChange={handleConfirmPasswordChange}
     					inputValue={confirmPassword.value}
-    					isDisabled={pwd.isEmpty}/>.listen }
+    					isDisabled={!pwdVal.isInstanceOf[Success]}/>.listen }
 					 { renderValidation(confirmPasswordValidation.bind).bind }	
 				</div>
 				<div class={FIELD}>

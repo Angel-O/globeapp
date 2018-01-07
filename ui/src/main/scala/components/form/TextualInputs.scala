@@ -23,20 +23,21 @@ case class TextInputBuilder() extends { val inputType = TextInput } with Textual
   def render = this
   
   var onChange: String => Unit = _
-  var inputValue: String = _
+  //var inputValue: String = _ //TODO remove this...it is not needed
   
-  private var value: Var[String] = Var("") // manage internal state: controlled component
+  //TODO remove this...it is not needed
+  //private var value: Var[String] = Var("") // manage internal state: controlled component
   private def handleChange = (e: Event) => {
      val target = e.currentTarget.asInstanceOf[HTMLInputElement]
-     value.value = target.value
-     onChange(value.value)
+     //value.value = target.value
+     onChange(target.value) //TODO use target.value
   }
   
   @dom override def build = {
     
     val input = inputElement.bind.asInstanceOf[HTMLInputElement]
     input.oninput = handleChange
-    input.value = this.inputValue
+    //input.value = this.inputValue
      
     super.build.bind
   }
