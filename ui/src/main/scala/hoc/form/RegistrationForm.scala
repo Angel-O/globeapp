@@ -3,7 +3,8 @@ package hoc.form
 import components.Components.Implicits.{ CustomTags2, _ }
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
-
+import org.scalajs.dom.raw.Node
+import org.scalajs.dom.document
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
   def render = this 
@@ -153,8 +154,8 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
           </div>
 				</div>
       </form>.asInstanceOf[HTMLElement]
-      
-		form
+           
+    create(form, "registration-form").bind.asInstanceOf[HTMLElement]
   }
   
   @dom def renderSubmitButton(results: ValidationResult*) = { 

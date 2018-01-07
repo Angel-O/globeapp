@@ -217,6 +217,13 @@ object Components {
         //this is equivalent to ----> toHtml(this)
       }
       
+      @dom def create(content: Node, tagName: String) = {
+        val element = document.createElement(tagName)
+        (new dom.Runtime.NodeSeqMountPoint(element, content)).watch()
+        element.asInstanceOf[HTMLElement].style.display = "block"
+        element//.asInstanceOf[HTMLElement]
+     }
+      
 //      import components.Components.Implicits.CustomTags2
 //      def register(tagName: String, tag: ComponentBuilder, params: Seq[Any] = Seq.empty) = 
 //        CustomTags2(dom.Runtime.TagsAndTags2).RegisterTag(params => tag, tagName)
