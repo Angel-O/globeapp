@@ -4,8 +4,10 @@ import scala.util.matching.Regex
 
 object FormValidators {
   
-  // allows piping validation rules one after the other, evaluation the
+  // allows piping validation rules one after the other, evaluating the
   // next result only if necessary
+  // TODO no need for implicit: the pipe method can be added to the
+  // ValidationResult trait
   implicit class PipeValidation(currentResult: ValidationResult) {
     // using pass by name value for efficiency
     def |>(nextResult: => ValidationResult): ValidationResult = currentResult match {
