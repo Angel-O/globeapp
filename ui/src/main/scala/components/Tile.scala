@@ -14,15 +14,16 @@ import org.scalajs.dom.raw.Event
 case class TileBuilder() extends ComponentBuilder with Color{
   def render = this
   
+  private val defaultHandler : () => Unit = () => {}
+  
   var isAncestor: Boolean = false
   var isParent: Boolean = _
   var isVertical: Boolean = _ //TODO can a child be vertical???
   var width: Int = _ //TODO throw exception if it's out of range
   var children: Seq[TileBuilder] = Seq.empty
   var content: HTMLElement = _ // TODO allow for strings as well...
-  
-  var onClick, onHover: () => Unit = () => {} //do nothing by default
-  
+  var onClick, onHover: () => Unit = defaultHandler //do nothing by default
+   
   private var isChild: Boolean = _ //NO NEED TO Set it from outside!!
   
   private val handleOnClick = (e: Event) => onClick()
@@ -72,6 +73,10 @@ case class TileBuilder() extends ComponentBuilder with Color{
     
     elem.addEventListener("click", handleOnClick)
     elem.addEventListener("mouseenter", handleOnHover)
+    
+    if (onClick != defaultHandler){
+      elem.style.cursor = "pointer"
+    }
     
     elem
   }

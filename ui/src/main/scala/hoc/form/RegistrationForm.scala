@@ -141,15 +141,15 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 				<div class="field is-grouped">
   				<div class={CONTROL}>
             { renderSubmitButton(
-                nameValidation.bind,
+                nameValidation.bind, 
                 emailValidation.bind,
-                messageValidation.bind, 
+                messageValidation.bind,
                 whereDidYouHearAboutUsValidation.bind,
-                acceptTermsValidation.bind,
                 genderValidation.bind,
+                subscriptionTypeValidation.bind,
                 passwordValidation.bind,
-                confirmPasswordValidation.bind,
-                subscriptionTypeValidation.bind).bind }
+                acceptTermsValidation.bind,
+                confirmPasswordValidation.bind).bind }
           </div>
 				</div>
       </form>.asInstanceOf[HTMLElement]
