@@ -3,13 +3,6 @@ package hoc.form
 import components.Components.Implicits.{ CustomTags2, _ }
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
-import scala.util.matching.Regex
-
-
-sealed trait ValidationResult
-case class Error(message: String) extends ValidationResult
-case class Success(message: String) extends ValidationResult
-case object YetToBeValidated extends ValidationResult
 
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
@@ -220,27 +213,25 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 }
 
 object FieldValidators{
+  
+  import FormValidators._
+  
   def validateName(value: String) = {    
-    val requiredValidationResult = validateRequiredField(fieldValue = value, fieldName = "Name")
-    requiredValidationResult match {
-      case Error(_) | YetToBeValidated => requiredValidationResult
-      case Success(_) => {
-        def isValid = (ch: Char) => ch.isLetter || ch == ' ' //TODO allow only one space...
-        if(!value.forall(isValid)) 
-          Error("Name can only contain letters")
-        else
-          validateFieldLength(fieldName = "Name", fieldValue = value, minLength = 2, maxLength = 10)
-      }
-    }
+    validateRequiredField(fieldValue = value, fieldName = "Name")
+    .|>(validateAlphaNumericField(value, fieldName = "Name"))
+    .|>(validateFieldLength(fieldName = "Name", fieldValue = value, minLength = 2, maxLength = 10))
   }
   def validateMessage(value: String) = { //TODO add remaining chars counter
-    validateFieldLength(fieldName = "Message", fieldValue = value, minLength = 20, maxLength = 150)
+    validateRequiredField(fieldValue = value, fieldName = "Message")
+    .|>(validateFieldLength(fieldName = "Message", fieldValue = value, minLength = 20, maxLength = 150))
   }
   def validateWhereDidYouHearAboutUs(value: String) = {
     validateRequiredField(fieldValue = value)
   }
   def validateAcceptTerms(accepted: Boolean) = {
-    if(accepted) Success("") else Error("Terms & Conditions must be accepted to proceed")
+    validateCheckbox(
+        checked = accepted, 
+        customErrorMessage = Some("Terms & Conditions must be accepted to proceed"))
   }
   def validateGender(value: String) = {
     validateRequiredField(fieldValue = value)
@@ -249,64 +240,19 @@ object FieldValidators{
     validateRequiredField(fieldValue = value)
   }
   def validateEmail(value: String) = {
-    val requiredValidationResult = validateRequiredField(fieldValue = value, fieldName = "Email")
-    requiredValidationResult match {
-      case Error(_) | YetToBeValidated => requiredValidationResult
-      case Success(_) => EmailValidator.isValid(value) match {
-        case true => Success("Valid email")
-        case false => Error("Please provide a valid email address")  
-      }
-    }
+    validateRequiredField(fieldValue = value, fieldName = "Email")
+    .|>(emailIsValid(value))
   }
   def validatePassword(value: String) = {
-    val requiredValidationResult = validateRequiredField(fieldValue = value, fieldName = "Password")
-    requiredValidationResult match {
-      case Error(_) | YetToBeValidated => requiredValidationResult
-      case Success(_) => {
-        val lengthValidationResult = validateFieldLength(fieldName = "Password", fieldValue = value, minLength = 4, maxLength = 12) 
-        lengthValidationResult match {
-          case Error(_)  => lengthValidationResult
-          case _ => {
-            //TODO extract validation to separate class
-            val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r 
-            validateFieldWithRegex(fieldValue = value, fieldName = "Password", regexPattern = passwordRegex)
-          }
-        }
-      }
-    }
+    val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r 
+    validateRequiredField(fieldValue = value, fieldName = "Password")
+    .|>(validateFieldWithRegex(
+        fieldValue = value, fieldName = "Password", regexPattern = passwordRegex, 
+        customErrorMessage = Some("Invalid charachters: password cannot contain spaces")))
+    .|>(validateFieldLength(fieldName = "Password", fieldValue = value, minLength = 4, maxLength = 12))
   }
   def validateConfirmPassword(password: String, confirmPassword: String) = {
-    if(confirmPassword.isEmpty){
-      Error("Please confirm your password")
-    }
-    else { 
-      password == confirmPassword match {
-        case true => Success("Passwords match")
-        case false => Error("Password doesn't match")
-      }
-    }
-  }
-  
-  private def validateFieldWithRegex(fieldValue: String, fieldName: String, regexPattern: Regex) = fieldValue match {
-    case regexPattern(_) => Success(s"Valid ${fieldName.toLowerCase}")
-    case _ => Error(s"Please provide a valid ${fieldName.toLowerCase}") //TODO provide more useful error message
-  }
-  
-  private def validateRequiredField(fieldValue: String, fieldName: String = "") = {
-    if(fieldValue.isEmpty) Error(s"$fieldName ${if(fieldName.isEmpty)"F"else"f"}ield is required")
-    else Success("")
-  }
-  
-  private def validateFieldLength(fieldName: String, fieldValue: String, minLength: Int, maxLength: Int) = {
-    val result = fieldValue.length match {
-      case 0 => Error(s"$fieldName field cannot be empty") //TODO remove this...use required validation instead     
-      case num => {
-        if (num > maxLength) Error(s"$fieldName field cannot exceed $maxLength characters")
-        else if (num < minLength) Error(s"$fieldName field must be at least $minLength characters long")
-        else Success(s"$fieldName field is valid")
-      }
-    }
-    
-    result
+    validateRequiredField(password, customErrorMessage = Some("Please confirm your password"))
+    .|>(validateMatch(password, confirmPassword, "Password"))
   }
 }
