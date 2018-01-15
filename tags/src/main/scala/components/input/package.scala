@@ -1,5 +1,5 @@
 package components
 
-package object form {
+package object input {
   
 }

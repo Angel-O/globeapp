@@ -1,4 +1,4 @@
-package components.form
+package components.input
 
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.Binding.Var

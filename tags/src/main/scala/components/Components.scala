@@ -22,7 +22,7 @@ import components.button.{SimpleButtonBuilder, ButtonBuilder, ButtonBuilderRaw}
 import components.table._
 import components.dropdown._
 import components.modal._
-import components.form._ //TODO rename this to input field
+import components.input._ 
 
 import scala.xml.Elem
 import scala.xml.UnprefixedAttribute

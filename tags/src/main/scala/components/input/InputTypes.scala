@@ -1,4 +1,4 @@
-package components.form
+package components.input
 
 sealed trait InputType{
   val name: String

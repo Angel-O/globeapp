@@ -1,4 +1,4 @@
-package components.form
+package components.input
 
 import components.Components.Implicits.{ CustomTags2, _ }
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
