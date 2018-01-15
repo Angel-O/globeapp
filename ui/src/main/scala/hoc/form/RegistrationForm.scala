@@ -5,6 +5,7 @@ import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonEle
 import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
 import org.scalajs.dom.raw.Node
 import org.scalajs.dom.document
+
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
   def render = this 

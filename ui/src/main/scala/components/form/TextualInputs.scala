@@ -80,7 +80,6 @@ case class PasswordInputBuilder() extends { val inputType = PasswordInput } with
   }
   
   @dom override def build = {
-   
     val input = inputElement.bind.asInstanceOf[HTMLInputElement]
     input.oninput = handleChange
     input.disabled = isDisabled

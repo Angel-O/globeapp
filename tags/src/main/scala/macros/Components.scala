@@ -26,7 +26,7 @@ import scala.xml.UnprefixedAttribute
 import scala.language.dynamics
 import scala.collection.mutable
 
-import macros.RegisterTag._
+//import macros.RegisterTag._
 
 object Components {
 

@@ -13,6 +13,11 @@ import router.RoutingView
 
 import Tags.customTags
 import org.scalajs.dom.raw.HTMLElement
+import hoc.form.RegistrationFormBuilder
+
+import hoc.form.RegistrationForm._
+
+import Tags._
 
 object App {
   
@@ -44,6 +49,11 @@ object App {
     val homePage = home 
      
     //val form = customTags.RegistrationForm()
+    
+    val helloPage = new RoutingView() {
+      //WORKS with Macros!!!
+      @dom override def element = <div><MyComponent foo="Hi" inner={<p>Hello</p>}/></div>
+    }
     
     val registerPage = new RoutingView() {
         @dom override def element = 

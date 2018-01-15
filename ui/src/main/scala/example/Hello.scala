@@ -37,12 +37,38 @@ import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 //import org.scalajs.dom.html.Div
 //import scala.scalajs.js
 //import scala.xml.{Elem, MetaData, NamespaceBinding, Node => XmlNode, UnprefixedAttribute, NodeSeq}
-//import macros.RegisterTag._
+
+
+import macros.RegisterTag
+//import macros.Components.Implicits.MyComponentBuilder
+//import components.Components.Implicits.MyComponentBuilder
+
+import views.Tags._
 
 object Hello  {
      
+  //@custom
   def main2(args: Array[String]): Unit = {
   
+    //RegisterTag.register(dom.Runtime.TagsAndTags2, "MyComponentBuilder", new MyComponentBuilder())
+    
+    //RegisterT.register("MyComponent", new MyComponentBuilder())
+//    implicit val t = dom.Runtime.TagsAndTags2
+//    
+//    implicit class k(x: dom.Runtime.TagsAndTags2.type) {
+//        def MyComponent = new MyComponentBuilder()
+//      }
+//      
+//    implicit val tag = RegisterT.register(t, "MyComponent", new MyComponentBuilder())
+    
+    //THIS GETS EXECUTED AT RUN TIME...no effects on compile time
+    
+//    import components.Components.Implicits.{CustomTags2}
+//    import components._
+//    val r = new CustomTags2(dom.Runtime.TagsAndTags2)
+//    val params = Seq.empty
+//    r.RegisterTag( params => new MyComponentBuilder(), "MyComponent")
+    
     val styler = Var("color:blue; font-style:italic")
     val label1 = Var("click me mate")
     val label2 = Var("click me mate")

@@ -2,6 +2,6 @@ package com.globeapp
 
 import akka.actor.Actor
 
-class RestApi extends Actor{
-  
-}
+//class RestApi extends Actor{
+//  
+//}

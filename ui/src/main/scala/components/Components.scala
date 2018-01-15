@@ -33,6 +33,7 @@ import router.BrowserRouterBuilder
 
 import scala.language.dynamics
 import scala.collection.mutable
+import macros.RegisterTag.tag
 
 object Components {
 
@@ -40,26 +41,6 @@ object Components {
 
     implicit def autoBinding[A](a: A): Binding[A] = Var(a)
     
-//    implicit def makeIntellijHappy(x: scala.xml.Elem): Binding[HTMLElement] = ???
-//    
-//    implicit class Have(a: String) {
-//      def create(key:String, value:Seq[String], next:xml.MetaData): UnprefixedAttribute = ???
-//    }
-//    object BetterAttr{
-//      implicit val key:String = ""
-//      implicit val value: Seq[String] = Seq.empty
-//      implicit var next:xml.MetaData = _
-//    }
-//    class BetterAttr(implicit key:String, value: Seq[String], next:xml.MetaData) 
-//    extends UnprefixedAttribute(key, key, null){
-//      implicit val ke: String = ""
-//      implicit val valu: Seq[String] = Seq.empty
-//      implicit var nex: xml.MetaData = _
-//      def create(key:String, value: Seq[String], next:xml.MetaData): UnprefixedAttribute = new BetterAttr()
-//    }
-//    implicit def create(implicit key:String, value: Seq[String], next:xml.MetaData): UnprefixedAttribute = 
-//      new BetterAttr()
-
     implicit class NodeListSeq[T <: Node](nodes: DOMList[T]) extends IndexedSeq[T] {
       override def foreach[U](f: T => U): Unit = {
         for (i <- 0 until nodes.length) {
@@ -83,7 +64,24 @@ object Components {
       document.querySelectorAll(selector)
     }
 
-    implicit final class CustomTags2(x: dom.Runtime.TagsAndTags2.type) {
+    import scala.language.dynamics
+    import scala.collection.mutable
+    implicit final class CustomTags2(x: dom.Runtime.TagsAndTags2.type) extends Dynamic {
+      
+      type BuilderFunction = Function[Seq[Any], ComponentBuilder]
+      
+      private val fields = mutable.Map.empty[String, BuilderFunction].withDefault {key => throw new NoSuchFieldError(key)}
+
+      def selectDynamic(key: String) = fields(key)
+
+      def updateDynamic(key: String)(value: BuilderFunction) = fields(key) = value
+
+      def applyDynamic(key: String)(args: BuilderFunction*) = fields(key)
+      
+      def RegisterTag(builder: BuilderFunction, tagName: String) = {
+        println(s"REGISTERING, $tagName")
+        this.tagName = builder
+      }
       
       // base components
       def Button() = new ButtonBuilder()
@@ -98,7 +96,7 @@ object Components {
       def Input() = new InputBuilder()
       def InputRaw() = new InputBuilderRaw()
       def MenuItem() = new MenuItemBuilder()
-      def MyComponent() = new MyComponentBuilder() // TEST
+      //def MyComponent() = new MyComponentBuilder() // TEST
       def ModalCard() = new ModalCardBuilder()
       def Navbar() = new NavbarBuilder()
       def NavbarItem() = new NavbarItemBuilder()
@@ -129,7 +127,7 @@ object Components {
       def Route() = new RouteBuilder()
       
       //hoc can also use tags registry for hoc components
-      def RegistrationForm() = new RegistrationFormBuilder()
+      //def RegistrationForm() = new RegistrationFormBuilder()
     }
     
     implicit def toComponentBuilder(x: HTMLElement):ComponentBuilder = {
@@ -138,43 +136,9 @@ object Components {
     
     implicit def toComponentBuilder(x: Elem):ComponentBuilder = ???
     
-    implicit def toHtml(x: ComponentBuilder): BindingSeq[HTMLElement] = {
-      //Constants(x.build).mapBinding(x => {@dom val bound = {x.bind}; bound})
-      //Constants(x.build).mapBinding(x => Binding{x.asInstanceOf[HTMLElement]})
-      
-//      def toBindingSeq[T](elements: Seq[T]) = {
-//        var temp: Vars[T] = Vars.empty; 
-//        elements.foreach(x => temp.value += x)
-//        var bindingElementsSeq: BindingSeq[T] = temp
-//        bindingElementsSeq
-//      }
-      
-//      x.build match{
-//        case el: HTMLElement => Constants(x.build).mapBinding(identity)
-//        case els: Seq[_] => toBindingSeq[Any](els).mapBinding(x => x.asInstanceOf[HTMLElement])
-//        case _ => throw new IllegalArgumentException("nope!!")
-//      }
-//      @dom def create(content: BindingSeq[Node]) = {
-//         val element = document.createElement("MyComponent")
-//         (new dom.Runtime.NodeSeqMountPoint(element, content)).bind
-//         val el = element.asInstanceOf[HTMLElement]
-//         Constants(el).mapBinding(x => Binding{x})
-//      }
-//      
-//      create(x)
-      
+    implicit def toHtml(x: ComponentBuilder): BindingSeq[HTMLElement] = {     
       Constants(x.build).mapBinding(identity)
     }
-    
-//    @dom implicit def toBuilder(elem: Binding[HTMLElement]) = {
-//      elem match {
-//        case x: ComponentBuilder => x.build.bind
-//        case _ => elem
-//      }
-//    }
-    
-//    implicit def register(tagName: String, tag: ComponentBuilder, params: Seq[Any] = Seq.empty) = 
-//        CustomTags2(dom.Runtime.TagsAndTags2).RegisterTag(params => tag, tagName)
     
     def toBindingSeq[T](elements: Seq[T]) = {
         var temp: Vars[T] = Vars.empty; 
@@ -223,10 +187,6 @@ object Components {
         element.asInstanceOf[HTMLElement].style.display = "block"
         element//.asInstanceOf[HTMLElement]
      }
-      
-//      import components.Components.Implicits.CustomTags2
-//      def register(tagName: String, tag: ComponentBuilder, params: Seq[Any] = Seq.empty) = 
-//        CustomTags2(dom.Runtime.TagsAndTags2).RegisterTag(params => tag, tagName)
     }
     
     trait Color {
@@ -330,18 +290,11 @@ object Components {
       @dom def build = <div>{ element }</div>.asInstanceOf[HTMLElement] 
     }
     
-    //case class MyComponentBuilder(content: BindingSeq[Node] = DummyBuilder) extends ComponentBuilder {
     case class MyComponentBuilder() extends ComponentBuilder {
       def render = this
       var foo: String = _
       var inner: HTMLElement = _
-      @dom def build = <div>{ foo.bind }{ inner.bind }</div>.asInstanceOf[HTMLElement] // create(content).bind
-
-      //      @dom def create(content: BindingSeq[Node]) = {
-      //        val element = document.createElement("MyComponent")
-      //        (new dom.Runtime.NodeSeqMountPoint(element, content)).bind
-      //        element.asInstanceOf[HTMLElement]
-      //      }
+      @dom def build = <div>{ foo.bind }{ inner.bind }</div>.asInstanceOf[HTMLElement] 
     }
 
     case object DummyBuilder extends ComponentBuilder {
