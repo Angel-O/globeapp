@@ -58,22 +58,24 @@ object App {
           <ModalCard 
 						label={"Launch form"} 
 						title={"Register now"} 
-						content={<div><RegistrationForm/></div>}
+						content={<div><RegistrationForm onSubmit={() => navigateToHello(history)}/></div>}
 						onSave={() => navigateToHome(history)}/>.build.bind }
       
     val routes = Map(
         HomePageURI -> homePage, 
-        RegisterPageURI -> registerPage)
+        RegisterPageURI -> registerPage,
+        HelloPageURI -> helloPage)
         
      routes.toList
   } 
   
   // TODO move this logic to a Factory class
-  @dom private def createRouteComponents(routeMapping: List[(String, RoutingView)]) = {
+  private def createRouteComponents(routeMapping: List[(String, RoutingView)]) = {
     
     // yield uses a call back executed in another context where we cannot use the bind method
     // therfore we need to covert it to a binding sequence (under the hood the the component builder
     // will call the bind method...apparently)
+    @dom
     val routes = (for((uri, view) <- toBindingSeq(routeMapping)) 
                     yield <Route 
 														path={uri} view={view}/>)

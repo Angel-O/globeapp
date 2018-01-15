@@ -35,6 +35,7 @@ object TagsRegistry {
   }
 }
 
+//TODO move this to tags project
 object Tags{
   
   import TagsRegistry. { customTags => cts, register }

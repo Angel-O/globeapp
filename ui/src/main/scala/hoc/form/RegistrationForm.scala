@@ -10,6 +10,8 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
    
   def render = this 
   
+  var onSubmit: () => Unit = _
+  
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
   private var termsAccepted: Var[Boolean] = Var(false)
   private val name, email, message, whereDidYouHearAboutUs, gender, 
@@ -180,7 +182,8 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     //@noinline //do I need this annotation?? investigate fastOPTJS is being slow...
     def handleSubmit() = notFullyValidated match{
       case true => runValidation()
-      case _ => println(
+      case _ => {
+        println(
           s"""SUBMITTING...
               name: ${name.value}
               email: ${email.value}
@@ -192,6 +195,8 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
               password: ${password.value}
               confirm password: ${confirmPassword.value}
               T&C accepted: ${termsAccepted.value}""")
+              onSubmit()
+              }
     }
       
     val submitButton = <Button 
