@@ -1,22 +1,15 @@
 package views
 
-import router.RoutingView
-import org.scalajs.dom.document
-
-import com.thoughtworks.binding._
-import com.thoughtworks.binding.Binding._
-
-import URIs._
+import navigation.URIs._
 import components.Components.Implicits._
 import router.RoutingView
 
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.dom
-import org.scalajs.dom.raw.HTMLElement
 
 object HomePage {
   
-  import Navigators._
+  import navigation.Navigators._
   val homePage = new RoutingView() { 
     @dom override def element = html(() => navigateToForm(history)).bind
   }

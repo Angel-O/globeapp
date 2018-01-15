@@ -1,23 +1,22 @@
 package views
 
+import com.thoughtworks.binding._
 import org.scalajs.dom.document
 import org.scalajs.dom.Node
 
-import com.thoughtworks.binding._
-import com.thoughtworks.binding.Binding._
-
-import URIs._
+// implicit conversions and helper methods
 import components.Components.Implicits._
-import router.BrowserHistory
-import router.RoutingView
-
-import Tags.customTags
-import org.scalajs.dom.raw.HTMLElement
+// use for tag registration at runtime
 import hoc.form.RegistrationFormBuilder
-
-import hoc.form.RegistrationForm._
-
+// use for tag registration at compile time
+import hoc.form._
+// use for bulk registration at compile time and run time
 import Tags._
+
+
+import router.{BrowserHistory, RoutingView}
+import navigation.Navigators._ 
+import navigation.URIs._
 
 object App {
   
@@ -44,7 +43,6 @@ object App {
   // TODO move this logic to a Factory class
   private def mapViewsToURIs(): List[(String, RoutingView)] = {
     
-    import Navigators._
     import HomePage.{ homePage => home }
     val homePage = home 
      
@@ -82,15 +80,5 @@ object App {
     
     routes
   }
-}
-
-object Navigators {  
-  def navigateToForm(bh: BrowserHistory) = bh.navigateTo(RegisterPageURI)
-  def navigateToHome(bh: BrowserHistory) = bh.navigateTo(HomePageURI) 
-}
-
-object URIs {
-  val HomePageURI = "/"
-  val RegisterPageURI = "/register"
 }
 

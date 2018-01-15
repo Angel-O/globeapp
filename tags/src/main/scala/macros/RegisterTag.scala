@@ -1,113 +1,113 @@
 package macros
 
-import macros.Components.Implicits.ComponentBuilder
-import macros.Components.Implicits.CustomTags2
+//import macros.Components.Implicits.ComponentBuilder
+//import macros.Components.Implicits.CustomTags2
 import com.thoughtworks.binding.dom
-import macros.Components.Implicits.MyComponentBuilder
+//import macros.Components.Implicits.MyComponentBuilder
 
 object RegisterTag {
   
   //implicit val cst: CustomTags2 = CustomTags2(dom.Runtime.TagsAndTags2)
-  
-  def reg(custom: dom.Runtime.TagsAndTags2.type, tagName: String, tag: ComponentBuilder) = 
-        custom.RegisterTag(params => tag, tagName)
-        
-  import scala.language.experimental.macros
-  def register2(custom: dom.Runtime.TagsAndTags2.type, tagName: String, tag: ComponentBuilder): Unit = 
-    macro registerTag_impl2
-    
-  def register(custom: dom.Runtime.TagsAndTags2.type, tagName: String, component: Any): Any = 
-    macro registerTag_impl 
-    
-  def registerTag_impl(c: scala.reflect.macros.blackbox.Context)(custom: c.Tree, tagName: c.Tree, component: c.Tree) = {
-    import c.universe._
-    //val q"..$stats" = x
-    //println(stats)
-    
-    //throw new Exception(s"STARTING OUT!: $component")
-    
-//    val y = q""" val cst = new CustomTags2(dom.Runtime.TagsAndTags2); 
-//        val params: Seq[Any] = Seq.empty
-//        cst.RegisterTag(params => $component.asInstanceOf[ComponentBuilder], $tagName)"""
+//  
+//  def reg(custom: dom.Runtime.TagsAndTags2.type, tagName: String, tag: ComponentBuilder) = 
+//        custom.RegisterTag(params => tag, tagName)
 //        
-//    //c.reifyTree(c, c, tree)
-//        c.Expr(y)
-//        
-//    val z = q"""implicit val num = 3"""
+//  import scala.language.experimental.macros
+//  def register2(custom: dom.Runtime.TagsAndTags2.type, tagName: String, tag: ComponentBuilder): Unit = 
+//    macro registerTag_impl2
 //    
-//    c.Expr(z)
+//  def register(custom: dom.Runtime.TagsAndTags2.type, tagName: String, component: Any): Any = 
+//    macro registerTag_impl 
 //    
-//    val r = q"""
-//            object ff{
+//  def registerTag_impl(c: scala.reflect.macros.blackbox.Context)(custom: c.Tree, tagName: c.Tree, component: c.Tree) = {
+//    import c.universe._
+//    //val q"..$stats" = x
+//    //println(stats)
+//    
+//    //throw new Exception(s"STARTING OUT!: $component")
+//    
+////    val y = q""" val cst = new CustomTags2(dom.Runtime.TagsAndTags2); 
+////        val params: Seq[Any] = Seq.empty
+////        cst.RegisterTag(params => $component.asInstanceOf[ComponentBuilder], $tagName)"""
+////        
+////    //c.reifyTree(c, c, tree)
+////        c.Expr(y)
+////        
+////    val z = q"""implicit val num = 3"""
+////    
+////    c.Expr(z)
+////    
+////    val r = q"""
+////            object ff{
+////              final class CustomTags3(x: dom.Runtime.TagsAndTags2.type){
+////                def MyComponent() = new MyComponentBuilder()
+////              }
+////            }
+////            import ff._"""
+////    
+////    c.Expr(r)
+//    
+//    val yes = q"""
+//                 val params = Seq.empty
+//                 $custom.RegisterTag(params => new MyComponentBuilder(), "MyComponent")
+//              """
+//    c.Expr(yes)
+//    
+//    val no = q"""
+//            
 //              final class CustomTags3(x: dom.Runtime.TagsAndTags2.type){
 //                def MyComponent() = new MyComponentBuilder()
 //              }
-//            }
-//            import ff._"""
+//            
+//            new CustomTags3($custom)"""
 //    
-//    c.Expr(r)
-    
-    val yes = q"""
-                 val params = Seq.empty
-                 $custom.RegisterTag(params => new MyComponentBuilder(), "MyComponent")
-              """
-    c.Expr(yes)
-    
-    val no = q"""
-            
-              final class CustomTags3(x: dom.Runtime.TagsAndTags2.type){
-                def MyComponent() = new MyComponentBuilder()
-              }
-            
-            new CustomTags3($custom)"""
-    
-    c.Expr(no)
-    //Literal(Constant(no))
-  }
-   
-  import scala.reflect.macros.blackbox.Context
-  object debug {
-  def apply[T](x: => T): T = macro impl
-  def impl(c: Context)(x: c.Tree) = { 
-    import c.universe._
-    val q"..$stats" = x
-    val loggedStats = stats.flatMap { stat =>
-      val msg = "executing " + showCode(stat)
-      List(q"println($msg)", stat)
-    }
-    q"..$loggedStats"
-  }
-}  
-    
-  import scala.reflect.macros.blackbox.Context // do I need the blackbox
-  def registerTag_impl2(c: Context)(custom: c.Expr[dom.Runtime.TagsAndTags2.type],
-                              tagName: c.Expr[String], 
-                              tag: c.Expr[ComponentBuilder]): c.Expr[Unit] = {
-    
-    import c.universe._
-    (custom, tagName, tag) match {
-      case (Expr(custom: dom.Runtime.TagsAndTags2.type), Expr(Literal(Constant(tagNameValue: String))), Expr(tagValue:ComponentBuilder) ) => 
-        val result = reg(custom, tagNameValue, tagValue)
-        println("RESULT:", result)
-        c.Expr(Literal(Constant(result)))
-      //case: typeOf
-      case (Expr(custom: dom.Runtime.TagsAndTags2.type),Expr(Literal(Constant(tagNameValue: String))),Expr(t)) => {
-        println(tagNameValue, t)
-//        val tg = tagName.value
-//        val t = tag.value
-//        val p = params.value
-        
-        val r = reg(custom, tagNameValue, MyComponentBuilder())
-        println("HI")
-        c.Expr(Literal(Constant(0)))
-        throw new Exception(s"tag error??????: registration failed!")
-      }
-      case (a: Expr[_], b, c) => {
-        //println(tagName.asInstanceOf[Literal])//, tag, params)
-        throw new Exception(s"""tag error: registration failed! ${a.actualType}, $b, $c""")
-      }
-    }
-  }
+//    c.Expr(no)
+//    //Literal(Constant(no))
+//  }
+//   
+//  import scala.reflect.macros.blackbox.Context
+//  object debug {
+//  def apply[T](x: => T): T = macro impl
+//  def impl(c: Context)(x: c.Tree) = { 
+//    import c.universe._
+//    val q"..$stats" = x
+//    val loggedStats = stats.flatMap { stat =>
+//      val msg = "executing " + showCode(stat)
+//      List(q"println($msg)", stat)
+//    }
+//    q"..$loggedStats"
+//  }
+//}  
+//    
+//  import scala.reflect.macros.blackbox.Context // do I need the blackbox
+//  def registerTag_impl2(c: Context)(custom: c.Expr[dom.Runtime.TagsAndTags2.type],
+//                              tagName: c.Expr[String], 
+//                              tag: c.Expr[ComponentBuilder]): c.Expr[Unit] = {
+//    
+//    import c.universe._
+//    (custom, tagName, tag) match {
+//      case (Expr(custom: dom.Runtime.TagsAndTags2.type), Expr(Literal(Constant(tagNameValue: String))), Expr(tagValue:ComponentBuilder) ) => 
+//        val result = reg(custom, tagNameValue, tagValue)
+//        println("RESULT:", result)
+//        c.Expr(Literal(Constant(result)))
+//      //case: typeOf
+//      case (Expr(custom: dom.Runtime.TagsAndTags2.type),Expr(Literal(Constant(tagNameValue: String))),Expr(t)) => {
+//        println(tagNameValue, t)
+////        val tg = tagName.value
+////        val t = tag.value
+////        val p = params.value
+//        
+//        val r = reg(custom, tagNameValue, MyComponentBuilder())
+//        println("HI")
+//        c.Expr(Literal(Constant(0)))
+//        throw new Exception(s"tag error??????: registration failed!")
+//      }
+//      case (a: Expr[_], b, c) => {
+//        //println(tagName.asInstanceOf[Literal])//, tag, params)
+//        throw new Exception(s"""tag error: registration failed! ${a.actualType}, $b, $c""")
+//      }
+//    }
+//  }
   
   import scala.reflect.macros.whitebox.{Context => theC}
   import scala.language.experimental.macros

@@ -23,17 +23,12 @@ import components.table._
 import components.dropdown._
 import components.modal._
 import components.form._ //TODO rename this to input field
-import hoc.form._
 
 import scala.xml.Elem
 import scala.xml.UnprefixedAttribute
-import hoc.form.`package`
+
 import router.RouteBuilder
 import router.BrowserRouterBuilder
-
-import scala.language.dynamics
-import scala.collection.mutable
-import macros.RegisterTag.tag
 
 object Components {
 
@@ -78,10 +73,7 @@ object Components {
 
       def applyDynamic(key: String)(args: BuilderFunction*) = fields(key)
       
-      def RegisterTag(builder: BuilderFunction, tagName: String) = {
-        println(s"REGISTERING, $tagName")
-        this.tagName = builder
-      }
+      def RegisterTag(builder: BuilderFunction, tagName: String) = this.tagName = builder
       
       // base components
       def Button() = new ButtonBuilder()
@@ -114,20 +106,15 @@ object Components {
       def TabSwitch() = new TabSwitchBuilder()
       def TabContent() = new TabContentBuilder()
       def TextareaInput() = new TextareaInputBuilder()
-      def TextInput() = new TextInputBuilder()
-      
+      def TextInput() = new TextInputBuilder()  
       def Tile() = new TileBuilder()
-      
-      
+           
       // util
       def Wrapper(x: HTMLElement) = new GenricComponentBuilder(x)
       
       // routing
       def BrowserRouter() = new BrowserRouterBuilder()
       def Route() = new RouteBuilder()
-      
-      //hoc can also use tags registry for hoc components
-      //def RegistrationForm() = new RegistrationFormBuilder()
     }
     
     implicit def toComponentBuilder(x: HTMLElement):ComponentBuilder = {
@@ -155,7 +142,7 @@ object Components {
     abstract class ComponentBuilder extends BulmaCssClasses {
       def render: ComponentBuilder
       def build: Binding[HTMLElement] 
-      //def self: HTMLElement
+      
       // lazy val avoids compiler issues if using xml syntax <Dummy/>...it doesn't completely work
       // but there is no time to invstigate
       protected lazy val dummy: ComponentBuilder = DummyBuilder.asInstanceOf[ComponentBuilder]
@@ -181,11 +168,12 @@ object Components {
         //this is equivalent to ----> toHtml(this)
       }
       
+      // create custom tags visible on dev tools
       @dom def create(content: Node, tagName: String) = {
         val element = document.createElement(tagName)
         (new dom.Runtime.NodeSeqMountPoint(element, content)).watch()
         element.asInstanceOf[HTMLElement].style.display = "block"
-        element//.asInstanceOf[HTMLElement]
+        element
      }
     }
     
@@ -290,16 +278,16 @@ object Components {
       @dom def build = <div>{ element }</div>.asInstanceOf[HTMLElement] 
     }
     
+    case object DummyBuilder extends ComponentBuilder {
+      def render = this
+      @dom def build = <div class="dummy"><!-- --></div>.asInstanceOf[HTMLElement]
+    }
+    
     case class MyComponentBuilder() extends ComponentBuilder {
       def render = this
       var foo: String = _
       var inner: HTMLElement = _
       @dom def build = <div>{ foo.bind }{ inner.bind }</div>.asInstanceOf[HTMLElement] 
-    }
-
-    case object DummyBuilder extends ComponentBuilder {
-      def render = this
-      @dom def build = <div class="dummy"><!-- --></div>.asInstanceOf[HTMLElement]
     }
   }
 }
