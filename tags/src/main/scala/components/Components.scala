@@ -160,14 +160,12 @@ object Components {
       def getClassName(conditionsAndTokens: (Boolean, String)*): String = {
         conditionsAndTokens.map(x => getClassToken(x._1, x._2)).reduceLeft(_ ++ _).mkString(" ")
       }
-      
-      def getClassTokens(tokens: String*): String = {       
-        tokens.reduceLeft((acc, curr) => 
-          getClassName( //combines accumulated tokens with current token
+
+      def getClassTokens(tokens: String*): String = {
+        tokens.reduceLeft((acc, curr) =>
+          getClassName( // combines accumulated tokens with current token
             (true, getClassName((true, acc))), // returns the accumulated tokens
-            (true, getClassName((true, curr)))  // returns the current token
-          )
-        )
+            (true, getClassName((true, curr))))) // returns the current token      
       }
       
       def listen = {
