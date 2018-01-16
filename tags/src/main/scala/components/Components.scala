@@ -162,7 +162,12 @@ object Components {
       }
       
       def getClassTokens(tokens: String*): String = {       
-        tokens.reduceLeft((x, y) => getClassName((true, getClassName((true, x))), (true, getClassName((true, y)))))
+        tokens.reduceLeft((acc, curr) => 
+          getClassName( //combines accumulated tokens with current token
+            (true, getClassName((true, acc))), // returns the accumulated tokens
+            (true, getClassName((true, curr)))  // returns the current token
+          )
+        )
       }
       
       def listen = {
