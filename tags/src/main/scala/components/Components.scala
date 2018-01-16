@@ -155,10 +155,14 @@ object Components {
         else dummy.build
       }.bind
       
-      def getClassToken(condition: Boolean, token: String) = if (condition) List(token) else Nil
+      private def getClassToken(condition: Boolean, token: String) = if (condition) List(token) else Nil
 
-      def getClassName(conditionsAndTokens: (Boolean, String)*) = {
+      def getClassName(conditionsAndTokens: (Boolean, String)*): String = {
         conditionsAndTokens.map(x => getClassToken(x._1, x._2)).reduceLeft(_ ++ _).mkString(" ")
+      }
+      
+      def getClassTokens(tokens: String*): String = {       
+        tokens.reduceLeft((x, y) => getClassName((true, getClassName((true, x))), (true, getClassName((true, y)))))
       }
       
       def listen = {
@@ -233,6 +237,7 @@ object Components {
       val IS_ = "is-"
       val NOTIFICATION = "notification"
       val INFO = "is-info"
+      val GROUPED = "is-grouped"
     }
     
     trait HTMLClassManipulator{

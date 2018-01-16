@@ -142,7 +142,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 						onSelect={handleAcceptTermsChange}/>
 					{ renderValidation(acceptTermsValidation.bind).bind }	
 				</div>
-				<div class="field is-grouped">
+				<div class={getClassTokens(FIELD, GROUPED)}>
   				<div class={CONTROL}>
             { renderSubmitButton(
                 nameValidation.bind, 
