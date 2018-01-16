@@ -189,6 +189,7 @@ object RegisterTag {
      
        c.Expr[Any] {
          q""" 
+              import com.thoughtworks.binding.dom
               implicit final class $className(x: dom.Runtime.TagsAndTags2.type){
                   def $pat() = new $component()
                 }
