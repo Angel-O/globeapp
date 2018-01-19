@@ -53,6 +53,12 @@ object Components {
     }
     
     implicit def toHTMLElement(x: Elem) = x.asInstanceOf[HTMLElement]
+    
+    //implicit def toHTMLElementBinding(x: Elem) = Binding{x.asInstanceOf[HTMLElement]}
+    
+    //DANGEROUS... turns "flatmap(_bind)" to "map(_bind)"
+    // implicit def toHTMLBinding(x: ComponentBuilder) = Binding{x.asInstanceOf[HTMLElement]}  
+    // implicit def toSomething(x: ComponentBuilder) = x.build.bind
 
     //NOT USED...
     def getAll(selector: String): NodeList = {
@@ -139,7 +145,7 @@ object Components {
         getAll().bind
     }
 
-    abstract class ComponentBuilder extends BulmaCssClasses {
+    abstract class ComponentBuilder extends BulmaCssClasses with Dynamic{
       def render: ComponentBuilder
       def build: Binding[HTMLElement] 
       
@@ -181,7 +187,26 @@ object Components {
         (new dom.Runtime.NodeSeqMountPoint(element, content)).watch()
         element.asInstanceOf[HTMLElement].style.display = "block"
         element
-     }
+      }
+      
+      //TODO ablity to add dynamic function fields with more than 0 params and Any other type...
+      private val fields = mutable.Map.empty[String, Any].withDefault {key => null}
+      
+      def selectDynamic(key: String) = fields(key)
+
+      def updateDynamic(key: String)(value: Function0[_]) = fields(key) = value
+
+      def applyDynamic(key: String)(args: Any*) = { //args prolly not needed... just return the function
+        fields(key) match {
+          case f: Function0[_] => f() // executes a Zero arg function
+          case f: Function1[_, Any] => f(_) //TODO find a way to pass args
+          case i: Int => i // primitive tpyes
+          case c: Char => c
+          case b: Boolean => b
+          case s: String => s
+          case _ => fields(key) //reference types
+        }
+      }
     }
     
     trait Color {

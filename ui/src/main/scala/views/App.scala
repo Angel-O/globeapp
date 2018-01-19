@@ -17,6 +17,8 @@ import Tags._
 import router.{BrowserHistory, RoutingView}
 import navigation.Navigators._ 
 import navigation.URIs._
+import org.scalajs.dom.raw.HTMLElement
+import scala.xml.Elem
 
 object App {
   
@@ -47,7 +49,6 @@ object App {
     val homePage = home 
      
     //val form = customTags.RegistrationForm()
-    
     val helloPage = new RoutingView() {
       //WORKS with Macros!!!
       @dom override def element = <div><MyComponent foo="Hi mate" inner={<p>Hello</p>}/></div>
@@ -58,15 +59,15 @@ object App {
           <ModalCard 
 						label={"Launch form"} 
 						title={"Register now"} 
-						content={<div><RegistrationForm onSubmit={navigateToHello _}/></div>}
+						content={<div><RegistrationForm onSubmit={navigateToHello _} onClick={() => println("CLICKED")}/></div>}
 						onSave={navigateToHome _}/>.build.bind }
       
-    val routes = Map(
+    val routes = List(
         HomePageURI -> homePage, 
         RegisterPageURI -> registerPage,
         HelloPageURI -> helloPage)
         
-     routes.toList
+     routes
   } 
   
   // TODO move this logic to a Factory class

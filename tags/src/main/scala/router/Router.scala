@@ -18,14 +18,20 @@ case class Router private() extends ComponentBuilder {
   var routes: Seq[RouteBuilder] = Seq.empty
   val history = new BrowserHistory(this)
   
-  private def root = routes.find(_.path == "/").getOrElse(Router.BNotFound).view
+  private def root = routes.find(_.path == "/").get.view //TODO change this, waht if I need a router on a sub path?
   private lazy val activePage: Var[RoutingView] = Var(root)
-  private def getRoute(path: String) = (routes.find(_.path == path).getOrElse(Router.BNotFound)).view
+  private def getRoute(path: String) = (routes.find(_.path == path).getOrElse(Router.NotFound)).view
    
   def render = activePage.value.render
   
   @dom def build: Binding[HTMLElement] = {
-    assert(routes.nonEmpty)
+    require(routes.nonEmpty, "Cannot create router without routes")
+    require(routes.map(_.path).toSet.size == routes.size, 
+        s"Found duplicate routes: (${routes
+        .groupBy(identity)
+        .collect { case (x,ys) if ys.lengthCompare(1) > 0 => x.path }
+        .head})")
+    require(routes.exists(_.path == "/"), "Root path ('/') required")
     
     routes.foreach(_.build)
     activePage.bind.build.bind
@@ -43,12 +49,12 @@ case class Router private() extends ComponentBuilder {
     val location = e.newURL
     val path = location.substring(location.indexOf("#")).toList match {
       case _ :: tail => tail.mkString("")
-      case _ => s"#${Router.BNotFound.path}" //TODO fix this: it's not doing anything
+      case _ => s"#${Router.NotFound.path}" //TODO fix this: it's not doing anything
     }
     val route = getRoute(path)
-    if (route == Router.BNotFound.view){
+    if (route == Router.NotFound.view){
       //simulate redirect
-      document.location.hash = Router.BNotFound.path
+      document.location.hash = Router.NotFound.path
     }
     activePage.value = getRoute(path)
   }
@@ -63,9 +69,10 @@ case class BrowserHistory(val router: Router){
   }   
 }
 
+//TODO add ability to set custom 404 page
 private object Router {
   
-  val BNotFound = {
+  val NotFound = {
     val route = new RouteBuilder() 
     route.path = "/404"
     route.view = new RoutingView(){ @dom override val element = dummy.build.bind }

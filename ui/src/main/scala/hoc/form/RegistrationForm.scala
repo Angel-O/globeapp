@@ -195,6 +195,9 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
               password: ${password.value}
               confirm password: ${confirmPassword.value}
               T&C accepted: ${termsAccepted.value}""")
+              // Note components can have dynamic fields!! just refer to them by appending the this qualifier
+              // (e.g. this.onClick) and convert them to the right type
+              this.onClick()
               onSubmit()
               }
     }

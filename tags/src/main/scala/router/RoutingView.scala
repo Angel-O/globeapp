@@ -16,7 +16,7 @@ class RoutingView(navigators: BrowserHistory => Unit*) extends ComponentBuilder 
   def element: Binding[HTMLElement] = //TODO add support for pure html elements
     throw new IllegalArgumentException("element method in RoutingView must be overridden")
   
-  @dom def build: Binding[HTMLElement] = {
+  @dom def build = {
    
     val viewBuilder = toComponentBuilder(element.bind).bind
     val viewElement = viewBuilder.build
