@@ -241,6 +241,8 @@ object Components {
       val NOTIFICATION = "notification"
       val INFO = "is-info"
       val GROUPED = "is-grouped"
+      val MODAL_BUTTON = "modal-button"
+      val DELETE = "delete"
     }
     
     trait HTMLClassManipulator{

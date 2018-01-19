@@ -50,7 +50,7 @@ object App {
     
     val helloPage = new RoutingView() {
       //WORKS with Macros!!!
-      @dom override def element = <div><MyComponent foo="Hi" inner={<p>Hello</p>}/></div>
+      @dom override def element = <div><MyComponent foo="Hi mate" inner={<p>Hello</p>}/></div>
     }
     
     val registerPage = new RoutingView() {
@@ -58,8 +58,8 @@ object App {
           <ModalCard 
 						label={"Launch form"} 
 						title={"Register now"} 
-						content={<div><RegistrationForm onSubmit={() => navigateToHello(history)}/></div>}
-						onSave={() => navigateToHome(history)}/>.build.bind }
+						content={<div><RegistrationForm onSubmit={navigateToHello _}/></div>}
+						onSave={navigateToHome _}/>.build.bind }
       
     val routes = Map(
         HomePageURI -> homePage, 

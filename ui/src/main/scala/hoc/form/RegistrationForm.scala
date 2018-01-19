@@ -133,7 +133,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 				</div>
 				<div class={FIELD}>
 					<CheckboxInput
-						label="Subscribe me to latest news from App Globe"
+						label="Subscribe me to latest news from GlobeApp"
 						onSelect={handleSubscribeMeChange}/>
 				</div>
 				<div class={FIELD}>

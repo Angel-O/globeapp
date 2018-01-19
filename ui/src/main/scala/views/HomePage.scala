@@ -11,11 +11,9 @@ object HomePage {
   
   import navigation.Navigators._
   val homePage = new RoutingView() { 
-    @dom override def element = html(() => navigateToForm(history)).bind
-  }
-  
-  //TODO split into subtiles and create HomePage subpackage 
-  @dom def html(navigateToForm: () => Unit) = {
+    
+    //TODO split into subtiles and create HomePage subpackage 
+    @dom override def element = 
           <div>
 						<Tile isAncestor={true} 
 							children={Seq(
@@ -70,7 +68,7 @@ object HomePage {
 								/>, 
 							  <Tile isParent={true}
 							    	children={Seq(
-							    	    <Tile isSuccess={true} onClick={navigateToForm}
+							    	    <Tile isSuccess={true} onClick={navigateToForm _}
 													content={
 													  <div class="content">
             									<p class="title">Tall tile</p>
@@ -78,13 +76,13 @@ object HomePage {
             									<div class="content">
 																<Button 
 																		label={ "click me or the whole tile" } 
-																		onClick={navigateToForm}/>
+																		onClick={navigateToForm _}/>
               									<!-- Content -->
             									</div>
           									</div>}
 												/>)}
 							   />)}
 						/>
-					</div>.asInstanceOf[HTMLElement] 
+					</div>.asInstanceOf[HTMLElement]
   }
 }

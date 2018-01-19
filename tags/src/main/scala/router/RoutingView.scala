@@ -12,7 +12,7 @@ import com.thoughtworks.binding.Binding.Constants
 // the routes. TODO remove the navigators from c.tor if there is not a valid use case
 class RoutingView(navigators: BrowserHistory => Unit*) extends ComponentBuilder {
   def render = this
-  var history: BrowserHistory = _
+  implicit var history: BrowserHistory = _
   def element: Binding[HTMLElement] = //TODO add support for pure html elements
     throw new IllegalArgumentException("element method in RoutingView must be overridden")
   
