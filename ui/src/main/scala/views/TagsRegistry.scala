@@ -6,7 +6,7 @@ import scala.language.dynamics
 import scala.collection.mutable
 import views.TagsRegistry.CustomTags
 import hoc.form.RegistrationFormBuilder
-import components.Components.Implicits.MyComponentBuilder
+//import components.Components.MyComponentBuilder
 
 object TagsRegistry {
   
@@ -47,10 +47,10 @@ object Tags{
     register(() => new RegistrationFormBuilder(), "RegistrationForm")
   } 
   
-  import macros.RegisterTag.register
+  //import macros.RegisterTag.register
   
   //@register
   //val RegistrationForm = "RegistrationForm"
-  @register
-  val MyComponent = "MyComponent"
+//  @register
+//  val MyComponent = "MyComponent"
 }

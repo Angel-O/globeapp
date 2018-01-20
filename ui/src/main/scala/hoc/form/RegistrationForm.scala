@@ -1,6 +1,6 @@
 package hoc.form
 
-import components.Components.Implicits.{ CustomTags2, _ }
+import components.Components.Implicits.{ CustomTags2, ComponentBuilder, _ }
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
 import org.scalajs.dom.raw.Node
@@ -142,7 +142,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 						onSelect={handleAcceptTermsChange}/>
 					{ renderValidation(acceptTermsValidation.bind).bind }	
 				</div>
-				<div class={getClassTokens(FIELD, GROUPED)}>
+				<div class={getClassName(FIELD, GROUPED)}>
   				<div class={CONTROL}>
             { renderSubmitButton(
                 nameValidation.bind, 

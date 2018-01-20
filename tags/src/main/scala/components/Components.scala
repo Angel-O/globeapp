@@ -32,6 +32,7 @@ import router.BrowserRouterBuilder
 
 object Components {
 
+  //TODO organize this class better...
   object Implicits {
 
     implicit def autoBinding[A](a: A): Binding[A] = Var(a)
@@ -52,9 +53,11 @@ object Components {
       override def apply(idx: Int): T = nodes(idx)
     }
     
-    implicit def toHTMLElement(x: Elem) = x.asInstanceOf[HTMLElement]
+    //TODO what does identity do??? commnd click on checkbox input builder ==> fieldClassName property...
+    implicit def toHTMLElement(x: Elem) = identity(x.asInstanceOf[HTMLElement])
     
-    //implicit def toHTMLElementBinding(x: Elem) = Binding{x.asInstanceOf[HTMLElement]}
+    //IF Things go wrong comment this out (to test the above...comment this out as well)
+    implicit def toHTMLElementBinding(x: Elem) = Var{x.asInstanceOf[HTMLElement]}
     
     //DANGEROUS... turns "flatmap(_bind)" to "map(_bind)"
     // implicit def toHTMLBinding(x: ComponentBuilder) = Binding{x.asInstanceOf[HTMLElement]}  
@@ -94,7 +97,7 @@ object Components {
       def Input() = new InputBuilder()
       def InputRaw() = new InputBuilderRaw()
       def MenuItem() = new MenuItemBuilder()
-      //def MyComponent() = new MyComponentBuilder() // TEST
+      def MyComponent() = new MyComponentBuilder() // TEST
       def ModalCard() = new ModalCardBuilder()
       def Navbar() = new NavbarBuilder()
       def NavbarItem() = new NavbarItemBuilder()
@@ -163,15 +166,14 @@ object Components {
       
       private def getClassToken(condition: Boolean, token: String) = if (condition) List(token) else Nil
 
-      def getClassName(conditionsAndTokens: (Boolean, String)*): String = {
-        conditionsAndTokens.map(x => getClassToken(x._1, x._2)).reduceLeft(_ ++ _).mkString(" ")
-      }
-
-      def getClassTokens(tokens: String*): String = {
-        tokens.reduceLeft((acc, curr) =>
-          getClassName( // combines accumulated tokens with current token
-            (true, getClassName((true, acc))), // returns the accumulated tokens
-            (true, getClassName((true, curr))))) // returns the current token      
+      type CandT = Either[(Boolean, String), String] 
+      implicit def toEitherRight(s: String) = Right(s)
+      implicit def toEitherLeft(ct: (Boolean, String)) = Left(ct)     
+      def getClassName(conditionsAndTokens: CandT*): String = {
+        conditionsAndTokens.map(x => x match {
+          case Left(ct) => getClassToken(ct._1, ct._2)
+          case Right(t) => getClassToken(true, t)
+        }).reduceLeft(_ ++ _).mkString(" ") 
       }
       
       def listen = {
@@ -200,7 +202,7 @@ object Components {
         fields(key) match {
           case f: Function0[_] => f() // executes a Zero arg function
           case f: Function1[_, Any] => f(_) //TODO find a way to pass args
-          case i: Int => i // primitive tpyes
+          case i: Int => i // primitive types
           case c: Char => c
           case b: Boolean => b
           case s: String => s
@@ -267,6 +269,8 @@ object Components {
       val INFO = "is-info"
       val GROUPED = "is-grouped"
       val MODAL_BUTTON = "modal-button"
+      val MODAL_CLOSE = "modal-close"
+      val MODAL_CONTENT = "modal-content"
       val DELETE = "delete"
     }
     
@@ -316,13 +320,6 @@ object Components {
     case object DummyBuilder extends ComponentBuilder {
       def render = this
       @dom def build = <div class="dummy"><!-- --></div>.asInstanceOf[HTMLElement]
-    }
-    
-    case class MyComponentBuilder() extends ComponentBuilder {
-      def render = this
-      var foo: String = _
-      var inner: HTMLElement = _
-      @dom def build = <div>{ foo.bind }{ inner.bind }</div>.asInstanceOf[HTMLElement] 
     }
   }
 }

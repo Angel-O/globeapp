@@ -5,20 +5,20 @@ import org.scalajs.dom.document
 import org.scalajs.dom.Node
 
 // implicit conversions and helper methods
-import components.Components.Implicits._
+import components.Components.Implicits.{toBindingSeq, CustomTags2, _}
 // use for tag registration at runtime
-import hoc.form.RegistrationFormBuilder
+//import hoc.form.RegistrationFormBuilder
 // use for tag registration at compile time
 import hoc.form._
 // use for bulk registration at compile time and run time
-import Tags._
+//import Tags._
 
 
 import router.{BrowserHistory, RoutingView}
 import navigation.Navigators._ 
 import navigation.URIs._
 import org.scalajs.dom.raw.HTMLElement
-import scala.xml.Elem
+//import scala.xml.Elem
 
 object App {
   
@@ -50,7 +50,6 @@ object App {
      
     //val form = customTags.RegistrationForm()
     val helloPage = new RoutingView() {
-      //WORKS with Macros!!!
       @dom override def element = <div><MyComponent foo="Hi mate" inner={<p>Hello</p>}/></div>
     }
     
@@ -77,9 +76,7 @@ object App {
     // therfore we need to covert it to a binding sequence (under the hood the the component builder
     // will call the bind method...apparently)
     @dom
-    val routes = (for((uri, view) <- toBindingSeq(routeMapping)) 
-                    yield <Route 
-														path={uri} view={view}/>)
+    val routes = (for((uri, view) <- toBindingSeq(routeMapping)) yield <Route path={uri} view={view}/>)
     
     routes
   }
