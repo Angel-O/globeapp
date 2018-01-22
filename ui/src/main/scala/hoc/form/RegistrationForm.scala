@@ -5,6 +5,11 @@ import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonEle
 import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
 import org.scalajs.dom.raw.Node
 import org.scalajs.dom.document
+import com.thoughtworks.binding.FutureBinding
+import org.scalajs.dom.ext.Ajax
+import scala.concurrent.ExecutionContext.Implicits.global
+import scalajs.js
+import upickle.Js
 
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
@@ -21,9 +26,15 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
   import FieldValidators._ 
+  
+  import scala.util.{Success => Ok, Failure}
+  import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    nameValidation.value = validateName(name.value)
+    validateUserNameAlreadyTaken(value).onComplete{
+        case Ok(result) => nameValidation.value = validateName(name.value)|>result
+        case Failure(x) => nameValidation.value = validateName(name.value); //x.printStackTrace()
+    }   
   } 
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()
@@ -226,6 +237,57 @@ object FieldValidators{
   
   import FormValidators._
   val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r
+  
+  
+  //import apimodels.User
+  import apimodels.User
+  def validateUserNameAlreadyTaken(userName: String) = {
+//    val future = FutureBinding(Ajax.get(
+//      url = "http://localhost:9000/users", 
+//      data = null, 
+//      timeout = 9000, 
+//      headers = Map.empty, 
+//      withCredentials = false, 
+//      responseType = "application/json"))
+//    
+//    @dom def renderFuture = {
+//      val arrived = future.bind match {
+//        case Some(Ok(xhr)) => {
+//          val users = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[User]].toSeq         
+//          users
+//        }
+//        case Some(Failure(error)) => Seq.empty//s"$error"
+//      }     
+//      arrived
+//    }
+    
+    val future = Ajax.get(
+      url = "http://localhost:9000/api/users", 
+      data = null, 
+      timeout = 9000, 
+      headers = Map.empty, 
+      withCredentials = false, 
+      responseType = "text")
+      
+      import org.scalajs.dom.console
+    
+      future.map { xhr => 
+          //val users = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[User]].toSeq
+        val us = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[js.Dynamic]].toSeq
+        console.warn("Users, ", us.head.isInstanceOf[User])
+        
+        //val kk = J
+        
+          val users = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[User]].toSeq   
+          users.foreach(x => console.warn("user:", x.name))
+          //println("Users", users)
+          users.exists(_.name.toString == userName) match{
+            case true => Error(s"$userName already taken")
+            case _ => Success("Valid username")
+          }
+      }  
+  }
+  
   
   def validateName(value: String) = {    
     validateRequiredField(fieldValue = value, fieldName = "Name")
