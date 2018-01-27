@@ -35,6 +35,8 @@ object Components {
   //TODO organize this class better...
   object Implicits {
 
+    import org.scalajs.dom.console
+    implicit val log = console
     implicit def autoBinding[A](a: A): Binding[A] = Var(a)
     
     implicit class NodeListSeq[T <: Node](nodes: DOMList[T]) extends IndexedSeq[T] {

@@ -13,10 +13,52 @@ lazy val commonSettings = Seq(
 //    libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1"
 //)
 
-lazy val root = (project in file(".")).aggregate(ui, server)//.dependsOn(ui, server)
+lazy val root = (project in file("."))
+    .aggregate(ui, server)
+    .settings(
+        //update / aggregate := false
+        //run / aggregate := false,
+        //fastOptJS / aggregate := false
+    )//.dependsOn(ui, server)
+
+lazy val cross = (crossProject.crossType(CrossType.Full) in file("."))
+    .settings(
+        commonSettings,
+        //name := "shared",
+        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
+        EclipseKeys.useProjectId := true
+    )
+    .jsConfigure(_.enablePlugins(ScalaJSPlugin))
+    .jvmSettings(
+        // Add JVM-specific settings here
+        //libraryDependencies += "org.scala-js" %% "scalajs-dom" % "0.9.3"
+        //unmanagedSourceDirectories in Compile += baseDirectory.value / "jvm",
+        //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1"
+    )
+    .jsSettings(
+        // Add JS-specific settings here
+        //libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.3"
+        //sourceMapsBase := baseDirectory.value / "..",
+        //unmanagedSourceDirectories in Compile += baseDirectory.value / "js",
+        //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1"
+    )
+
+//import complete.DefaultParsers._
+//import complete.Parser
+
+lazy val launchserver = taskKey[Unit]("launch server project")
+lazy val runserver = inputKey[Unit]("run server")
+//val separator: Parser[String] = "~"
+
+import scala.sys.process._ 
+
+lazy val execScript = taskKey[Unit]("Execute the shell script")
+
+
+
 
 lazy val ui = (project in file("ui"))
-    .dependsOn(tags, apimodelsJS)
+    .dependsOn(tags, sharedJS)
     .enablePlugins(ScalaJSPlugin, WorkbenchPlugin)
     .settings(
 //        inThisBuild(List(
@@ -25,6 +67,20 @@ lazy val ui = (project in file("ui"))
 //            workbenchStartMode := WorkbenchStartModes.OnCompile    
 //        )),
 //        unmanagedSourceDirectories in Compile ++= { unmanagedSourceDirectories in (models, Compile) },
+        execScript := {
+          "sbt ~fastOptJS" !
+        },
+        runserver in Compile := {
+//            (run in Compile in server).toTask("").value
+            //val sep = separator.parsed
+            //(fastOptJS in Compile)
+            execScript.value
+            (run in Compile in server).evaluated
+            //Def.sequential(
+                //(fastOptJS in Compile)).value
+            
+            //Def.sequential((fastOptJS in Compile), (run in Compile in server).toTask("")).value
+        },
         // include the macro classes and resources in the main jar
         mappings in (Compile, packageBin) ++= mappings.in(tags, Compile, packageBin).value,
         // include the macro sources in the main source jar
@@ -33,8 +89,9 @@ lazy val ui = (project in file("ui"))
         //mappings in (Compile, packageSrc) ++= mappings.in(modelsJVM, Compile, packageSrc).value,
         commonSettings,
         name := "ui",
+        //run := (run in Compile).dependsOn((run in Compile in server).toTask("")).evaluated,
         autoCompilerPlugins := true,
-        EclipseKeys.preTasks := Seq(compile in Compile),
+        //EclipseKeys.preTasks := Seq(compile in Compile),
         scalaJSUseMainModuleInitializer := true,
         workbenchDefaultRootObject := Some(("./index-dev.html", "./ui")),
         workbenchStartMode := WorkbenchStartModes.OnCompile,
@@ -42,7 +99,9 @@ lazy val ui = (project in file("ui"))
         libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
         libraryDependencies += "com.thoughtworks.binding" %%% "futurebinding" % "latest.release",
         libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
+        //libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0",
+        libraryDependencies += "fr.hmil" %%% "roshttp" % "2.1.0",
+        //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
         //https:/stackoverflow.com/questions/43717198/symbol-type-none-scalacheck-shrink-is-missing-from-the-classpath
         libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.+"
 
@@ -53,15 +112,16 @@ lazy val ui = (project in file("ui"))
 
 lazy val server = (project in file("server"))
     //.dependsOn(ProjectRef(uri("models/JVM"), "jvm"))
-    .dependsOn(apimodelsJVM)
+    .dependsOn(sharedJVM)
     .enablePlugins(PlayScala)
     .settings(
         commonSettings,
         name := "server",
-        libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
+        //run := (run in Compile).dependsOn(fastOptJS in Compile in ui).evaluated,
+        //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         libraryDependencies += guice,
-        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
-        EclipseKeys.preTasks := Seq(compile in Compile)
+        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test//,
+        //EclipseKeys.preTasks := Seq(compile in Compile)
         //,
         //mappings in (Compile, packageBin) ++= mappings.in(modelsJVM, Compile, packageBin).value,
         //mappings in (Compile, packageSrc) ++= mappings.in(modelsJVM, Compile, packageSrc).value
@@ -91,42 +151,102 @@ lazy val tags = (project in file("tags"))
         libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
     )
 
-//lazy val models = (project in file("models"))
-//    .aggregate(modelsJVM, modelsJS)
-//    .settings(commonSettings)
+
+
+//lazy val shared = (project in file("shared"))
+//    .settings(
+//        commonSettings,
+//        name := "shared"    
+//    )
+//    .enablePlugins(ScalaJSPlugin)
 
 lazy val shared = (project in file("shared"))
-    .settings(
-        commonSettings,
-        name := "shared"    
-    )
-    .enablePlugins(ScalaJSPlugin)
+    //.aggregate(sharedJVM, sharedJS)
+    .settings(commonSettings)
 
-lazy val apimodels = (crossProject.crossType(CrossType.Full) in file("."))
-    .settings(
-        commonSettings,
-        name := "apimodels",
-        //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1"
-        EclipseKeys.useProjectId := true
-    )
-    .jsConfigure(_.enablePlugins(ScalaJSPlugin))
-    .jvmConfigure(_.enablePlugins(ScalaJSPlugin))
-    .jvmSettings(
-        // Add JVM-specific settings here
-        //libraryDependencies += "org.scala-js" %% "scalajs-dom" % "0.9.3"
-        unmanagedSourceDirectories in Compile += baseDirectory.value / "jvm",
-        libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1"
-    )
-    .jsSettings(
-        // Add JS-specific settings here
-        //libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.3"
-        //sourceMapsBase := baseDirectory.value / "..",
-        unmanagedSourceDirectories in Compile += baseDirectory.value / "js",
-        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1"
-    )
+//lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
+//    .settings(
+//        commonSettings,
+//        name := "shared",
+//        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
+//        EclipseKeys.useProjectId := true
+//    )
+//    .jsConfigure(_.enablePlugins(ScalaJSPlugin))
+//    .jvmSettings(
+//        // Add JVM-specific settings here
+//        //libraryDependencies += "org.scala-js" %% "scalajs-dom" % "0.9.3"
+//        //unmanagedSourceDirectories in Compile += baseDirectory.value / "jvm",
+//        //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1"
+//    )
+//    .jsSettings(
+//        // Add JS-specific settings here
+//        //libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.3"
+//        //sourceMapsBase := baseDirectory.value / "..",
+//        //unmanagedSourceDirectories in Compile += baseDirectory.value / "js",
+//        //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1"
+//    )
 
-lazy val apimodelsJVM = apimodels.jvm
+lazy val sharedJVM = cross.jvm
 
-lazy val apimodelsJS = apimodels.js
+lazy val sharedJS = cross.js
+
+commands += Command.command("lla") { state =>
+    "project ui" ::
+    "fastOptJS" ::
+    "project server" ::
+    "run" ::
+    "project root" ::
+    //"lla" ::
+    state
+  }
+
+commands += Command.command("devserver") { state =>
+    "project ui" ::
+    "fastOptJS" ::
+    "project server" ::
+    "run" ::
+    "project root" ::
+    "lla" ::
+    state
+  }
+
+commands += Command.command("devui") { state =>
+    //"project server" ::
+    //"package" ::
+    //"project ui" ::
+    "runserver" ::
+    "~fastOptJS" ::
+    state
+  }
 
 
+///**
+//  * Convert the given command string to a release step action, preserving and      invoking remaining commands
+//  * Note: This was copied from https://github.com/sbt/sbt-release/blob/663cfd426361484228a21a1244b2e6b0f7656bdf/src/main/scala/ReleasePlugin.scala#L99-L115
+//  */
+//def runCommandAndRemaining(command: String): State => State = { st: State =>
+//  import sbt.complete.Parser
+//  @annotation.tailrec
+//  def runCommand(command: String, state: State): State = {
+//    val nextState = Parser.parse(command, state.combinedParser) match {
+//      case Right(cmd) => cmd()
+//      case Left(msg) => throw sys.error(s"Invalid programmatic input:\n$msg")
+//    }
+//    nextState.remainingCommands.toList match {
+//      case Nil => nextState
+//      case head :: tail => runCommand(head, nextState.copy(remainingCommands = tail))
+//    }
+//  }
+//  runCommand(command, st.copy(remainingCommands = Nil)).copy(remainingCommands = st.remainingCommands)
+//}
+
+
+//onLoad in Global := (onLoad in Global)
+//.value andThen {s: State => "project ui" :: "fastOptJS" :: s} //andThen {}
+
+//onLoad in Global := (onLoad in Global)
+//.value andThen {s: State => "project ui" :: "fastOptJS" :: s} //andThen {}
+
+//andThen {state => "project ui" ::
+//    "~fastOptJS" ::
+//    state}

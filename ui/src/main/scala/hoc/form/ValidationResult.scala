@@ -1,5 +1,16 @@
 package hoc.form
 
+import scala.concurrent.Future
+import scala.language.implicitConversions
+
+case object ValidationResult{
+  import scala.concurrent.ExecutionContext.Implicits.global
+  implicit def validationResultAsFuture(result: => ValidationResult) = Future { result }
+  implicit def validationResultAsBoolean(result: => ValidationResult) = result match {
+    case _ @ Success(_) => true
+    case _ => false
+  }
+}
 sealed trait ValidationResult{
   
   // allows piping validation results one after the other, evaluating the

@@ -10,6 +10,8 @@ import org.scalajs.dom.ext.Ajax
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalajs.js
 import upickle.Js
+import scala.concurrent.Future
+import fr.hmil.roshttp.HttpRequest
 
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
@@ -31,10 +33,12 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    validateUserNameAlreadyTaken(value).onComplete{
-        case Ok(result) => nameValidation.value = validateName(name.value)|>result
-        case Failure(x) => nameValidation.value = validateName(name.value); //x.printStackTrace()
-    }   
+    for { validation <- validateName(name.value)
+          asyncValidation <- if(validation) alternative(name.value)//validateUserNameAlreadyTaken(name.value) 
+                             else Future{validation} } 
+    yield nameValidation.value = validation|>asyncValidation
+    //nameValidation.value = validateName(name.value)
+    //alternative()
   } 
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()
@@ -239,9 +243,46 @@ object FieldValidators{
   val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r
   
   
-  //import apimodels.User
   import apimodels.User
-  def validateUserNameAlreadyTaken(userName: String) = {
+  //import User
+  
+  def alternative(userName: String) = {
+    
+    //import scalaj.http._
+   
+    import upickle.default._
+  
+    //val response: HttpResponse[String] = Http("http://localhost:9000/api/users").asString
+    
+    
+    val request = HttpRequest("http://localhost:9000/api/users")
+
+    import monix.execution.Scheduler.Implicits.global
+    import scala.util.{Failure, Success => Ok}
+    //import fr.hmil.roshttp.response.SimpleHttpResponse
+    request.send().map( res => {
+      val users = readJs[Seq[User]](upickle.json.read(res.body))  
+        users.foreach(x => log.warn("user:", x.name))
+        users.exists(_.name == userName) match{
+          case true => Error(s"Username $userName already taken")
+          case _ => Success("Valid username, seriously man!!")
+        }
+    })
+    
+//    request.send().onComplete({
+//        case Ok(res) => {
+//          val users = readJs[Seq[User]](upickle.json.read(res.body))  
+//          users.foreach(x => log.warn("user:", x.name))
+//          users.exists(_.name == userName) match{
+//            case true => Error(s"Username $userName already taken")
+//            case _ => Success("Valid username")
+//          }
+//        }
+//        case Failure(_) => Success("") 
+//        })
+  }
+  
+  def validateUserNameAlreadyTaken(userName: =>String) = {
 //    val future = FutureBinding(Ajax.get(
 //      url = "http://localhost:9000/users", 
 //      data = null, 
@@ -260,7 +301,8 @@ object FieldValidators{
 //      }     
 //      arrived
 //    }
-    
+    //import scala.concurrent.{ Promise }
+    //val promise = Promise[ValidationResult]()
     val future = Ajax.get(
       url = "http://localhost:9000/api/users", 
       data = null, 
@@ -269,23 +311,17 @@ object FieldValidators{
       withCredentials = false, 
       responseType = "text")
       
-      import org.scalajs.dom.console
-    
+//      import org.scalajs.dom.console
+      import upickle.default._//readJs
+      
       future.map { xhr => 
-          //val users = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[User]].toSeq
-        val us = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[js.Dynamic]].toSeq
-        console.warn("Users, ", us.head.isInstanceOf[User])
-        
-        //val kk = J
-        
-          val users = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[User]].toSeq   
-          users.foreach(x => console.warn("user:", x.name))
-          //println("Users", users)
-          users.exists(_.name.toString == userName) match{
-            case true => Error(s"$userName already taken")
-            case _ => Success("Valid username")
+          val users = readJs[Seq[User]](upickle.json.read(xhr.responseText))
+          users.foreach(x => log.warn("user:", x.name))
+          users.exists(_.name == userName) match{
+            case true => Error(s"Username $userName already taken")
+            case _ => Success("Valid username, son")
           }
-      }  
+      }
   }
   
   
