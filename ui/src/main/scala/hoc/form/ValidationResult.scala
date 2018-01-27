@@ -1,10 +1,10 @@
 package hoc.form
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.implicitConversions
 
 case object ValidationResult{
-  import scala.concurrent.ExecutionContext.Implicits.global
   implicit def validationResultAsFuture(result: => ValidationResult) = Future { result }
   implicit def validationResultAsBoolean(result: => ValidationResult) = result match {
     case _ @ Success(_) => true

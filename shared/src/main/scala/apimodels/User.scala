@@ -1,7 +1,9 @@
 package apimodels
 import upickle.default.{ReadWriter => RW, macroRW}
 
-case object User{
+sealed trait ApiModel
+
+case object User extends ApiModel{
   implicit def rw: RW[User] = macroRW
 }
 

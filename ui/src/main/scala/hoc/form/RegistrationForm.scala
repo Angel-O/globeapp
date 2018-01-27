@@ -33,10 +33,12 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    for { validation <- validateName(name.value)
-          asyncValidation <- if(validation) alternative(name.value)//validateUserNameAlreadyTaken(name.value) 
-                             else Future{validation} } 
-    yield nameValidation.value = validation|>asyncValidation
+    val all = (for { validation <- validateName(name.value)
+          asyncValidation <- if(validation) alternative(name.value) //validateUserNameAlreadyTaken(name.value) 
+                             else Future{validation} }
+    yield nameValidation.value = validation|>asyncValidation)
+    
+    all.recover{ case _ => nameValidation.value = validateName(name.value) }
     //nameValidation.value = validateName(name.value)
     //alternative()
   } 
@@ -261,11 +263,14 @@ object FieldValidators{
     import scala.util.{Failure, Success => Ok}
     //import fr.hmil.roshttp.response.SimpleHttpResponse
     request.send().map( res => {
-      val users = readJs[Seq[User]](upickle.json.read(res.body))  
-        users.foreach(x => log.warn("user:", x.name))
-        users.exists(_.name == userName) match{
+      //val users = readJs[Seq[User]](upickle.json.read(res.body))
+      val users = read[Seq[User]](res.body)
+      log.warn("UOL", users)
+      println("LOU", users)
+      users.foreach(x => log.warn("user:", x.name))
+      users.exists(_.name == userName) match{
           case true => Error(s"Username $userName already taken")
-          case _ => Success("Valid username, seriously man!!")
+          case _ => Success("Valid username, cts")
         }
     })
     
@@ -316,6 +321,7 @@ object FieldValidators{
       
       future.map { xhr => 
           val users = readJs[Seq[User]](upickle.json.read(xhr.responseText))
+          println("KKK", users)
           users.foreach(x => log.warn("user:", x.name))
           users.exists(_.name == userName) match{
             case true => Error(s"Username $userName already taken")

@@ -1,17 +1,11 @@
 import Dependencies._
 //import sbt.Keys._
 
-//addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
-
 lazy val commonSettings = Seq(
     organization := "com.Angelo",
     scalaVersion := "2.12.3",
     version      := "0.1.0-SNAPSHOT" 
 )
-
-//lazy val commonDependencies = Seq(
-//    libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1"
-//)
 
 lazy val root = (project in file("."))
     .aggregate(ui, server)
@@ -47,7 +41,7 @@ lazy val cross = (crossProject.crossType(CrossType.Full) in file("."))
 //import complete.Parser
 
 lazy val launchserver = taskKey[Unit]("launch server project")
-lazy val runserver = inputKey[Unit]("run server")
+lazy val runus = inputKey[Unit]("run server and ui moitoring source files")
 //val separator: Parser[String] = "~"
 
 import scala.sys.process._ 
@@ -70,11 +64,12 @@ lazy val ui = (project in file("ui"))
         execScript := {
           "sbt ~fastOptJS" !
         },
-        runserver in Compile := {
+        runus in Compile := {
 //            (run in Compile in server).toTask("").value
             //val sep = separator.parsed
             //(fastOptJS in Compile)
             execScript.value
+            //startWorkbenchServer.value
             (run in Compile in server).evaluated
             //Def.sequential(
                 //(fastOptJS in Compile)).value
@@ -114,6 +109,7 @@ lazy val server = (project in file("server"))
     //.dependsOn(ProjectRef(uri("models/JVM"), "jvm"))
     .dependsOn(sharedJVM)
     .enablePlugins(PlayScala)
+    .disablePlugins(WorkbenchPlugin)
     .settings(
         commonSettings,
         name := "server",

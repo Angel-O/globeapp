@@ -3,26 +3,30 @@ package controllers
 import javax.inject._
 import play.api.mvc.ControllerComponents
 import play.api.mvc.AbstractController
-import play.api.libs.json.Json
+//import play.api.libs.json.Json
 import apimodels.User
+import upickle.default._
+
+//import serialization.ReWr._
 
 
-object Serializer{
-  implicit val userReads = Json.reads[User]
-  implicit val userWrites = Json.writes[User]
-  implicit val userFormat = Json.format[User]
-}
+//object Serializer{
+//  implicit val userReads = Json.reads[User]
+//  implicit val userWrites = Json.writes[User]
+//  implicit val userFormat = Json.format[User]
+//}
 
 @Singleton
 class UserController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
   
-  import Serializer._
+  //import Serializer._
   def getAll = Action {
     val users = getUsers
-    Ok(Json.toJson(users))
+    //Ok(Json.toJson(users))
+    Ok(write(users))
   }
 
   def getUsers() = {
-    List(User("Angelo", 1), User("Jon", 2), User("Mike John3", 3), User("Paul", 3))
+    List(User("Angelo", 1), User("JohnD", 2), User("Mike John3", 3), User("Paul", 3))
   }
 }
