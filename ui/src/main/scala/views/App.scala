@@ -18,7 +18,6 @@ import router.{BrowserHistory, RoutingView}
 import navigation.Navigators._ 
 import navigation.URIs._
 import org.scalajs.dom.raw.HTMLElement
-//import scala.xml.Elem
 
 object App {
   
@@ -38,14 +37,15 @@ object App {
       <BrowserRouter routes={ routes.bind } />.build.bind
 		}
     
-    // mount the App
-    dom.render(document.body, render.asInstanceOf[Binding[Node]])   
+    // mount the App       
+    dom.render(document.body, render.asInstanceOf[Binding[Node]]) 
   }
   
   // TODO move this logic to a Factory class
   private def mapViewsToURIs(): List[(String, RoutingView)] = {
     
     import HomePage.{ homePage => home }
+    import UserEditView.userEditView
     val homePage = home 
      
     //val form = customTags.RegistrationForm()
@@ -58,13 +58,14 @@ object App {
           <ModalCard 
 						label={"Launch form"} 
 						title={"Register now"} 
-						content={<div><RegistrationForm onSubmit={navigateToHello _} onClick={() => println("CLICKED")}/></div>}
+						content={<div><RegistrationForm onSubmit={navigateToHello _} onClick={navigateToUserEdit _}/></div>}
 						onSave={navigateToHome _}/>.build.bind }
       
     val routes = List(
         HomePageURI -> homePage, 
         RegisterPageURI -> registerPage,
-        HelloPageURI -> helloPage)
+        HelloPageURI -> helloPage,
+        UserEditPageURI -> userEditView)
         
      routes
   } 

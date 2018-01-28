@@ -27,6 +27,6 @@ class UserController @Inject() (cc: ControllerComponents) extends AbstractContro
   }
 
   def getUsers() = {
-    List(User("Angelo", 1), User("JohnD", 2), User("Mike John3", 3), User("Paul", 3))
+    List(User("Angelo", 1), User("JohnD", 2), User("MikeR", 3), User("Paul", 3))
   }
 }

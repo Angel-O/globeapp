@@ -76,6 +76,13 @@ lazy val ui = (project in file("ui"))
             
             //Def.sequential((fastOptJS in Compile), (run in Compile in server).toTask("")).value
         },
+//        fastOptJS in Compile := (Def.taskDyn {
+//            val c = (fastOptJS in Compile).value
+//            Def.task {
+//                val x = (run in Compile in server).toTask("").value
+//                c
+//            }
+//        }).value,
         // include the macro classes and resources in the main jar
         mappings in (Compile, packageBin) ++= mappings.in(tags, Compile, packageBin).value,
         // include the macro sources in the main source jar
@@ -91,6 +98,7 @@ lazy val ui = (project in file("ui"))
         workbenchDefaultRootObject := Some(("./index-dev.html", "./ui")),
         workbenchStartMode := WorkbenchStartModes.OnCompile,
         libraryDependencies += scalaTest % Test,
+        libraryDependencies += "io.suzaku" %%% "diode" % "1.1.3",
         libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
         libraryDependencies += "com.thoughtworks.binding" %%% "futurebinding" % "latest.release",
         libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -212,6 +220,20 @@ commands += Command.command("devui") { state =>
     //"project ui" ::
     "runserver" ::
     "~fastOptJS" ::
+    state
+  }
+
+commands += Command.command("ser") { state =>
+    "project server" ::
+    "run" ::
+    "project root" ::
+    state
+  }
+
+commands += Command.command("clie") { state =>
+    "project ui" ::
+    "~fastOptJS" ::
+    "project root" ::
     state
   }
 

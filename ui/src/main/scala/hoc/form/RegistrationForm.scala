@@ -263,7 +263,7 @@ object FieldValidators{
       users.foreach(x => log.warn("user:", x.name))
       users.exists(_.name == userName) match{
           case true => Error(s"Username $userName already taken")
-          case _ => Success("Valid username, cts")
+          case _ => Success("Valid username, my friend")
         }
     })
     
