@@ -4,7 +4,8 @@ import Dependencies._
 lazy val commonSettings = Seq(
     organization := "com.Angelo",
     scalaVersion := "2.12.3",
-    version      := "0.1.0-SNAPSHOT" 
+    version      := "0.1.0-SNAPSHOT",
+    scalacOptions ++= Seq("-feature")
 )
 
 lazy val root = (project in file("."))

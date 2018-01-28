@@ -48,7 +48,13 @@ object UserEditView {
   //TODO make app circuit and dispatch implicit
   class View[M,T](dispatch: Dispatcher) extends Connect[M, T]{
   
-    val userConnector = new SelectorConnector(AppCircuit.userSelector)
+    import scala.language.implicitConversions
+    implicit def selConn[M,T](rw: ModelRW[M,T]) = {
+      new SelectorConnector(rw)
+    }
+    
+    //val userConnector = new SelectorConnector(AppCircuit.userSelector)
+       
     val carConnector = new SelectorConnector(AppCircuit.carSelector)
     
     @dom def renderUsers(users: Seq[User]) = {
@@ -61,8 +67,11 @@ object UserEditView {
   
     @dom def render = {
       
+      // needs to be inside render if implicit conversion is used...investigate...
+      val users = AppCircuit.userSelector.value
+      
       <div>
-				<ul>{renderUsers(userConnector.value).bind}</ul>
+				<ul>{renderUsers(users).bind}</ul>
       	<button 
 					onclick={(e: Event) => dispatch(Rename(1, "Dom"))}> Rename user </button>
 				<button 
