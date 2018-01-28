@@ -250,20 +250,13 @@ object FieldValidators{
   
   def alternative(userName: String) = {
     
-    //import scalaj.http._
-   
     import upickle.default._
-  
-    //val response: HttpResponse[String] = Http("http://localhost:9000/api/users").asString
-    
-    
     val request = HttpRequest("http://localhost:9000/api/users")
 
     import monix.execution.Scheduler.Implicits.global
     import scala.util.{Failure, Success => Ok}
     //import fr.hmil.roshttp.response.SimpleHttpResponse
     request.send().map( res => {
-      //val users = readJs[Seq[User]](upickle.json.read(res.body))
       val users = read[Seq[User]](res.body)
       log.warn("UOL", users)
       println("LOU", users)
