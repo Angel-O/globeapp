@@ -17,6 +17,8 @@ case class ChangeId(oldId: Int, newId: Int) extends Action
 
 case object FetchUsers extends Action
 
+case class UsersFetched(users: Seq[User]) extends Action
+
 
 //TESTING...
 case class Car(make: String)

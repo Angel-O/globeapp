@@ -3,12 +3,12 @@ package app
 import diode.Circuit
 import diode.ActionHandler
 import diode.ModelRW
+import diode.Effect
 import apimodels.User
 import components.Components.Implicits.{log, toBindingSeq}
 import com.thoughtworks.binding.Binding.Vars
 import com.thoughtworks.binding.Binding.BindingSeq
 import com.thoughtworks.binding.dom
-import org.scalajs.dom.ext.Ajax
 
 object AppCircuit extends Circuit[AppModel] {
   
@@ -95,34 +95,17 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
     }
     
     case FetchUsers => {
-      //import ApiActions.fetchUsers
-      
-      //fetchUsers.map(users => updated(users))
-      val users = Seq(User("Paul", 1), User("Tom", 2), User("Sam", 3))
-      
-      if (modelRW.value != users) updated(users) else noChange
+      import ApiCalls.fetchUsersEffect
+      //import scala.util.{Success, Failure}
+      //import scala.concurrent.ExecutionContext.Implicits.global
+
+      effectOnly(fetchUsersEffect())
     }
-  }
-}
+      //val users = Seq(User("Paul", 1), User("Tom", 2), User("Sam", 3))    
+      //if (modelRW.value != users) updated(users) else noChange
 
-
-object ApiActions {
-  def fetchUsers = {
-    val future = Ajax.get(
-      url = "http://localhost:9000/api/users", 
-      data = null, 
-      timeout = 9000, 
-      headers = Map.empty, 
-      withCredentials = false, 
-      responseType = "text")
-      
-//      import org.scalajs.dom.console
-      import upickle.default._//readJs
-      import scala.concurrent.ExecutionContext.Implicits.global
-      
-      future.map { xhr => 
-          val users = readJs[Seq[User]](read(xhr.responseText))
-          users
-      }
+    case UsersFetched(users) => {
+      updated(users)
+    }
   }
 }

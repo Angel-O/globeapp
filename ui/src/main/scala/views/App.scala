@@ -62,7 +62,7 @@ object App {
 						onSave={navigateToHome _}/>.build.bind }
       
     val routes = List(
-        HomePageURI -> homePage, 
+        HomePageURI -> userEditView, 
         RegisterPageURI -> registerPage,
         HelloPageURI -> helloPage,
         UserEditPageURI -> userEditView)
