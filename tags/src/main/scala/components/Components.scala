@@ -144,6 +144,28 @@ object Components {
         var bindingElementsSeq: BindingSeq[T] = temp
         bindingElementsSeq
     }
+    
+      implicit class conv[T](els: BindingSeq[T]) extends IndexedSeq[T]{
+    
+       override def length: Int = 0
+
+       override def size: Int = length
+
+       def count: Int = length
+
+       override def apply(idx: Int): T = els.head
+    
+       //Experimental
+       def convertToSeq() = {
+         var seq: Seq[T] = Seq.empty  
+         @dom def extract = { els.all.bind.foreach(x => seq = seq :+ x) }
+         
+         @dom def exec = { extract.bind }  
+         exec 
+    
+         seq
+        }
+      }
       
     @dom def toScalaSeq[T](elements: BindingSeq[T]) = {
         @dom def getAll() = elements.all.bind

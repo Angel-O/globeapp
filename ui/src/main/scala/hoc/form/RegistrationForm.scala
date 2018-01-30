@@ -39,8 +39,6 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     yield nameValidation.value = validation|>asyncValidation)
     
     all.recover{ case _ => nameValidation.value = validateName(name.value) }
-    //nameValidation.value = validateName(name.value)
-    //alternative()
   } 
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()
