@@ -12,6 +12,7 @@ import components.Components.Implicits._
 import diode.Dispatcher
 import com.thoughtworks.binding.Binding.Var
 import app.Connect
+//import app.UsersFetched
 
 object UserEditView {
   
@@ -31,7 +32,8 @@ object UserEditView {
 						<br/>           
           </div>
           
-    }    
+    }  
+    //dispatch(FetchUsers)
     //connect to the circuit...car selector and user selector could be combined...
     val cars = Var(initialModel.cars.cars)
     val users = Var(initialModel.users.users)

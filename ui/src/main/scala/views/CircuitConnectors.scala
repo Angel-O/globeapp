@@ -1,22 +1,22 @@
-package views
+//package views
 
-import diode.ModelRW
-import diode.ActionHandler
-import com.thoughtworks.binding.Binding
-import app.AppCircuit
-import org.scalajs.dom.raw.Node
-import com.thoughtworks.binding.dom
-import diode.Dispatcher
-import org.scalajs.dom.raw.HTMLElement
-import diode.Circuit
-import diode.ModelR
-import diode.Circuit
-
-import components.Components.Implicits.log
-import scalajs.js
-import org.scalajs.dom.raw.HTMLElement
-import org.scalajs.dom.raw.ParentNode
-import app.AppModel
+//import diode.ModelRW
+//import diode.ActionHandler
+//import com.thoughtworks.binding.Binding
+//import app.AppCircuit
+//import org.scalajs.dom.raw.Node
+//import com.thoughtworks.binding.dom
+//import diode.Dispatcher
+//import org.scalajs.dom.raw.HTMLElement
+//import diode.Circuit
+//import diode.ModelR
+//import diode.Circuit
+//
+//import components.Components.Implicits.log
+//import scalajs.js
+//import org.scalajs.dom.raw.HTMLElement
+//import org.scalajs.dom.raw.ParentNode
+//import app.AppModel
 
 //abstract class AbstractConnector[M, T](selector: ModelRW[M,T]) 
 //  extends { override val modelRW = selector } with ActionHandler[M,T](modelRW) {

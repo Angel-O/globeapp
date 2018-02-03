@@ -7,6 +7,8 @@ import apimodels.User
 import ApiCalls._
 import diode.Dispatcher
 import diode.ModelR
+import diode.data.PotState._
+import diode.data.Pot
 
 object AppCircuit extends Circuit[AppModel] {
   
@@ -60,13 +62,32 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
         case true => User(getUserById(oldId).name, newId)
         case _ => x
         }))
-    }   
+    } 
+    //TODO fix this...use pot actions like they should be used...
     case FetchUsers => effectOnly(fetchUsersEffect())
-    case UsersFetched(users) => {
-      users.state match { //TODO handle different states as well if necessary
-        case isReady => updated(users.get)
-        case isFailed => noChange //TODO log errors, but not here...
-        case isPending => noChange //not triggered atm
+    case action @ UsersFetched(users) => {
+      action handle { // equivalent to users.state match ===> handles the state of the action
+        case PotEmpty => {
+          println("nothing yet")
+          updated(action.potResult.pending().get)
+        }
+        case PotReady => {
+          println("data is here")
+          updated(action.potResult.get)
+        }
+        case PotFailed => {
+          val ex = action.result.failed.get
+          updated(action.potResult.fail(ex).get)
+          //println(users); 
+          //noChange //TODO log errors, but not here...
+        }
+        case PotPending => {
+          if(action.potResult.isPending){
+            println("on its way...");
+            updated(action.potResult.pending().get)//not triggered atm
+          }
+          noChange //not triggered atm
+        }
         case _ => noChange
       }
     }

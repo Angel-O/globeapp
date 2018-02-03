@@ -11,6 +11,7 @@ import diode.data.Pot
 import scala.util.Success
 import scala.util.Failure
 import fr.hmil.roshttp.HttpRequest
+import diode.data.Failed
 
 object ApiCalls {
   private def fetchUsers() = {
@@ -57,7 +58,7 @@ object ApiCalls {
   def fetchUsersEffect() = {
     Effect(fetchUsers()
         .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))
-        .recover({case _ => UsersFetched(Pot.empty[Seq[User]])}))
+        .recover({case ex => UsersFetched(Failed(ex))}))
       
   }
 }

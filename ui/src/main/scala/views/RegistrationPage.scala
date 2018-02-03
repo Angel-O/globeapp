@@ -11,12 +11,15 @@ import apimodels.User
 import diode.Dispatcher
 import com.thoughtworks.binding.Binding.Var
 import app.Connect
+import app.UsersFetched
+import diode.data.Empty
+import app.FetchCars
 
 object RegistrationPage {
   import navigation.Navigators._
   val page = new RoutingView() with Connect{
      
-    var users = initialModel.users.users
+    //var users = initialModel.users.users
     @dom override def element = {
       <ModalCard 
 					label={"Launch form"} 
@@ -25,12 +28,14 @@ object RegistrationPage {
 										<RegistrationForm 
 											onSubmit={navigateToHello _} 
 											onClick={navigateToUserEdit _} 
-											fetchUsers={fetchUsers _}
-											users={users}/>
+											fetchUsers={fetchUsers _}/>
 									</div>}
 					onSave={navigateToHome _}/>.build.bind
     }
     
-    def fetchUsers() = dispatch(FetchUsers)
+    def fetchUsers() = {
+      //dispatch(UsersFetched())
+      dispatch(FetchUsers)
+    }
   }
 }
