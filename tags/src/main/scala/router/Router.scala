@@ -12,6 +12,7 @@ import com.thoughtworks.binding.dom
 import components.Components.Implicits.ComponentBuilder
 import components.Components.Implicits.DummyBuilder
 import components.Components.Implicits.autoBinding
+import components.Components.Implicits.log
 
 case class Router private() extends ComponentBuilder {
    
@@ -38,7 +39,7 @@ case class Router private() extends ComponentBuilder {
   }
   
   def navigateTo(path: String) = { 
-    val newLocation = getRoute(path)   
+    val newLocation = getRoute(path) 
     document.location.hash = path
     activePage.value = newLocation
   }
@@ -65,6 +66,7 @@ case class Router private() extends ComponentBuilder {
 //TODO push history to a stack
 case class BrowserHistory(val router: Router){
   def navigateTo(path: String) = {
+    log.warn("Path", path)
     router.navigateTo(path)
   }   
 }

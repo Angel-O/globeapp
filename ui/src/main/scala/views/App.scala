@@ -19,6 +19,8 @@ import navigation.Navigators._
 import navigation.URIs._
 import org.scalajs.dom.raw.HTMLElement
 
+import app.AppCircuit
+
 object App {
   
   def main(args: Array[String]): Unit = {
@@ -38,7 +40,11 @@ object App {
 		}
     
     // mount the App       
-    dom.render(document.body, render.asInstanceOf[Binding[Node]]) 
+    def mount = dom.render(document.body, render.asInstanceOf[Binding[Node]]) 
+    //app.AppCircuit.subscribe(app.AppCircuit.zoom(identity)) (_ => mount)
+    //val root = document.body
+    //AppCircuit.subscribe(AppCircuit.zoom(identity))(_ => mount)
+    mount
   }
   
   // TODO move this logic to a Factory class
@@ -46,6 +52,7 @@ object App {
     
     import HomePage.{ homePage => home }
     import UserEditView.userEditView
+    import RegistrationPage.page
     val homePage = home 
      
     //val form = customTags.RegistrationForm()
@@ -53,19 +60,19 @@ object App {
       @dom override def element = <div><MyComponent foo="Hi mate" inner={<p>Hello</p>}/></div>
     }
     
-    val registerPage = new RoutingView() {
-        @dom override def element = 
-          <ModalCard 
-						label={"Launch form"} 
-						title={"Register now"} 
-						content={<div><RegistrationForm onSubmit={navigateToHello _} onClick={navigateToUserEdit _}/></div>}
-						onSave={navigateToHome _}/>.build.bind }
+//    val registerPage = new RoutingView() {
+//        @dom override def element = 
+//          <ModalCard 
+//						label={"Launch form"} 
+//						title={"Register now"} 
+//						content={<div><RegistrationForm onSubmit={navigateToHello _} onClick={navigateToUserEdit _}/></div>}
+//						onSave={navigateToHome _}/>.build.bind }
       
     val routes = List(
         HomePageURI -> userEditView, 
-        RegisterPageURI -> registerPage,
+        RegisterPageURI -> page,
         HelloPageURI -> helloPage,
-        UserEditPageURI -> userEditView)
+        UserEditPageURI -> page)
         
      routes
   } 

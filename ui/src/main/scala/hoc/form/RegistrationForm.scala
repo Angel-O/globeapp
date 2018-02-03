@@ -12,12 +12,20 @@ import scalajs.js
 import upickle.Js
 import scala.concurrent.Future
 import fr.hmil.roshttp.HttpRequest
+import apimodels.User
+import views.SelectorConnector
+import app.AppCircuit
+import diode.Dispatcher
+import app.FetchUsers
+import diode.data.Pot
+import diode.data.Ready
 
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
   def render = this 
   
   var onSubmit: () => Unit = _
+  //var users: Seq[User] = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
   private var termsAccepted: Var[Boolean] = Var(false)
@@ -27,18 +35,40 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   genderValidation, subscriptionTypeValidation, passwordValidation,
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
+  //var users = AppCircuit.initialModel.users.users // no need to use Var (no reload needed)
+  var users:Pot[Seq[User]] = Ready(AppCircuit.initialModel.users.users)//Pot.empty[Seq[User]]
+  val userConnector = new SelectorConnector(
+      AppCircuit.userSelector, 
+      AppCircuit.zoom(am => am.users.users), 
+      users = users.ready(AppCircuit.userSelector.value))
+  
   import FieldValidators._ 
   
-  import scala.util.{Success => Ok, Failure}
+  //import scala.util.{Success => Ok, Failure}
   import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    val all = (for { validation <- validateName(name.value)
-          asyncValidation <- if(validation) alternative(name.value) //validateUserNameAlreadyTaken(name.value) 
-                             else Future{validation} }
-    yield nameValidation.value = validation|>asyncValidation)
+    //users.foreach(x => log.warn("user:", x.name))
+    def asyncValidation(userName: String) = {
+      this.fetchUsers() //TODO this needs to be awaited
+      users.get.exists(_.name == userName) match{
+        case true => Error(s"Username $userName already taken")
+        case _ => Success("Valid username, son")
+      }
+    }
     
-    all.recover{ case _ => nameValidation.value = validateName(name.value) }
+    (for { validation <- validateName(name.value)
+           asyncValidation <- if(validation) asyncValidation(name.value) else validation } 
+    yield nameValidation.value = validation|>asyncValidation)
+    .recover{case _ => nameValidation.value = validateName(name.value)}
+    
+    
+//    val all = (for { validation <- validateName(name.value)
+//          asyncValidation <- if(validation) alternative(name.value) //validateUserNameAlreadyTaken(name.value) 
+//                             else Future{validation} }
+//    yield nameValidation.value = validation|>asyncValidation)
+//    
+//    all.recover{ case _ => nameValidation.value = validateName(name.value) }
   } 
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()

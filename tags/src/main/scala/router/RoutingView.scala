@@ -11,7 +11,10 @@ import com.thoughtworks.binding.Binding.Constants
 // We need to override memebers of this class on instantiation we might as well manually set
 // the routes. TODO remove the navigators from c.tor if there is not a valid use case
 class RoutingView(navigators: BrowserHistory => Unit*) extends ComponentBuilder {
-  def render = this
+  def render = {
+    println("CARS") //TODO this is never called....fix it
+    this
+  }
   implicit var history: BrowserHistory = _
   def element: Binding[HTMLElement] = //TODO add support for pure html elements
     throw new IllegalArgumentException("element method in RoutingView must be overridden")
