@@ -11,16 +11,13 @@ import navigation.Navigators._
 import components.Components.Implicits._
 import diode.Dispatcher
 import com.thoughtworks.binding.Binding.Var
+import app.Connect
 
 object UserEditView {
   
-  val userEditView = new RoutingView() {
+  val userEditView = new RoutingView() with Connect {
     
-    @dom override def element = view.element.bind
-   
-    val view = new ConnectedView(AppCircuit) {
-        
-        @dom override def element = {
+    @dom override def element = {
       
           <div> 
 						<ul>{ renderUsers(users.bind).bind }</ul>           
@@ -34,19 +31,14 @@ object UserEditView {
 						<br/>           
           </div>
           
-        }
-        
-        //connect to the circuit...car selector and user selector could be combined...
-        //api can be improved...
-        val cars = Var(AppCircuit.initialModel.cars.cars)
-        val users = Var(AppCircuit.initialModel.users.users)
-        val carConnector = new SelectorConnector(AppCircuit.carSelector, AppCircuit.zoom(am => am.cars.cars), cars.value = AppCircuit.carSelector.value)
-        val userConnector = new SelectorConnector(AppCircuit.userSelector, AppCircuit.zoom(am => am.users.users), users.value = AppCircuit.userSelector.value)
-    }
+    }    
+    //connect to the circuit...car selector and user selector could be combined...
+    val cars = Var(initialModel.cars.cars)
+    val users = Var(initialModel.users.users)
+    connect()(AppCircuit.carSelector, cars.value = AppCircuit.carSelector.value)
+    connect()(AppCircuit.userSelector, users.value = AppCircuit.userSelector.value)
   }
   
-  //val carConnector = new SelectorConnector(AppCircuit.carSelector)
-  //val userConnector = new SelectorConnector(AppCircuit.userSelector, null) 
   @dom def renderUsers(users: Seq[User]) = toBindingSeq(users).map(x => <li> { x.name } </li>)
   @dom def renderCars(cars: Seq[Car]) = toBindingSeq(cars).map(x => <li> { x.make } </li>)
 }

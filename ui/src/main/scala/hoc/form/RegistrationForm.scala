@@ -13,14 +13,14 @@ import upickle.Js
 import scala.concurrent.Future
 import fr.hmil.roshttp.HttpRequest
 import apimodels.User
-import views.SelectorConnector
 import app.AppCircuit
 import diode.Dispatcher
 import app.FetchUsers
 import diode.data.Pot
 import diode.data.Ready
+import app.Connect
 
-case class RegistrationFormBuilder() extends ComponentBuilder {
+case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
    
   def render = this 
   
@@ -35,40 +35,26 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   genderValidation, subscriptionTypeValidation, passwordValidation,
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
-  //var users = AppCircuit.initialModel.users.users // no need to use Var (no reload needed)
-  var users:Pot[Seq[User]] = Ready(AppCircuit.initialModel.users.users)//Pot.empty[Seq[User]]
-  val userConnector = new SelectorConnector(
-      AppCircuit.userSelector, 
-      AppCircuit.zoom(am => am.users.users), 
-      users = users.ready(AppCircuit.userSelector.value))
+  // no need to use Var (no reload needed)
+  // Note good practice: initialize with value from circuit to make it obvious it comes from there
+  var users: Seq[User] = initialModel.users.users //TODO should model be potential???
   
   import FieldValidators._ 
-  
   //import scala.util.{Success => Ok, Failure}
   import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    //users.foreach(x => log.warn("user:", x.name))
-    def asyncValidation(userName: String) = {
-      this.fetchUsers() //TODO this needs to be awaited
-      users.get.exists(_.name == userName) match{
+    def validateUserNameAlreadyTaken(userName: String) = { 
+      Future{this.fetchUsers()}.map(_ => users.exists(_.name == userName) match{
         case true => Error(s"Username $userName already taken")
         case _ => Success("Valid username, son")
-      }
+      }) //TODO this needs to be awaited, wrapping into future doesn't do much     
     }
     
     (for { validation <- validateName(name.value)
-           asyncValidation <- if(validation) asyncValidation(name.value) else validation } 
+           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else Future{validation}} 
     yield nameValidation.value = validation|>asyncValidation)
     .recover{case _ => nameValidation.value = validateName(name.value)}
-    
-    
-//    val all = (for { validation <- validateName(name.value)
-//          asyncValidation <- if(validation) alternative(name.value) //validateUserNameAlreadyTaken(name.value) 
-//                             else Future{validation} }
-//    yield nameValidation.value = validation|>asyncValidation)
-//    
-//    all.recover{ case _ => nameValidation.value = validateName(name.value) }
   } 
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()
@@ -202,7 +188,8 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
           </div>
 				</div>
       </form>.asInstanceOf[HTMLElement]
-           
+     
+    connect()(AppCircuit.userSelector, users = AppCircuit.userSelector.value)  
     create(form, "registration-form").bind.asInstanceOf[HTMLElement]
   }
   
@@ -271,86 +258,6 @@ object FieldValidators{
   
   import FormValidators._
   val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r
-  
-  
-  import apimodels.User
-  //import User
-  
-  def alternative(userName: String) = {
-    
-    import upickle.default._
-    val request = HttpRequest("http://localhost:9000/api/users")
-
-    import monix.execution.Scheduler.Implicits.global
-    import scala.util.{Failure, Success => Ok}
-    //import fr.hmil.roshttp.response.SimpleHttpResponse
-    request.send().map( res => {
-      val users = read[Seq[User]](res.body)
-      log.warn("UOL", users)
-      println("LOU", users)
-      users.foreach(x => log.warn("user:", x.name))
-      users.exists(_.name == userName) match{
-          case true => Error(s"Username $userName already taken")
-          case _ => Success("Valid username, my friend")
-        }
-    })
-    
-//    request.send().onComplete({
-//        case Ok(res) => {
-//          val users = readJs[Seq[User]](upickle.json.read(res.body))  
-//          users.foreach(x => log.warn("user:", x.name))
-//          users.exists(_.name == userName) match{
-//            case true => Error(s"Username $userName already taken")
-//            case _ => Success("Valid username")
-//          }
-//        }
-//        case Failure(_) => Success("") 
-//        })
-  }
-  
-  def validateUserNameAlreadyTaken(userName: =>String) = {
-//    val future = FutureBinding(Ajax.get(
-//      url = "http://localhost:9000/users", 
-//      data = null, 
-//      timeout = 9000, 
-//      headers = Map.empty, 
-//      withCredentials = false, 
-//      responseType = "application/json"))
-//    
-//    @dom def renderFuture = {
-//      val arrived = future.bind match {
-//        case Some(Ok(xhr)) => {
-//          val users = js.JSON.parse(xhr.responseText).asInstanceOf[js.Array[User]].toSeq         
-//          users
-//        }
-//        case Some(Failure(error)) => Seq.empty//s"$error"
-//      }     
-//      arrived
-//    }
-    //import scala.concurrent.{ Promise }
-    //val promise = Promise[ValidationResult]()
-    val future = Ajax.get(
-      url = "http://localhost:9000/api/users", 
-      data = null, 
-      timeout = 9000, 
-      headers = Map.empty, 
-      withCredentials = false, 
-      responseType = "text")
-      
-//      import org.scalajs.dom.console
-      import upickle.default._//readJs
-      
-      future.map { xhr => 
-          val users = readJs[Seq[User]](upickle.json.read(xhr.responseText))
-          println("KKK", users)
-          users.foreach(x => log.warn("user:", x.name))
-          users.exists(_.name == userName) match{
-            case true => Error(s"Username $userName already taken")
-            case _ => Success("Valid username, son")
-          }
-      }
-  }
-  
   
   def validateName(value: String) = {    
     validateRequiredField(fieldValue = value, fieldName = "Name")

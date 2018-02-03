@@ -3,6 +3,7 @@ package app
 import apimodels.User
 import diode.Action
 import com.thoughtworks.binding.Binding.BindingSeq
+import diode.data.Pot
 
 case class AppModel(users: Users, cars: Cars, self: AppModel = null) 
 
@@ -17,7 +18,7 @@ case class ChangeId(oldId: Int, newId: Int) extends Action
 
 case object FetchUsers extends Action
 
-case class UsersFetched(users: Seq[User]) extends Action
+case class UsersFetched(users: Pot[Seq[User]]) extends Action
 
 
 //TESTING...
