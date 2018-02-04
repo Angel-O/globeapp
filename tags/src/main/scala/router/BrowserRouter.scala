@@ -14,11 +14,15 @@ case class BrowserRouterBuilder() extends ComponentBuilder {
   @dom def build = {
     
     val allRoutes = routes.all.bind
-    allRoutes.foreach(x => { x.history_(router.history); Router.registerRoute(x, router) })
+    setHistoryAndRegisterRoutes(allRoutes)
     
     val routerNode = router.build
     
     //this makes eclipse happy (calling bind on the router node would be enough)
     Constants(routerNode).all.bind.head.bind 
+  }
+  
+  private def setHistoryAndRegisterRoutes(routes: Seq[RouteBuilder]) = {
+    routes.foreach(x => { x.history_(router.history); Router.registerRoute(x, router) })
   }
 }
