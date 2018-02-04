@@ -1,4 +1,4 @@
-package app
+package appstate
 
 import org.scalajs.dom.ext.Ajax
 import scala.concurrent.ExecutionContext.Implicits.global

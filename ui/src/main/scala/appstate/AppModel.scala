@@ -1,4 +1,4 @@
-package app
+package appstate
 
 import apimodels.User
 import diode.Action

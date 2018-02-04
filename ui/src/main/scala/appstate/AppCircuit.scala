@@ -1,4 +1,4 @@
-package app
+package appstate
 
 import diode.Circuit
 import diode.ActionHandler

@@ -10,7 +10,7 @@ import com.thoughtworks.binding.dom
 object HomePage {
   
   import navigation.Navigators._
-  val homePage = new RoutingView() { 
+  val view = new RoutingView() { 
     
     //TODO split into subtiles and create HomePage subpackage 
     @dom override def element = 
@@ -40,7 +40,7 @@ object HomePage {
 														/>,
 														<Tile isParent={true} 
 															children={Seq(
-										            <Tile isInfo={true}
+										            <Tile isInfo={true} onClick={navigateToSample _}
 																	content={
 										                <div>
 																			<p class="title">Middle tile</p>

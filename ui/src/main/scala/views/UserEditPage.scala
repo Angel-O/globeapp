@@ -1,22 +1,22 @@
 package views
 
-import app.{AppCircuit}
+import appstate.{AppCircuit}
 import router.RoutingView
 import com.thoughtworks.binding.dom
 import apimodels.User
-import app.Car
+import appstate.Car
 import org.scalajs.dom.raw.Event
-import app.{Rename, FetchUsers, FetchCars}
+import appstate.{Rename, FetchUsers, FetchCars}
 import navigation.Navigators._
 import components.Components.Implicits._
 import diode.Dispatcher
 import com.thoughtworks.binding.Binding.Var
-import app.Connect
-//import app.UsersFetched
+import appstate.Connect
+//import appstate.UsersFetched
 
-object UserEditView {
+object UserEditPage {
   
-  val userEditView = new RoutingView() with Connect {
+  val view = new RoutingView() with Connect {
     
     @dom override def element = {
       

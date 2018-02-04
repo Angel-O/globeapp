@@ -13,12 +13,12 @@ import upickle.Js
 import scala.concurrent.Future
 import fr.hmil.roshttp.HttpRequest
 import apimodels.User
-import app.AppCircuit
+import appstate.AppCircuit
 import diode.Dispatcher
-import app.FetchUsers
+import appstate.FetchUsers
 import diode.data.Pot
 import diode.data.Ready
-import app.Connect
+import appstate.Connect
 
 case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
    
