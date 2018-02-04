@@ -23,6 +23,7 @@ object RouteProvider {
         HomePageURI -> home, 
         RegisterPageURI -> register,
         UserEditPageURI -> userEdit,
+        s"$UserEditPageURI/:username" -> userEdit, //TODO !!!
         SamplePageURI -> sample)
         
      routes

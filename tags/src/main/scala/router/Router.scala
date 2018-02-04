@@ -83,7 +83,7 @@ case class Router private() extends ComponentBuilder {
   window.addEventListener("hashchange", handleHashChange)
 }
 
-//TODO push history to a stack
+//TODO store params
 case class BrowserHistory(val router: Router){
   
   var history: Vector[String] = Vector.empty
