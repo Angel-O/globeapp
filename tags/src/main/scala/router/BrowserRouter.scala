@@ -8,13 +8,17 @@ import com.thoughtworks.binding.Binding.Constants
 case class BrowserRouterBuilder() extends ComponentBuilder {
   def render = this 
   var routes: BindingSeq[RouteBuilder] = _ 
-  
-  private val router = Router()
+  var dynamicRoutes: BindingSeq[DynamicRouteBuilder] = _ 
+  var baseUrl: String = _
+  private lazy val router = Router(baseUrl)
   
   @dom def build = {
     
-    val allRoutes = routes.all.bind
-    setHistoryAndRegisterRoutes(allRoutes)
+    val allStaticRoutes = routes.all.bind
+    setHistoryAndRegisterRoutes(allStaticRoutes)
+    
+    val allDynamicRoutes = dynamicRoutes.all.bind
+    registerDynamicRoutes(allDynamicRoutes)
     
     val routerNode = router.build
     
@@ -24,5 +28,9 @@ case class BrowserRouterBuilder() extends ComponentBuilder {
   
   private def setHistoryAndRegisterRoutes(routes: Seq[RouteBuilder]) = {
     routes.foreach(x => { x.history_(router.history); Router.registerRoute(x, router) })
+  }
+  
+  private def registerDynamicRoutes(routes: Seq[DynamicRouteBuilder]) = {
+    routes.foreach(x => Router.registerDynamicRoute(x, router))
   }
 }

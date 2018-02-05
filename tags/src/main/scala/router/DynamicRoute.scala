@@ -13,6 +13,8 @@ import scala.language.implicitConversions
 object DynamicRoute{
   implicit def toFragment(x: String): Fragment = StringFragment(x)
   implicit def toFragment(x: Any): Fragment = TypeFragment(x)
+  //implicit def toFragmentSeq(x: String): FragmentSeq = FragmentSeq(Seq(StringFragment(x)))
+  implicit def toFragmentSeq(x: Fragment): FragmentSeq = FragmentSeq(Seq(x))
   implicit class ToFrag(x: String) {
     def toFragment = StringFragment(x)
   }
@@ -74,8 +76,20 @@ case class FragmentSeq(fragments: Seq[Fragment]){
     val normalizedFragmentSeq = normalizeFragmentSeq //"(users)(Str Patt)(posts)(Int Patt)(placeholder)(placeholder)..."
     val pattern = normalizedFragmentSeq.r 
     val pattern(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u) = normailzedUrl
-    (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u).productIterator.toList
+    (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u).productIterator.toSeq
   } 
+  
+  def matchesUrl(url: String) = {
+    val length = url.tail.split('/').size
+    val pathLiteral = url.tail.split('/').mkString("")
+    (pathLiteral, length)  match {
+      case (this.r(_), 1) | (this.r(_, _),2) | (this.r(_, _, _), 3) | (this.r(_, _, _, _),4) | 
+           (this.r(_, _, _ ,_ , _),5) | (this.r(_, _, _, _, _, _), 6) | (this.r(_, _, _, _, _, _, _), 7) | 
+           (this.r(_, _, _, _, _, _, _, _), 8) | (this.r(_, _, _, _, _, _, _, _, _), 9) | 
+           (this.r(_, _, _, _, _, _, _, _, _, _), 10) => true
+      case _ => false
+    }
+  }
   
   def normalizeUrl(url: String) = {
     var split = url.split('/')

@@ -4,6 +4,7 @@ import components.Components.Implicits.ComponentBuilder
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding.Constants
 
+//TODO use sealed trait
 case class RouteBuilder() extends ComponentBuilder {
   def render = this
   var path: String = _
@@ -19,4 +20,16 @@ case class RouteBuilder() extends ComponentBuilder {
     //this makes eclipse happy (calling bind on the view builder would be enough)
     Constants(viewBuilder).all.bind.head.bind 
   }
+}
+
+case class DynamicRouteBuilder() extends ComponentBuilder {
+  def render = this
+  import router.DynamicRoute._
+  var path: FragmentSeq = _
+  var viewGenerator: (Seq[String]) => RoutingView = _ 
+  
+  
+  // dynamic routes are built dynamically by the router
+  // based on params...dummy is enough
+  @dom def build = dummy.build.bind
 }

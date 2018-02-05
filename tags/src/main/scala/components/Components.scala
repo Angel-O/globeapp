@@ -29,6 +29,7 @@ import scala.xml.UnprefixedAttribute
 
 import router.RouteBuilder
 import router.BrowserRouterBuilder
+import router.DynamicRouteBuilder
 
 object Components {
 
@@ -125,6 +126,7 @@ object Components {
       
       // routing
       def BrowserRouter() = new BrowserRouterBuilder()
+      def DynamicRoute() = new DynamicRouteBuilder()
       def Route() = new RouteBuilder()
     }
     

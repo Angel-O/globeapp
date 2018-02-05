@@ -5,10 +5,13 @@ import com.thoughtworks.binding.dom
 import components.Components.Implicits.{toBindingSeq, CustomTags2, _}
 import navigation.URIs._
 import router.DynamicRoute
+import router.FragmentSeq
 
 object RouteProvider {
   
   val routes = createRouteComponents(mapViewsToURIs)
+  
+  val dynamicRoutes = createDynamicRouteComponents(mapDynamicViewsToURIs)
   
   // mapping view components (the actual pages to display)
   private def mapViewsToURIs(): List[(String, RoutingView)] = {
@@ -41,27 +44,27 @@ object RouteProvider {
     routes
   }
   
-  private def dynamicRoutes = {
+  private def mapDynamicViewsToURIs = {
     import router.DynamicRoute._
-    val userPostURI = ":username" / "posts" / Int
+    val userPostURI = UserEditPageURI.tail / ":username" / "posts" / Int
     val route = new DynamicRoute(UserEditPageURI, userPostURI)
     
     import UserEditPage.{ view => userEdit }
     val routes = List(
-        route -> userEdit _
+        userPostURI -> userEdit _
         )
         
     routes   
   }
   
-//  private def createDynamicRouteComponents(routeMapping: List[(String, Seq[String] => RoutingView)]) = {
-//    
-//    // yield uses a call back executed in another context where we cannot use the bind method
-//    // therfore we need to covert it to a binding sequence (under the hood the the component builder
-//    // will call the bind method...apparently)
-//    @dom
-//    val routes = (for((uri, view) <- toBindingSeq(routeMapping)) yield <DynamicRoute path={uri} view={view}/>)
-//    
-//    routes
-//  }
+  private def createDynamicRouteComponents(routeMapping: List[(FragmentSeq, Seq[String] => RoutingView)]) = {
+    
+    // yield uses a call back executed in another context where we cannot use the bind method
+    // therfore we need to covert it to a binding sequence (under the hood the the component builder
+    // will call the bind method...apparently)
+    @dom
+    val routes = (for((uri, view) <- toBindingSeq(routeMapping)) yield <DynamicRoute path={uri} viewGenerator={view}/>)
+    
+    routes
+  }
 }

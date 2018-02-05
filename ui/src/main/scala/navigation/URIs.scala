@@ -4,6 +4,6 @@ object URIs {
   val HomePageURI = "/"
   val RegisterPageURI = "/register"
   val HelloPageURI = "/hello"
-  val UserEditPageURI = "/user"
+  val UserEditPageURI = "/users"
   val SamplePageURI = "/sample"
 }
