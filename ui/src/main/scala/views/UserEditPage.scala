@@ -16,11 +16,12 @@ import appstate.Connect
 
 object UserEditPage {
   
-  val view = new RoutingView() with Connect {
+  def view(name: String = "", posts: Int = 0) = new RoutingView() with Connect {
     
     @dom override def element = {
       
           <div> 
+						<h1> {name} - You have {posts.toString} posts</h1>
 						<ul>{ renderUsers(users.bind).bind }</ul>           
 						<br/>
             <button onclick={ (e: Event) => dispatch(Rename(1, "Dom")) }> Rename user </button>

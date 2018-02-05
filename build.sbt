@@ -113,7 +113,7 @@ lazy val ui = (project in file("ui"))
 
     )
 
-//import play.twirl.sbt.Import.TwirlKeys._
+import play.twirl.sbt.Import.TwirlKeys._
 //sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl")
 
 lazy val server = (project in file("server"))
@@ -127,8 +127,10 @@ lazy val server = (project in file("server"))
         //run := (run in Compile).dependsOn(fastOptJS in Compile in ui).evaluated,
         //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         libraryDependencies += guice,
-        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test//,
-        //EclipseKeys.preTasks := Seq(compile in Compile)
+        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
+        sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl"),
+
+        EclipseKeys.preTasks := Seq(compile in Compile)
         //,
         //mappings in (Compile, packageBin) ++= mappings.in(modelsJVM, Compile, packageBin).value,
         //mappings in (Compile, packageSrc) ++= mappings.in(modelsJVM, Compile, packageSrc).value
@@ -155,6 +157,7 @@ lazy val tags = (project in file("tags"))
         autoCompilerPlugins := true,
         libraryDependencies += scalaReflect.value,
         libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
+        libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.0" % "test",
         libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
     )
 

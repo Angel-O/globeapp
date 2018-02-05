@@ -4,6 +4,7 @@ import router.RoutingView
 import com.thoughtworks.binding.dom
 import components.Components.Implicits.{toBindingSeq, CustomTags2, _}
 import navigation.URIs._
+import router.DynamicRoute
 
 object RouteProvider {
   
@@ -22,8 +23,7 @@ object RouteProvider {
     val routes = List(
         HomePageURI -> home, 
         RegisterPageURI -> register,
-        UserEditPageURI -> userEdit,
-        s"$UserEditPageURI/:username" -> userEdit, //TODO !!!
+        UserEditPageURI -> userEdit(),
         SamplePageURI -> sample)
         
      routes
@@ -40,4 +40,28 @@ object RouteProvider {
     
     routes
   }
+  
+  private def dynamicRoutes = {
+    import router.DynamicRoute._
+    val userPostURI = ":username" / "posts" / Int
+    val route = new DynamicRoute(UserEditPageURI, userPostURI)
+    
+    import UserEditPage.{ view => userEdit }
+    val routes = List(
+        route -> userEdit _
+        )
+        
+    routes   
+  }
+  
+//  private def createDynamicRouteComponents(routeMapping: List[(String, Seq[String] => RoutingView)]) = {
+//    
+//    // yield uses a call back executed in another context where we cannot use the bind method
+//    // therfore we need to covert it to a binding sequence (under the hood the the component builder
+//    // will call the bind method...apparently)
+//    @dom
+//    val routes = (for((uri, view) <- toBindingSeq(routeMapping)) yield <DynamicRoute path={uri} view={view}/>)
+//    
+//    routes
+//  }
 }
