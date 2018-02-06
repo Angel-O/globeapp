@@ -27,10 +27,17 @@ case class BrowserRouterBuilder() extends ComponentBuilder {
   }
   
   private def setHistoryAndRegisterRoutes(routes: Seq[RouteBuilder]) = {
-    routes.foreach(x => { x.history_(router.history); Router.registerRoute(x, router) })
+    routes.foreach(x => { 
+      x.path = if(x.path != baseUrl) s"$baseUrl${x.path}" else x.path; x.history_(router.history)
+      Router.registerRoute(x, router) 
+    })
   }
   
   private def registerDynamicRoutes(routes: Seq[DynamicRouteBuilder]) = {
-    routes.foreach(x => Router.registerDynamicRoute(x, router))
+    import DynamicRoute._
+    routes.foreach(x => { 
+      x.path = baseUrl.tail / x.path
+      Router.registerDynamicRoute(x, router) 
+    })
   }
 }

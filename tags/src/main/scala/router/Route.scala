@@ -5,6 +5,7 @@ import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding.Constants
 
 //TODO use sealed trait
+//TODO remove distinction between dynamic and static routes
 case class RouteBuilder() extends ComponentBuilder {
   def render = this
   var path: String = _

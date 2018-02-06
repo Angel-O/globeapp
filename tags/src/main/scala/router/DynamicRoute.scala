@@ -32,7 +32,10 @@ class DynamicRoute(baseUri: String, path: FragmentSeq) {
 sealed trait Fragment{
   def /(fragment: Fragment) = {
     FragmentSeq(Seq(this, fragment))
-  } 
+  }
+  def /(fragments: FragmentSeq) = {
+    FragmentSeq(this +: fragments.fragments)
+  }
   val isParam: Boolean
 }
 case class StringFragment(x: String) extends Fragment{

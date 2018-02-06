@@ -31,6 +31,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
         case "" => baseURL // no hash equal to home page
         case hash => hash.tail // exclude the hash
     }
+    log.warn("root", rootPath)
     getRoute(rootPath) 
   }
   
@@ -103,6 +104,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     
     // building only static routes, 
     // dynamic routes are built dynamically no neet to call build here
+    //routes.foreach(x => log.warn("YES:", x.path))
     routes.foreach(_.build)
     activePage.bind.build.bind
   }
@@ -125,7 +127,10 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     activePage.value = newLocation
   }
   
-  def addRoute(route: RouteBuilder) = routes = routes :+ route
+  def addRoute(route: RouteBuilder) = {
+    routes.foreach(x => log.warn("rrrrrr", x.path))
+    routes = routes :+ route
+  }
   def addDynamicRoute(route: DynamicRouteBuilder) = dynamicRoutes = dynamicRoutes :+ route
   
   private def setWindowLocation(path: String) = {
@@ -141,8 +146,8 @@ case class Router private(baseURL: String) extends ComponentBuilder {
       case _ => s"#${Router.NotFound.path}" //TODO fix this: it's not doing anything
     }
     println("path is", path)
-    history.params = getParams(path)
-    println("PPPP", history.params)
+    //history.params = getParams(path)
+    //println("PPPP", history.params)
     val route = getRoute(path)
     if (route == Router.NotFound.view || 
         route == Router.DynamicNotFound.viewGenerator()){
@@ -161,15 +166,15 @@ case class Router private(baseURL: String) extends ComponentBuilder {
 //TODO store url params and query string...
 case class BrowserHistory(val router: Router){
   
-  var history: Vector[String] = Vector.empty
+  private var history: Vector[String] = Vector.empty
   var params: Seq[String] = Seq.empty
   def navigateTo(path: String) = {
-    log.warn("Path", path)
     history = history :+ path
     params = router.getParams(path)
-    router.navigateTo(path)
+    router.navigateTo(router.baseURL + (if(path == router.baseURL) "" else path))
   }
   //def getParams(path: String) = router.getParams(path)
+  def getParams = params //TODO return immutable copy
 }
 
 //TODO add ability to set custom 404 page

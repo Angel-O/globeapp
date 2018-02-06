@@ -16,7 +16,7 @@ class RoutingView(navigators: BrowserHistory => Unit*) extends ComponentBuilder 
     this
   }
   implicit var history: BrowserHistory = _
-  lazy val routeParams = history.params
+  lazy val routeParams = history.getParams
 
   def element: Binding[HTMLElement] = //TODO add support for pure html elements
     throw new IllegalArgumentException("element method in RoutingView must be overridden")
