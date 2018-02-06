@@ -26,7 +26,7 @@ object RouteProvider {
     val routes = List(
         HomePageURI -> home, 
         RegisterPageURI -> register,
-        UserEditPageURI -> userEdit(),
+        //UserEditPageURI -> userEdit,
         SamplePageURI -> sample)
         
      routes
@@ -57,7 +57,7 @@ object RouteProvider {
     routes   
   }
   
-  private def createDynamicRouteComponents(routeMapping: List[(FragmentSeq, Seq[String] => RoutingView)]) = {
+  private def createDynamicRouteComponents(routeMapping: List[(FragmentSeq, () => RoutingView)]) = {
     
     // yield uses a call back executed in another context where we cannot use the bind method
     // therfore we need to covert it to a binding sequence (under the hood the the component builder

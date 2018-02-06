@@ -3,6 +3,7 @@ package router
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.raw.HashChangeEvent
+import org.scalajs.dom.raw.Event
 import org.scalajs.dom.window
 import org.scalajs.dom.Location
 
@@ -73,14 +74,27 @@ case class Router private(baseURL: String) extends ComponentBuilder {
      val params = if(matchingDynamicRoute.path != Router.DynamicNotFound.path){
        matchingDynamicRoute.path.getRouteParams(path.tail).map(_.toString)
      } else{
-       println("this"); Seq.empty[String]
+       Seq.empty[String]
      }
     
-    println("params", params)
-    val view = matchingDynamicRoute.viewGenerator(params)
+    //println("params", params)
+    val view = matchingDynamicRoute.viewGenerator()
+    history.params = getParams(path)
     view.history = this.history
     view
   } 
+  
+  def getParams(path: String): Seq[String] = {
+    val matchingDynamicRoute = dynamicRoutes.find(x => x.path.matchesUrl(path)).getOrElse(Router.DynamicNotFound)
+    
+    val params = 
+      if(matchingDynamicRoute.path != Router.DynamicNotFound.path){
+       matchingDynamicRoute.path.getRouteParams(path.tail).map(_.toString)
+      } 
+      else{ Seq.empty[String] }
+    
+     params
+  }
    
   def render = activePage.value.render
   
@@ -127,9 +141,11 @@ case class Router private(baseURL: String) extends ComponentBuilder {
       case _ => s"#${Router.NotFound.path}" //TODO fix this: it's not doing anything
     }
     println("path is", path)
+    history.params = getParams(path)
+    println("PPPP", history.params)
     val route = getRoute(path)
     if (route == Router.NotFound.view || 
-        route == Router.DynamicNotFound.viewGenerator(Router.DynamicNotFound.params.asInstanceOf[Seq[String]])){
+        route == Router.DynamicNotFound.viewGenerator()){
       //simulate redirect
       //document.location.hash = Router.NotFound.path
       e.stopImmediatePropagation()
@@ -138,17 +154,22 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   }
   
   window.addEventListener("hashchange", handleHashChange)
+  //window.addEventListener("load", (e: Event) => history.params = getParams(window.location.hash.tail))
+  //window.addEventListener("beforepageload", (e: Event) => {println("HI"); history.params = getParams(window.location.hash.tail)})
 }
 
 //TODO store url params and query string...
 case class BrowserHistory(val router: Router){
   
   var history: Vector[String] = Vector.empty
+  var params: Seq[String] = Seq.empty
   def navigateTo(path: String) = {
     log.warn("Path", path)
     history = history :+ path
+    params = router.getParams(path)
     router.navigateTo(path)
-  }   
+  }
+  //def getParams(path: String) = router.getParams(path)
 }
 
 //TODO add ability to set custom 404 page
@@ -166,7 +187,7 @@ private object Router {
     val route = new DynamicRouteBuilder() 
     val params: Seq[String] = Seq.empty[String]
     route.path = "/404".toFragment
-    route.viewGenerator = params => new RoutingView(){ @dom override val element = dummy.build.bind }
+    route.viewGenerator = () => new RoutingView(){ @dom override val element = dummy.build.bind }
     route
   }
   

@@ -26,7 +26,7 @@ case class DynamicRouteBuilder() extends ComponentBuilder {
   def render = this
   import router.DynamicRoute._
   var path: FragmentSeq = _
-  var viewGenerator: (Seq[String]) => RoutingView = _ 
+  var viewGenerator: () => RoutingView = _ 
   
   
   // dynamic routes are built dynamically by the router

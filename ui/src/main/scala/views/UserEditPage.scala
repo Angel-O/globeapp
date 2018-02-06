@@ -16,10 +16,13 @@ import appstate.Connect
 
 object UserEditPage {
   
-  def view(params: String*) = new RoutingView() with Connect {
+  def view() = new RoutingView() with Connect {
     
-    val name = if (!params.isEmpty) params(0) else ""
-    val posts = if (!params.isEmpty) params(1) else ""
+    //route params are lazily evaluated
+    //TODO get by name rather than index
+    lazy val name = routeParams(0) 
+    lazy val posts = routeParams(1) 
+    
     @dom override def element = {
       
           <div> 
@@ -39,7 +42,7 @@ object UserEditPage {
     //dispatch(FetchUsers)
     //connect to the circuit...car selector and user selector could be combined...
     val cars = Var(initialModel.cars.cars) //TODO on dynamic route this is always empty initially even if stuff was loaded
-    val users = Var(initialModel.users.users) //TODO as above 
+    val users = Var(initialModel.users.users) //TODO as above...probably that's a good behaviour 
     connect()(AppCircuit.carSelector, cars.value = AppCircuit.carSelector.value)
     connect()(AppCircuit.userSelector, users.value = AppCircuit.userSelector.value)
   }

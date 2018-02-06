@@ -54,6 +54,7 @@ case object FragmentSeq{
   }
 }
 case class FragmentSeq(fragments: Seq[Fragment]){
+  val maxLength = 21
   def addFragment(fragment: Fragment) = FragmentSeq(fragments :+ fragment)
   def /(fragment: Fragment) = addFragment(fragment)
   def length = fragments.length 
@@ -83,17 +84,20 @@ case class FragmentSeq(fragments: Seq[Fragment]){
     val length = url.tail.split('/').size
     val pathLiteral = url.tail.split('/').mkString("")
     (pathLiteral, length)  match {
-      case (this.r(_), 1) | (this.r(_, _),2) | (this.r(_, _, _), 3) | (this.r(_, _, _, _),4) | 
-           (this.r(_, _, _ ,_ , _),5) | (this.r(_, _, _, _, _, _), 6) | (this.r(_, _, _, _, _, _, _), 7) | 
-           (this.r(_, _, _, _, _, _, _, _), 8) | (this.r(_, _, _, _, _, _, _, _, _), 9) | 
-           (this.r(_, _, _, _, _, _, _, _, _, _), 10) => true
+//      case (this.r(_), 1) | (this.r(_, _),2) | (this.r(_, _, _), 3) | (this.r(_, _, _, _),4) | 
+//           (this.r(_, _, _ ,_ , _),5) | (this.r(_, _, _, _, _, _), 6) | (this.r(_, _, _, _, _, _, _), 7) | 
+//           (this.r(_, _, _, _, _, _, _, _), 8) | (this.r(_, _, _, _, _, _, _, _, _), 9) | 
+//           (this.r(_, _, _, _, _, _, _, _, _, _), 10) => true // contine until max length....or...(see below)
+      
+      // TODO pattern matching against regEx is not necessary (length comparison should be enough)
+      case (this.r(_*), x) => x <= maxLength && this.length == length 
       case _ => false
     }
   }
   
   def normalizeUrl(url: String) = {
     var split = url.split('/')
-    val missingFragments = 21 - split.length
+    val missingFragments = maxLength - split.length
     for(i <- 0 until missingFragments) {
       split = split :+ "placeholder"
     }
@@ -117,7 +121,7 @@ case class FragmentSeq(fragments: Seq[Fragment]){
     params.filter(x => paramsIndices.contains(params.indexOf(x)))
   } 
   def normalizeFragmentSeq: FragmentSeq = {
-    val missingFragments = 21 - this.length
+    val missingFragments = maxLength - this.length
     var normalized = this
     for(i <- 0 until missingFragments) {
       normalized = normalized / StringFragment("placeholder")
