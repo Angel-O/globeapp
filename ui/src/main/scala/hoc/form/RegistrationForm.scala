@@ -17,7 +17,8 @@ import appstate.AppCircuit
 import diode.Dispatcher
 import appstate.FetchUsers
 import diode.data.Pot
-import diode.data.Ready
+import diode.data.PotState._
+import diode.data.{Ready, Pending}
 import appstate.Connect
 
 case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
@@ -37,22 +38,15 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
   
   // no need to use Var (no reload needed)
   // Note good practice: initialize with value from circuit to make it obvious it comes from there
-  var users: Seq[User] = initialModel.users.users //TODO should model be potential???
+  private var users = Pot.empty[Seq[User]] //= initialModel.users.users //TODO should model be potential???
+  connect()(AppCircuit.userSelector, users = Ready(AppCircuit.userSelector.value))
   
   import FieldValidators._ 
-  //import scala.util.{Success => Ok, Failure}
   import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    def validateUserNameAlreadyTaken(userName: String) = { 
-      Future{this.fetchUsers()}.map(_ => users.exists(_.name == userName) match{
-        case true => Error(s"Username $userName already taken")
-        case _ => Success("Valid username, son")
-      }) //TODO this needs to be awaited, wrapping into future doesn't do much     
-    }
-    
     (for { validation <- validateName(name.value)
-           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else Future{validation}} 
+           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else validation} 
     yield nameValidation.value = validation|>asyncValidation)
     .recover{case _ => nameValidation.value = validateName(name.value)}
   } 
@@ -95,6 +89,20 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
   private val handleConfirmPasswordChange = (value: String) => {
     confirmPassword.value = value
     confirmPasswordValidation.value = validateConfirmPassword(password.value, confirmPassword.value)
+  }
+  
+  // async validation
+  private def validateUserNameAlreadyTaken(userName: String) = { 
+    this.fetchUsers() //TODO this needs to be awaited...
+    //users = users.pending()  
+    val outcome = users.state match {
+      case PotPending => YetToBeValidated // not triggered..
+      case _ => users.map(_.exists(_.name == userName) match{
+        case true => Error(s"Username $userName already taken")
+        case _ => Success("Valid username, son")
+      }).get
+    }
+    outcome//.get
   }
   
   @dom def build = {
@@ -189,7 +197,6 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
 				</div>
       </form>.asInstanceOf[HTMLElement]
      
-    connect()(AppCircuit.userSelector, users = AppCircuit.userSelector.value)  
     create(form, "registration-form").bind.asInstanceOf[HTMLElement]
   }
   

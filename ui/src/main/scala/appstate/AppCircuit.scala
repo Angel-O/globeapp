@@ -73,7 +73,8 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
         }
         case PotReady => {
           println("data is here")
-          updated(action.potResult.get)
+          //println("THERE", users.get)
+          updated(action.potResult.ready(users.get).get)
         }
         case PotFailed => {
           val ex = action.result.failed.get
@@ -86,6 +87,7 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
             println("on its way...");
             updated(action.potResult.pending().get)//not triggered atm
           }
+          println("nothing changed...");
           noChange //not triggered atm
         }
         case _ => noChange
