@@ -11,6 +11,10 @@ package router
 import scala.language.implicitConversions
 
 object DynamicRoute{
+  implicit class Path(x: String) {
+    def toPath(): FragmentSeq = FragmentSeq(Seq(StringFragment(x)))
+  }
+  //implicit def toPath(x: String): FragmentSeq = FragmentSeq(Seq(StringFragment(x)))
   implicit def toFragment(x: String): Fragment = StringFragment(x)
   implicit def toFragment(x: Any): Fragment = TypeFragment(x)
   //implicit def toFragmentSeq(x: String): FragmentSeq = FragmentSeq(Seq(StringFragment(x)))

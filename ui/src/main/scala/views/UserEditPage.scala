@@ -16,7 +16,7 @@ import appstate.Connect
 
 object UserEditPage {
   
-  def view() = new RoutingView() with Connect {
+  val view = new RoutingView() with Connect {
     
     //route params are lazily evaluated
     //TODO get by name rather than index
