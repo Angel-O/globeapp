@@ -54,8 +54,6 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     routes.find(x => x.path.matchesUrl(path)).getOrElse(Router.NotFound)
   }
   
-  var params: Seq[String] = Seq.empty
-  
   def getParams(path: String): Seq[String] = {
     val route = matchingRoute(path)
     val params = 
@@ -63,7 +61,6 @@ case class Router private(baseURL: String) extends ComponentBuilder {
        route.path.getRouteParams(path.tail).map(_.toString)
       } 
       else{ Seq.empty[String] }
-    this.params = params
      params
   }
    
@@ -128,10 +125,7 @@ case class BrowserHistory(val router: Router){
     params = router.getParams(path)
     router.navigateTo(router.baseURL + (if(path == router.baseURL) "" else path))
   }
-  def getParams = {
-    println("THEM", params)
-    router.params //TODO return immutable copy
-  }
+  def getParams = params
 }
 
 //TODO add ability to set custom 404 page

@@ -18,15 +18,18 @@ object UserEditPage {
   
   def view() = new RoutingView() with Connect {
     
-    //route params are lazily evaluated
-    //TODO get by name rather than index
-    lazy val name = routeParams(0) 
-    lazy val posts = routeParams(1) 
+    //route params are lazily evaluated (use lazy val inside RoutingView)
+    //lazy val name = routeParams(0) 
+    //lazy val posts = routeParams(1) 
     
     @dom override def element = {
-      
+         //TODO get by name rather than index
+         // (use val inside RoutingView.element)
+         val name = routeParams(0) 
+         val posts = routeParams(1) 
+         
           <div> 
-						<h1> {name} - You have {posts.toString} posts</h1>
+						<h1> {name} - You have {posts} posts</h1>
 						<ul>{ renderUsers(users.bind).bind }</ul>           
 						<br/>
             <button onclick={ (e: Event) => dispatch(Rename(1, "Dom")) }> Rename user </button>
