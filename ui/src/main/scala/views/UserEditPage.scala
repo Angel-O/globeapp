@@ -16,7 +16,7 @@ import appstate.Connect
 
 object UserEditPage {
   
-  val view = new RoutingView() with Connect {
+  def view() = new RoutingView() with Connect {
     
     //route params are lazily evaluated
     //TODO get by name rather than index
@@ -41,8 +41,8 @@ object UserEditPage {
     }  
     //dispatch(FetchUsers)
     //connect to the circuit...car selector and user selector could be combined...
-    val cars = Var(initialModel.cars.cars) //TODO on dynamic route this is always empty initially even if stuff was loaded
-    val users = Var(initialModel.users.users) //TODO as above...(probably that's a good behaviour actually)
+    val cars = Var(initialModel.cars.cars)
+    val users = Var(initialModel.users.users)
     connect()(AppCircuit.carSelector, cars.value = AppCircuit.carSelector.value)
     connect()(AppCircuit.userSelector, users.value = AppCircuit.userSelector.value)
   }

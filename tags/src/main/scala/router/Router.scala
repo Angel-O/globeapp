@@ -30,37 +30,40 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   }
   
   private lazy val activePage: Var[RoutingView] = Var(root)
-  private def getRoute(path: String) = {
-    matchingRouteFound(path) match{
-        case true => buildView(path)
-        case _ => Router.NotFound.view
+  
+  private def getRoute(path: String): RoutingView = {
+    matchingRouteFound(path) match {
+        case true => buildView(path).asInstanceOf[RoutingView]
+        case _ => Router.NotFound.view()
       }
   }
   
-  private def matchingRouteFound(path: String) = {
+  private def matchingRouteFound(path: String): Boolean = {
     routes.exists( x => x.path.matchesUrl(path) )
   }
   
-  private def buildView(path: String) = {
-    val view = matchingRoute(path).view
+  private def buildView(path: String): RoutingView = {
+    val view = matchingRoute(path).view()
     history.params = getParams(path)
     view.history = this.history
+    println("new view")
     view
   } 
   
-  private def matchingRoute(path: String) = {
+  private def matchingRoute(path: String): RouteBuilder = {
     routes.find(x => x.path.matchesUrl(path)).getOrElse(Router.NotFound)
   }
   
+  var params: Seq[String] = Seq.empty
+  
   def getParams(path: String): Seq[String] = {
     val route = matchingRoute(path)
-    
     val params = 
       if(route.path != Router.NotFound.path){
        route.path.getRouteParams(path.tail).map(_.toString)
       } 
       else{ Seq.empty[String] }
-    
+    this.params = params
      params
   }
    
@@ -104,11 +107,11 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     } 
     
     val route = getRoute(path)
-    if (route == Router.NotFound.view){
+    if (route == Router.NotFound.view()){
       //simulate redirect
       //document.location.hash = Router.NotFound.path.toLiteral
       e.stopImmediatePropagation()
-    }
+    }    
     activePage.value = route
   }
   
@@ -125,7 +128,10 @@ case class BrowserHistory(val router: Router){
     params = router.getParams(path)
     router.navigateTo(router.baseURL + (if(path == router.baseURL) "" else path))
   }
-  def getParams = params //TODO return immutable copy
+  def getParams = {
+    println("THEM", params)
+    router.params //TODO return immutable copy
+  }
 }
 
 //TODO add ability to set custom 404 page
@@ -135,7 +141,7 @@ private object Router {
     import DynamicRoute._
     val route = new RouteBuilder()
     route.path = "/404".toFragment
-    route.view = new RoutingView(){ @dom override val element = dummy.build.bind }
+    route.view = () => new RoutingView(){ @dom override val element = dummy.build.bind }
     route
   }
   

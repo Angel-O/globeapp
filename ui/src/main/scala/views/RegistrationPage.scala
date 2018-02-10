@@ -17,7 +17,7 @@ import appstate.FetchCars
 
 object RegistrationPage {
   import navigation.Navigators._
-  val view = new RoutingView() with Connect{ //TODO connect is not needed
+  def view() = new RoutingView() with Connect{ //TODO connect is not needed
      
     @dom override def element = {
       <ModalCard 

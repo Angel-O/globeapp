@@ -16,18 +16,18 @@ object RouteProvider {
     import router.DynamicRoute._
     
     //TODO use dynamic Route class...
-    val routes: List[(FragmentSeq, RoutingView)] = List(
-        HomePageURI.tail.toPath -> HomePage.view, 
-        RegisterPageURI.tail.toPath -> RegistrationPage.view,
-        SamplePageURI.tail.toPath -> SamplePage.view,
-        UserPostURI -> UserEditPage.view
+    val routes: List[(FragmentSeq, () => RoutingView)] = List(
+        HomePageURI.tail.toPath -> HomePage.view _, 
+        RegisterPageURI.tail.toPath -> RegistrationPage.view _,
+        SamplePageURI.tail.toPath -> SamplePage.view _,
+        UserPostURI -> UserEditPage.view _
         )
         
     routes   
   }
   
   // creating wrappers around pages to provide routing capabilities
-  private def createRouteComponents(routeMapping: List[(FragmentSeq, RoutingView)]) = {
+  private def createRouteComponents(routeMapping: List[(FragmentSeq, () => RoutingView)]) = {
     
     // yield uses a call back executed in another context where we cannot use the bind method
     // therfore we need to covert it to a binding sequence (under the hood the the component builder

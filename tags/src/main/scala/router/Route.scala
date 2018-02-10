@@ -7,7 +7,7 @@ case class RouteBuilder() extends ComponentBuilder {
   def render = this
   
   var path: FragmentSeq = _
-  var view: RoutingView = _ 
+  var view: () => RoutingView = _ 
   
   
   // dynamic routes are built dynamically by the router hence why a dummy is built here

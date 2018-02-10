@@ -10,7 +10,7 @@ import com.thoughtworks.binding.dom
 object HomePage {
   
   import navigation.Navigators._
-  val view = new RoutingView() { 
+  def view() = new RoutingView() { 
     
     //TODO split into subtiles and create HomePage subpackage 
     @dom override def element = 

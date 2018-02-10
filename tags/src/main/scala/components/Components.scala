@@ -173,6 +173,7 @@ object Components {
     }
 
     abstract class ComponentBuilder extends BulmaCssClasses with Dynamic{
+    //abstract class ComponentBuilder extends BulmaCssClasses {
       def render: ComponentBuilder
       def build: Binding[HTMLElement] 
       

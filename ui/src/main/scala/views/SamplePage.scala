@@ -6,7 +6,7 @@ import com.thoughtworks.binding.dom
 import navigation.Navigators._
 
 object SamplePage {
-  val view = new RoutingView() {
+  def view() = new RoutingView() {
     
       @dom override def element = {
 
