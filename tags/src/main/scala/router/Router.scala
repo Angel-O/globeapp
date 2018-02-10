@@ -31,30 +31,33 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   
   private lazy val activePage: Var[RoutingView] = Var(root)
   private def getRoute(path: String) = {
-    dynamicRouteMatchFound(path) match{
-        case true => getDynamicRoute(path)
+    matchingRouteFound(path) match{
+        case true => buildView(path)
         case _ => Router.NotFound.view
       }
   }
   
-  private def dynamicRouteMatchFound(path: String) = {
+  private def matchingRouteFound(path: String) = {
     routes.exists( x => x.path.matchesUrl(path) )
   }
   
-  private def getDynamicRoute(path: String) = {
-    val matchingDynamicRoute = routes.find(x => x.path.matchesUrl(path)).getOrElse(Router.NotFound)
-    val view = matchingDynamicRoute.view
+  private def buildView(path: String) = {
+    val view = matchingRoute(path).view
     history.params = getParams(path)
     view.history = this.history
     view
   } 
   
+  private def matchingRoute(path: String) = {
+    routes.find(x => x.path.matchesUrl(path)).getOrElse(Router.NotFound)
+  }
+  
   def getParams(path: String): Seq[String] = {
-    val matchingDynamicRoute = routes.find(x => x.path.matchesUrl(path)).getOrElse(Router.NotFound)
+    val route = matchingRoute(path)
     
     val params = 
-      if(matchingDynamicRoute.path != Router.NotFound.path){
-       matchingDynamicRoute.path.getRouteParams(path.tail).map(_.toString)
+      if(route.path != Router.NotFound.path){
+       route.path.getRouteParams(path.tail).map(_.toString)
       } 
       else{ Seq.empty[String] }
     
@@ -64,8 +67,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   def render = activePage.value.render
   
   @dom def build: Binding[HTMLElement] = {
-    validateRoutes
-    
+    validateRoutes  
     activePage.bind.build.bind
   }
   
@@ -92,10 +94,15 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   //TODO seems to be triggered many times....should this be a singleton???
   private val handleHashChange = (e: HashChangeEvent) => {
     val location = e.newURL
-    val path = location.substring(location.indexOf("#")).toList match {
-      case _ :: tail => tail.mkString("")
-      case _ => s"#${Router.NotFound.path}" //TODO fix this: it's not doing anything
-    }
+    val hashPosition = location.indexOf("#")
+    val urlHasHash = hashPosition >= 0
+    val path = 
+      if(urlHasHash) {
+      location.substring(hashPosition).toList match {
+        case _ :: tail => tail.mkString("")
+        case _ => s"#${Router.NotFound.path}" } 
+      }
+      else{ baseURL }
     
     val route = getRoute(path)
     if (route == Router.NotFound.view){

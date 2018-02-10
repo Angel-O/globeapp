@@ -17,7 +17,6 @@ object App {
       // to handle building and binding automatically rather than 
       // calling them manually)
       //TODO pass config object
-      //TODO merge static and dynamic routes
       <BrowserRouter baseUrl={URIs.HomePageURI} routes={routes.bind}/>.build.bind
 		}
     

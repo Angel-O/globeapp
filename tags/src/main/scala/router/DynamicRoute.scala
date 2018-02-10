@@ -26,12 +26,12 @@ object DynamicRoute{
   val numeric = "([0-9]+)"
 }
   
-class DynamicRoute(baseUri: String, path: FragmentSeq) {
-  
-  def params(url: String) = path.getRouteParams(url: String)
-  
-  def paramsEasy(url: String) = path.getParamsEasy(url: String)
-}
+//class DynamicRoute(baseUri: String, path: FragmentSeq) {
+//  
+//  def params(url: String) = path.getRouteParams(url: String)
+//  
+//  def paramsEasy(url: String) = path.getParamsEasy(url: String)
+//}
 
 sealed trait Fragment{
   def /(fragment: Fragment) = {
