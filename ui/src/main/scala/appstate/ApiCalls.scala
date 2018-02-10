@@ -55,6 +55,7 @@ object ApiCalls {
 //        }
 //    })
 
+  //TODO try and combine multiple effects to use pending state...
   def fetchUsersEffect() = {
     Effect(fetchUsers()
         .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))

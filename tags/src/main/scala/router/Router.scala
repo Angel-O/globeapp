@@ -3,20 +3,20 @@ package router
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.raw.HashChangeEvent
-import org.scalajs.dom.raw.Event
+//import org.scalajs.dom.raw.Event
 import org.scalajs.dom.window
-import org.scalajs.dom.Location
+//import org.scalajs.dom.Location
 
 import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.Binding.Var
 import com.thoughtworks.binding.dom
 
 import components.Components.Implicits.ComponentBuilder
-import components.Components.Implicits.DummyBuilder
-import components.Components.Implicits.autoBinding
+//import components.Components.Implicits.DummyBuilder
+//import components.Components.Implicits.autoBinding
 import components.Components.Implicits.log
-import org.scalajs.dom.raw.BeforeUnloadEvent
-import com.sun.xml.internal.ws.client.sei.ValueSetter.ReturnValue
+//import org.scalajs.dom.raw.BeforeUnloadEvent
+//import com.sun.xml.internal.ws.client.sei.ValueSetter.ReturnValue
 
 case class Router private(baseURL: String) extends ComponentBuilder {
    
@@ -48,12 +48,12 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     }   
   }
   
-  private def dynamicRouteMatchFoundOLD(path: String) = {
-    dynamicRoutes.exists( x => path.tail.split('/').mkString("") match {
-      case x.path.r(_,_,_,_) => println("found!"); true //TODO this is not flexible 
-      case _ => println("not found!",x.path.r ); println("hash", path.tail.split('/').mkString("")); false
-    })
-  }
+  // private def dynamicRouteMatchFoundOLD(path: String) = {
+  //   dynamicRoutes.exists( x => path.tail.split('/').mkString("") match {
+  //     case x.path.r(_,_,_,_) => println("found!"); true //TODO this is not flexible 
+  //     case _ => println("not found!",x.path.r ); println("hash", path.tail.split('/').mkString("")); false
+  //   })
+  // }
   
   private def dynamicRouteMatchFound(path: String) = {
     dynamicRoutes.exists( x => x.path.matchesUrl(path) )
@@ -63,7 +63,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     println("HEY")
     println(path.tail)
     println(dynamicRoutes.head.path.toString)
-    val pathLiteral = path.tail.split('/').mkString("")
+    //val pathLiteral = path.tail.split('/').mkString("")
     val matchingDynamicRoute = dynamicRoutes.find(x => x.path.matchesUrl(path)).getOrElse(Router.DynamicNotFound)
     
 //    val params = matchingDynamicRoute match {
@@ -72,11 +72,11 @@ case class Router private(baseURL: String) extends ComponentBuilder {
 //      case _ => matchingDynamicRoute.path.getRouteParams(path.tail).map(_.toString)
 //    }
     
-     val params = if(matchingDynamicRoute.path != Router.DynamicNotFound.path){
-       matchingDynamicRoute.path.getRouteParams(path.tail).map(_.toString)
-     } else{
-       Seq.empty[String]
-     }
+    //  val params = if(matchingDynamicRoute.path != Router.DynamicNotFound.path){
+    //    matchingDynamicRoute.path.getRouteParams(path.tail).map(_.toString)
+    //  } else{
+    //    Seq.empty[String]
+    //  }
     
     //println("params", params)
     val view = matchingDynamicRoute.viewGenerator()
@@ -133,10 +133,10 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   }
   def addDynamicRoute(route: DynamicRouteBuilder) = dynamicRoutes = dynamicRoutes :+ route
   
-  private def setWindowLocation(path: String) = {
-    val location = window.location
-    location.hash_=(path)
-  }
+  // private def setWindowLocation(path: String) = {
+  //   val location = window.location
+  //   location.hash_=(path)
+  // }
   
   //TODO seems to be triggered many times....should this be a singleton???
   private val handleHashChange = (e: HashChangeEvent) => {
@@ -189,8 +189,7 @@ private object Router {
   
   val DynamicNotFound = {
     import DynamicRoute._
-    val route = new DynamicRouteBuilder() 
-    val params: Seq[String] = Seq.empty[String]
+    val route = new DynamicRouteBuilder()
     route.path = "/404".toFragment
     route.viewGenerator = () => new RoutingView(){ @dom override val element = dummy.build.bind }
     route

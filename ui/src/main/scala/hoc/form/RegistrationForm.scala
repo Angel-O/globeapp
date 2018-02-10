@@ -45,10 +45,11 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
   import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    (for { validation <- validateName(name.value)
-           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else validation} 
-    yield nameValidation.value = validation|>asyncValidation)
-    .recover{case _ => nameValidation.value = validateName(name.value)}
+//    (for { validation <- validateName(name.value)
+//           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else validation} 
+//    yield nameValidation.value = validation|>asyncValidation)
+//    .recover{case _ => nameValidation.value = validateName(name.value)}
+    nameValidation.value = validateName(name.value)|>validateUserNameAlreadyTaken(name.value)
   } 
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()
@@ -93,10 +94,10 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
   
   // async validation
   private def validateUserNameAlreadyTaken(userName: String) = { 
-    this.fetchUsers() //TODO this needs to be awaited...
-    //users = users.pending()  
+    this.fetchUsers() //TODO this needs to be awaited...   
     val outcome = users.state match {
-      case PotPending => YetToBeValidated // not triggered..
+      // pending not triggered..
+      case PotEmpty | PotPending => validateName(userName)//Error("Fetching data...") //TODO replace with progress bar...
       case _ => users.map(_.exists(_.name == userName) match{
         case true => Error(s"Username $userName already taken")
         case _ => Success("Valid username, son")
