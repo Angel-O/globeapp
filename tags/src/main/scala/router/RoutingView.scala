@@ -1,6 +1,6 @@
 package router
 
-import components.Components.Implicits.{ toComponentBuilder , ComponentBuilder}
+import components.Components.Implicits.{ toComponentBuilder , ComponentBuilder }
 import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.dom
 import org.scalajs.dom.raw.HTMLElement

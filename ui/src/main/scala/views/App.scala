@@ -9,8 +9,7 @@ object App {
   
   def main(args: Array[String]): Unit = {
     
-    //val routes = RouteProvider.routes
-    val dynamicRoutes = RouteProvider.dynamicRoutes
+    val routes = RouteProvider.routes
     
     @dom def render = {
         
@@ -19,7 +18,7 @@ object App {
       // calling them manually)
       //TODO pass config object
       //TODO merge static and dynamic routes
-      <BrowserRouter baseUrl={URIs.HomePageURI} dynamicRoutes={dynamicRoutes.bind}/>.build.bind
+      <BrowserRouter baseUrl={URIs.HomePageURI} routes={routes.bind}/>.build.bind
 		}
     
     // mount the App       

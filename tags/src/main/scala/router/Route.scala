@@ -4,9 +4,9 @@ import components.Components.Implicits.ComponentBuilder
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding.Constants
 
-case class DynamicRouteBuilder() extends ComponentBuilder {
+case class RouteBuilder() extends ComponentBuilder {
   def render = this
-  import router.DynamicRoute._
+  
   var path: FragmentSeq = _
   var view: RoutingView = _ 
   

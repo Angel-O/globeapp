@@ -15,7 +15,7 @@ import components.Components.Implicits.log
 
 case class Router private(baseURL: String) extends ComponentBuilder {
    
-  var dynamicRoutes: Seq[DynamicRouteBuilder] = Seq.empty
+  var routes: Seq[RouteBuilder] = Seq.empty
   val history = new BrowserHistory(this)
   
   private def root = {   
@@ -25,7 +25,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
         case "" => baseURL // no hash equal to home page
         case hash => hash.tail // exclude the hash
     }
-    log.warn("root", rootPath)
+    log.warn("init location", rootPath)
     getRoute(rootPath) 
   }
   
@@ -33,16 +33,16 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   private def getRoute(path: String) = {
     dynamicRouteMatchFound(path) match{
         case true => getDynamicRoute(path)
-        case _ => Router.DynamicNotFound.view
+        case _ => Router.NotFound.view
       }
   }
   
   private def dynamicRouteMatchFound(path: String) = {
-    dynamicRoutes.exists( x => x.path.matchesUrl(path) )
+    routes.exists( x => x.path.matchesUrl(path) )
   }
   
   private def getDynamicRoute(path: String) = {
-    val matchingDynamicRoute = dynamicRoutes.find(x => x.path.matchesUrl(path)).getOrElse(Router.DynamicNotFound)
+    val matchingDynamicRoute = routes.find(x => x.path.matchesUrl(path)).getOrElse(Router.NotFound)
     val view = matchingDynamicRoute.view
     history.params = getParams(path)
     view.history = this.history
@@ -50,10 +50,10 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   } 
   
   def getParams(path: String): Seq[String] = {
-    val matchingDynamicRoute = dynamicRoutes.find(x => x.path.matchesUrl(path)).getOrElse(Router.DynamicNotFound)
+    val matchingDynamicRoute = routes.find(x => x.path.matchesUrl(path)).getOrElse(Router.NotFound)
     
     val params = 
-      if(matchingDynamicRoute.path != Router.DynamicNotFound.path){
+      if(matchingDynamicRoute.path != Router.NotFound.path){
        matchingDynamicRoute.path.getRouteParams(path.tail).map(_.toString)
       } 
       else{ Seq.empty[String] }
@@ -70,9 +70,9 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   }
   
   private def validateRoutes = {
-    require(dynamicRoutes.nonEmpty, "Cannot create router without routes")
-    require(dynamicRoutes.map(_.path).toSet.size == dynamicRoutes.size, 
-        s"Found duplicate routes: (${dynamicRoutes
+    require(routes.nonEmpty, "Cannot create router without routes")
+    require(routes.map(_.path).toSet.size == routes.size, 
+        s"Found duplicate routes: (${routes
         .groupBy(identity)
         .collect { case (x,ys) if ys.lengthCompare(1) > 0 => x.path }
         .head})")
@@ -87,18 +87,18 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     activePage.value = newLocation
   }
   
-  def addDynamicRoute(route: DynamicRouteBuilder) = dynamicRoutes = dynamicRoutes :+ route
+  def addRoute(route: RouteBuilder) = routes = routes :+ route
   
   //TODO seems to be triggered many times....should this be a singleton???
   private val handleHashChange = (e: HashChangeEvent) => {
     val location = e.newURL
     val path = location.substring(location.indexOf("#")).toList match {
       case _ :: tail => tail.mkString("")
-      case _ => s"#${Router.DynamicNotFound.path}" //TODO fix this: it's not doing anything
+      case _ => s"#${Router.NotFound.path}" //TODO fix this: it's not doing anything
     }
     
     val route = getRoute(path)
-    if (route == Router.DynamicNotFound.view){
+    if (route == Router.NotFound.view){
       //simulate redirect
       //document.location.hash = Router.NotFound.path
       e.stopImmediatePropagation()
@@ -125,15 +125,15 @@ case class BrowserHistory(val router: Router){
 //TODO add ability to set custom 404 page
 private object Router {
   
-  val DynamicNotFound = {
+  val NotFound = {
     import DynamicRoute._
-    val route = new DynamicRouteBuilder()
+    val route = new RouteBuilder()
     route.path = "/404".toFragment
-    route.viewGenerator = () => new RoutingView(){ @dom override val element = dummy.build.bind }
+    route.view = new RoutingView(){ @dom override val element = dummy.build.bind }
     route
   }
   
-  def registerDynamicRoute(route: DynamicRouteBuilder, router: Router) = router.addDynamicRoute(route)
+  def registerRoute(route: RouteBuilder, router: Router) = router.addRoute(route)
   
   def apply(baseURL: String) = new Router(baseURL)
 }

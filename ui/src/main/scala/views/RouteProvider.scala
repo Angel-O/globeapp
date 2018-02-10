@@ -9,10 +9,10 @@ import router.FragmentSeq
 
 object RouteProvider {
   
-  val dynamicRoutes = createDynamicRouteComponents(mapDynamicViewsToURIs)
+  val routes = createRouteComponents(mapViewsToURIs)
  
   // mapping view components (the actual pages to display)
-  private def mapDynamicViewsToURIs = {
+  private def mapViewsToURIs = {
     import router.DynamicRoute._
     
     //TODO use dynamic Route class...
@@ -27,13 +27,13 @@ object RouteProvider {
   }
   
   // creating wrappers around pages to provide routing capabilities
-  private def createDynamicRouteComponents(routeMapping: List[(FragmentSeq, RoutingView)]) = {
+  private def createRouteComponents(routeMapping: List[(FragmentSeq, RoutingView)]) = {
     
     // yield uses a call back executed in another context where we cannot use the bind method
     // therfore we need to covert it to a binding sequence (under the hood the the component builder
     // will call the bind method...apparently)
     @dom
-    val routes = (for((uri, view) <- toBindingSeq(routeMapping)) yield <DynamicRoute path={uri} view={view}/>)
+    val routes = (for((uri, view) <- toBindingSeq(routeMapping)) yield <Route path={uri} view={view}/>)
     
     routes
   }
