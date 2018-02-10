@@ -2,7 +2,6 @@ package router
 
 import components.Components.Implicits.ComponentBuilder
 import com.thoughtworks.binding.dom
-import com.thoughtworks.binding.Binding.Constants
 
 case class RouteBuilder() extends ComponentBuilder {
   def render = this

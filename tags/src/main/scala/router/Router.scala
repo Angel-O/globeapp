@@ -96,18 +96,17 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     val location = e.newURL
     val hashPosition = location.indexOf("#")
     val urlHasHash = hashPosition >= 0
-    val path = 
-      if(urlHasHash) {
-      location.substring(hashPosition).toList match {
-        case _ :: tail => tail.mkString("")
-        case _ => s"#${Router.NotFound.path}" } 
-      }
-      else{ baseURL }
+    val destinationURI = location.substring(hashPosition).toList
+    val path = (destinationURI, urlHasHash) match {
+      case (_, false) => baseURL
+      case (_ :: tail, _) => tail.mkString("")
+      case _ => s"#${Router.NotFound.path}" 
+    } 
     
     val route = getRoute(path)
     if (route == Router.NotFound.view){
       //simulate redirect
-      //document.location.hash = Router.NotFound.path
+      //document.location.hash = Router.NotFound.path.toLiteral
       e.stopImmediatePropagation()
     }
     activePage.value = route

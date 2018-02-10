@@ -25,13 +25,14 @@ object DynamicRoute{
   val alpha = "([a-zA-Z]+)"
   val numeric = "([0-9]+)"
 }
+ 
+// TODO check how this is used in tests and see if the same can be done elsewhere
+class DynamicRoute(baseUri: String, path: FragmentSeq) {
   
-//class DynamicRoute(baseUri: String, path: FragmentSeq) {
-//  
-//  def params(url: String) = path.getRouteParams(url: String)
-//  
-//  def paramsEasy(url: String) = path.getParamsEasy(url: String)
-//}
+  def params(url: String) = path.getRouteParams(url: String)
+  
+  def paramsEasy(url: String) = path.getParamsEasy(url: String)
+}
 
 sealed trait Fragment{
   def /(fragment: Fragment) = {
