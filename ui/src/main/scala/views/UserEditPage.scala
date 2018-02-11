@@ -32,12 +32,12 @@ object UserEditPage {
 						<h1> {name} - You have {posts} posts</h1>
 						<ul>{ renderUsers(users.bind).bind }</ul>           
 						<br/>
-            <button onclick={ (e: Event) => dispatch(Rename(1, "Dom")) }> Rename user </button>
-            <button onclick={ (e: Event) => dispatch(FetchUsers) }> Get users </button>
+            <Button label="Rename user" onClick={ () => dispatch(Rename(1, "Dom")) }/>
+            <Button label="Get users" onClick={ () => dispatch(FetchUsers) }/>
             <ul>{ renderCars(cars.bind).bind }</ul>
 						<br/>
-            <button onclick={ (e: Event) => dispatch(FetchCars) }> Get cars </button>
-						<button onclick={ (e: Event) => navigateToForm() }> Form </button>
+            <Button label="Get cars" onClick={ () => dispatch(FetchCars) }/>
+						<Button label="Form" onClick={ navigateToForm _ }/>
 						<br/>           
           </div>
           

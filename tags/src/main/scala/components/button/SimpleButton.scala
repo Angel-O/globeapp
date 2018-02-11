@@ -6,7 +6,7 @@ import com.thoughtworks.binding.dom
 
 case class SimpleButtonBuilder() extends ButtonBaseBuilder {
   def render = this
-  var icon: HTMLElement = _
+  var icon: HTMLElement = _ //TODO make it safe
 
   // TODO find out if icon size is variable
   

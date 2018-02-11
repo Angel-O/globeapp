@@ -20,8 +20,7 @@ object RouteProvider {
         HomePageURI.tail.toPath -> HomePage.view _, 
         RegisterPageURI.tail.toPath -> RegistrationPage.view _,
         SamplePageURI.tail.toPath -> SamplePage.view _,
-        UserPostURI -> UserEditPage.view _
-        )
+        UserPostURI -> UserEditPage.view _)
         
     routes   
   }
