@@ -124,7 +124,9 @@ case class BrowserHistory(val router: Router){
     params = router.getParams(path)
     router.navigateTo(router.baseURL + (if(path == router.baseURL) "" else path))
   }
-  def getParams = params
+  def getParams(index: Int) = {
+    if(index >= params.length) None else Some(params(index))
+  }
 }
 
 //TODO add ability to set custom 404 page

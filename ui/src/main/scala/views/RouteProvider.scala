@@ -4,8 +4,7 @@ import router.RoutingView
 import com.thoughtworks.binding.dom
 import components.Components.Implicits.{toBindingSeq, CustomTags2, _}
 import navigation.URIs._
-import router.DynamicRoute
-import router.FragmentSeq
+import router.DynamicRoute._
 
 object RouteProvider {
   
@@ -13,20 +12,20 @@ object RouteProvider {
  
   // mapping view components (the actual pages to display)
   private def mapViewsToURIs = {
-    import router.DynamicRoute._
+    
     
     //TODO use dynamic Route class...
-    val routes: List[(FragmentSeq, () => RoutingView)] = List(
+    val mapping: List[(Path, () => RoutingView)] = List(
         HomePageURI.tail.toPath -> HomePage.view _, 
         RegisterPageURI.tail.toPath -> RegistrationPage.view _,
         SamplePageURI.tail.toPath -> SamplePage.view _,
         UserPostURI -> UserEditPage.view _)
         
-    routes   
+    mapping   
   }
   
   // creating wrappers around pages to provide routing capabilities
-  private def createRouteComponents(routeMapping: List[(FragmentSeq, () => RoutingView)]) = {
+  private def createRouteComponents(routeMapping: List[(Path, () => RoutingView)]) = {
     
     // yield uses a call back executed in another context where we cannot use the bind method
     // therfore we need to covert it to a binding sequence (under the hood the the component builder

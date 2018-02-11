@@ -198,7 +198,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
 				</div>
       </form>.asInstanceOf[HTMLElement]
      
-    create(form, "registration-form").bind.asInstanceOf[HTMLElement]
+    create(form, "registration-form")
   }
   
   @dom def renderSubmitButton(results: ValidationResult*) = { 

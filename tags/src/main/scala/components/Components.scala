@@ -209,11 +209,14 @@ object Components {
       }
       
       // create custom tags visible on dev tools
-      @dom def create(content: Node, tagName: String) = {
+      def create(content: Node, tagName: String) = {
+        
+        //TODO create custom class with "display = block" and other styles (or use Bulma equivalent) 
+        // rather than assigning the property
         val element = document.createElement(tagName)
         (new dom.Runtime.NodeSeqMountPoint(element, content)).watch()
         element.asInstanceOf[HTMLElement].style.display = "block"
-        element
+        element.asInstanceOf[HTMLElement]
       }
       
       //TODO ablity to add dynamic function fields with more than 0 params and Any other type...

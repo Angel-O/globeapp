@@ -25,8 +25,8 @@ object UserEditPage {
     @dom override def element = {
          //TODO get by name rather than index
          // (use val inside RoutingView.element)
-         val name = routeParams(0) 
-         val posts = routeParams(1) 
+         val name = routeParams(0)
+         val posts = routeParams(1)
          
           <div> 
 						<h1> {name} - You have {posts} posts</h1>
