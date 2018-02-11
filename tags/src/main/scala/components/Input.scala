@@ -26,7 +26,7 @@ case class InputBuilder() extends ComponentBuilder {
 									value={value.bind} 								 
 									class={s"input ${className.bind}"} 
 									type="text" 
-									placeholder={placeholder}/>.asInstanceOf[HTMLElement]
+									placeholder={placeholder}/>
           input.disabled = isDisabled().bind 
           // attaching it here rather that directly as an attribute to avoid error marks with Eclipse
           input.oninput = handleChange
@@ -34,6 +34,6 @@ case class InputBuilder() extends ComponentBuilder {
     
           <div> 
             {inputLabel} {input} 
-					</div>.asInstanceOf[HTMLElement]
+					</div>
       }
 }

@@ -17,15 +17,15 @@ case class ModalCardBuilder() extends{ val targetId = s"modalCard_${ModalCardBui
   @dom def build = {
     
     val triggerClass = getClassName(
-        (true, getClassTokens(BUTTON, MODAL_BUTTON)), 
+        BUTTON, MODAL_BUTTON, 
         (isPrimary, PRIMARY), 
         (sizeIsSet, SIZE_CLASS))
     val modalTrigger = <a class={triggerClass} data:data-target={targetId}>
                          { label }
-                       </a>.asInstanceOf[HTMLElement] 
-    val saveButton = <button class={getClassTokens(BUTTON, SUCCESS)}>Save changes</button>.asInstanceOf[HTMLElement]  
-    val cancelButton = <button class={getClassTokens(BUTTON)}>Cancel</button>.asInstanceOf[HTMLElement]  
-    val closeButton = <button class={getClassTokens(DELETE)} data:aria-label="close"></button>.asInstanceOf[HTMLElement]
+                       </a>//.asInstanceOf[HTMLElement] 
+    val saveButton = <button class={getClassName(BUTTON, SUCCESS)}>Save changes</button>//.asInstanceOf[HTMLElement]  
+    val cancelButton = <button class={getClassName(BUTTON)}>Cancel</button>//.asInstanceOf[HTMLElement]  
+    val closeButton = <button class={getClassName(DELETE)} data:aria-label="close"></button>//.asInstanceOf[HTMLElement]
                        
     modalTrigger.addEventListener("click", launchModal)                   
     saveButton.addEventListener("click", closeModal)
@@ -53,7 +53,7 @@ case class ModalCardBuilder() extends{ val targetId = s"modalCard_${ModalCardBui
             </footer>
           </div>
         </div>
-      </div>.asInstanceOf[HTMLElement]
+      </div>//.asInstanceOf[HTMLElement]
   }
 }
 

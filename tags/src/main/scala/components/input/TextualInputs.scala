@@ -22,7 +22,7 @@ case class TextInputBuilder() extends { val inputType = TextInput } with Textual
   
   def render = this
   
-  var onChange: String => Unit = _
+  var onChange: String => Any = _
   //var inputValue: String = _ //TODO remove this...it is not needed
   
   //TODO remove this...it is not needed

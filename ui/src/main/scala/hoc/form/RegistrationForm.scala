@@ -1,16 +1,32 @@
 package hoc.form
 
-import components.Components.Implicits.{ CustomTags2, _ }
+import components.Components.Implicits.{ CustomTags2, ComponentBuilder, _ }
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
 import org.scalajs.dom.raw.Node
 import org.scalajs.dom.document
+import com.thoughtworks.binding.FutureBinding
+import org.scalajs.dom.ext.Ajax
+import scala.concurrent.ExecutionContext.Implicits.global
+import scalajs.js
+import upickle.Js
+import scala.concurrent.Future
+import fr.hmil.roshttp.HttpRequest
+import apimodels.User
+import appstate.AppCircuit
+import diode.Dispatcher
+import appstate.FetchUsers
+import diode.data.Pot
+import diode.data.PotState._
+import diode.data.{Ready, Pending}
+import appstate.Connect
 
-case class RegistrationFormBuilder() extends ComponentBuilder {
+case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
    
   def render = this 
   
   var onSubmit: () => Unit = _
+  //var users: Seq[User] = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
   private var termsAccepted: Var[Boolean] = Var(false)
@@ -20,10 +36,20 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   genderValidation, subscriptionTypeValidation, passwordValidation,
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
+  // no need to use Var (no reload needed)
+  // Note good practice: initialize with value from circuit to make it obvious it comes from there
+  private var users = Pot.empty[Seq[User]] //= initialModel.users.users //TODO should model be potential???
+  connect()(AppCircuit.userSelector, users = Ready(AppCircuit.userSelector.value))
+  
   import FieldValidators._ 
+  import scalajs.js
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-    nameValidation.value = validateName(name.value)
+//    (for { validation <- validateName(name.value)
+//           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else validation} 
+//    yield nameValidation.value = validation|>asyncValidation)
+//    .recover{case _ => nameValidation.value = validateName(name.value)}
+    nameValidation.value = validateName(name.value)|>validateUserNameAlreadyTaken(name.value)
   } 
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()
@@ -66,6 +92,20 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     confirmPasswordValidation.value = validateConfirmPassword(password.value, confirmPassword.value)
   }
   
+  // async validation
+  private def validateUserNameAlreadyTaken(userName: String) = { 
+    this.fetchUsers() //TODO this needs to be awaited...   
+    val outcome = users.state match {
+      // pending not triggered..
+      case PotEmpty | PotPending => validateName(userName)//Error("Fetching data...") //TODO replace with progress bar...
+      case _ => users.map(_.exists(_.name == userName) match{
+        case true => Error(s"Username $userName already taken")
+        case _ => Success("Valid username, son")
+      }).get
+    }
+    outcome//.get
+  }
+  
   @dom def build = {
 
     // using a form tag rather than a div allows for page reload on submit (and autocompletion)...change as needed
@@ -97,7 +137,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
       				label={"Confirm password"} 			
     					onChange={handleConfirmPasswordChange}
     					inputValue={confirmPassword.value}
-    					isDisabled={!pwdVal.isInstanceOf[Success]}/>.listen }
+    					isDisabled={!pwdVal}/>.listen }
 					 { renderValidation(confirmPasswordValidation.bind).bind }	
 				</div>
 				<div class={FIELD}>
@@ -142,7 +182,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
 						onSelect={handleAcceptTermsChange}/>
 					{ renderValidation(acceptTermsValidation.bind).bind }	
 				</div>
-				<div class={getClassTokens(FIELD, GROUPED)}>
+				<div class={getClassName(FIELD, GROUPED)}>
   				<div class={CONTROL}>
             { renderSubmitButton(
                 nameValidation.bind, 
@@ -157,8 +197,8 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
           </div>
 				</div>
       </form>.asInstanceOf[HTMLElement]
-           
-    create(form, "registration-form").bind.asInstanceOf[HTMLElement]
+     
+    create(form, "registration-form")
   }
   
   @dom def renderSubmitButton(results: ValidationResult*) = { 
@@ -195,6 +235,9 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
               password: ${password.value}
               confirm password: ${confirmPassword.value}
               T&C accepted: ${termsAccepted.value}""")
+              // Note components can have dynamic fields!! just refer to them by appending the this qualifier
+              // (e.g. this.onClick) and convert them to the right type
+              this.onClick()
               onSubmit()
               }
     }

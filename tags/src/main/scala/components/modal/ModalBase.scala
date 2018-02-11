@@ -4,7 +4,7 @@ import components.Components.Implicits.{ CustomTags2, _ }
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{dom, Binding}, Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
-import components.dropdown.DropdownBuilder
+//import components.dropdown.DropdownBuilder
 import org.scalajs.dom.raw.HTMLHRElement
 
 
@@ -35,7 +35,7 @@ abstract class ModalBase() extends ComponentBuilder with Size{
   private val closeOnClickOutside = () => {
     
     // Note: this function will be executed as part of the even handler
-    def getModal = {     
+    def getModal: HTMLElement = {     
       val modal = document.querySelector(s"#${targetId}").asInstanceOf[HTMLElement]    
       // returning the only the modal-card portion as an open Bulma modal background 
       // occupies the whole page, but we only need to detect clicks outside the modal body

@@ -160,7 +160,7 @@ case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithS
       <div>
           { contents.map(content => makeContent(content, allContent.indexOf(content)).bind) }
       </div>
-    </div>.asInstanceOf[HTMLElement]
+    </div>
   }
 }
 

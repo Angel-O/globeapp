@@ -1,1 +1,8 @@
+build
+logs
+target
+/.classpath
+/.project
+/.settings
+/RUNNING_PID
 /bin/

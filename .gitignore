@@ -23,3 +23,8 @@ project/plugins/project/
 .classpath
 .settings/
 /bin/
+
+# Ensime specific
+.ensime
+.ensime_cache/
+.ensime_lucene/

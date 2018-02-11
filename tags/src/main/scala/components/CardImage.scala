@@ -12,5 +12,5 @@ case class CardImageBuilder() extends ComponentBuilder {
     //TODO make size variable   
     @dom def build = <figure class="image is-48x48">
       								<img src={url} alt={alt}/>
-    								 </figure>.asInstanceOf[HTMLElement]
+    								 </figure>
   }

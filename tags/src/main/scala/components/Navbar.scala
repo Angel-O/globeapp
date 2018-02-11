@@ -138,7 +138,7 @@ case class NavbarItemBuilder() extends ComponentBuilder() {
   			  else 
   			    DummyBuilder.build.bind
   			}
-			</div>
+			</div>.asInstanceOf[HTMLElement]
     }
     
     lazy val className = getClassName(

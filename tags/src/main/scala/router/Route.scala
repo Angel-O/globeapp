@@ -2,21 +2,14 @@ package router
 
 import components.Components.Implicits.ComponentBuilder
 import com.thoughtworks.binding.dom
-import com.thoughtworks.binding.Binding.Constants
 
 case class RouteBuilder() extends ComponentBuilder {
   def render = this
-  var path: String = _
-  var history: BrowserHistory = _
-  var view: RoutingView = _
   
-  def history_(history: BrowserHistory) = this.history = history
+  var path: FragmentSeq = _
+  var view: () => RoutingView = _ 
   
-  @dom def build = {
-    view.history = this.history
-    val viewBuilder = view.build
-    
-    //this makes eclipse happy (calling bind on the view builder would be enough)
-    Constants(viewBuilder).all.bind.head.bind 
-  }
+  
+  // dynamic routes are built dynamically by the router hence why a dummy is built here
+  @dom def build = dummy.build.bind
 }

@@ -27,13 +27,16 @@ import components.input._
 import scala.xml.Elem
 import scala.xml.UnprefixedAttribute
 
-import router.RouteBuilder
 import router.BrowserRouterBuilder
+import router.RouteBuilder
 
 object Components {
 
+  //TODO organize this class better...
   object Implicits {
 
+    import org.scalajs.dom.console
+    implicit val log = console
     implicit def autoBinding[A](a: A): Binding[A] = Var(a)
     
     implicit class NodeListSeq[T <: Node](nodes: DOMList[T]) extends IndexedSeq[T] {
@@ -52,7 +55,15 @@ object Components {
       override def apply(idx: Int): T = nodes(idx)
     }
     
-    implicit def toHTMLElement(x: Elem) = x.asInstanceOf[HTMLElement]
+    //TODO what does identity do??? commnd click on checkbox input builder ==> fieldClassName property...
+    implicit def toHTMLElement(x: Elem) = identity(x.asInstanceOf[HTMLElement])
+    
+    //IF Things go wrong comment this out (to test the above...comment this out as well)
+    implicit def toHTMLElementBinding(x: Elem) = Var{x.asInstanceOf[HTMLElement]}
+    
+    //DANGEROUS... turns "flatmap(_bind)" to "map(_bind)"
+    // implicit def toHTMLBinding(x: ComponentBuilder) = Binding{x.asInstanceOf[HTMLElement]}  
+    // implicit def toSomething(x: ComponentBuilder) = x.build.bind
 
     //NOT USED...
     def getAll(selector: String): NodeList = {
@@ -88,7 +99,7 @@ object Components {
       def Input() = new InputBuilder()
       def InputRaw() = new InputBuilderRaw()
       def MenuItem() = new MenuItemBuilder()
-      //def MyComponent() = new MyComponentBuilder() // TEST
+      def MyComponent() = new MyComponentBuilder() // TEST
       def ModalCard() = new ModalCardBuilder()
       def Navbar() = new NavbarBuilder()
       def NavbarItem() = new NavbarItemBuilder()
@@ -133,13 +144,36 @@ object Components {
         var bindingElementsSeq: BindingSeq[T] = temp
         bindingElementsSeq
     }
+    
+      implicit class conv[T](els: BindingSeq[T]) extends IndexedSeq[T]{
+    
+       override def length: Int = 0
+
+       override def size: Int = length
+
+       def count: Int = length
+
+       override def apply(idx: Int): T = els.head
+    
+       //Experimental
+       def convertToSeq() = {
+         var seq: Seq[T] = Seq.empty  
+         @dom def extract = { els.all.bind.foreach(x => seq = seq :+ x) }
+         
+         @dom def exec = { extract.bind }  
+         exec 
+    
+         seq
+        }
+      }
       
     @dom def toScalaSeq[T](elements: BindingSeq[T]) = {
         @dom def getAll() = elements.all.bind
         getAll().bind
     }
 
-    abstract class ComponentBuilder extends BulmaCssClasses {
+    abstract class ComponentBuilder extends BulmaCssClasses with Dynamic{
+    //abstract class ComponentBuilder extends BulmaCssClasses {
       def render: ComponentBuilder
       def build: Binding[HTMLElement] 
       
@@ -157,15 +191,14 @@ object Components {
       
       private def getClassToken(condition: Boolean, token: String) = if (condition) List(token) else Nil
 
-      def getClassName(conditionsAndTokens: (Boolean, String)*): String = {
-        conditionsAndTokens.map(x => getClassToken(x._1, x._2)).reduceLeft(_ ++ _).mkString(" ")
-      }
-
-      def getClassTokens(tokens: String*): String = {
-        tokens.reduceLeft((acc, curr) =>
-          getClassName( // combines accumulated tokens with current token
-            (true, getClassName((true, acc))), // returns the accumulated tokens
-            (true, getClassName((true, curr))))) // returns the current token      
+      type CandT = Either[(Boolean, String), String] 
+      implicit def toEitherRight(s: String) = Right(s)
+      implicit def toEitherLeft(ct: (Boolean, String)) = Left(ct)     
+      def getClassName(conditionsAndTokens: CandT*): String = {
+        conditionsAndTokens.map(x => x match {
+          case Left(ct) => getClassToken(ct._1, ct._2)
+          case Right(t) => getClassToken(true, t)
+        }).reduceLeft(_ ++ _).mkString(" ") 
       }
       
       def listen = {
@@ -176,12 +209,34 @@ object Components {
       }
       
       // create custom tags visible on dev tools
-      @dom def create(content: Node, tagName: String) = {
+      def create(content: Node, tagName: String) = {
+        
+        //TODO create custom class with "display = block" and other styles (or use Bulma equivalent) 
+        // rather than assigning the property
         val element = document.createElement(tagName)
         (new dom.Runtime.NodeSeqMountPoint(element, content)).watch()
         element.asInstanceOf[HTMLElement].style.display = "block"
-        element
-     }
+        element.asInstanceOf[HTMLElement]
+      }
+      
+      //TODO ablity to add dynamic function fields with more than 0 params and Any other type...
+      private val fields = mutable.Map.empty[String, Any].withDefault {key => null}
+      
+      def selectDynamic(key: String) = fields(key)
+
+      def updateDynamic(key: String)(value: Function0[_]) = fields(key) = value
+
+      def applyDynamic(key: String)(args: Any*) = { //args prolly not needed... just return the function
+        fields(key) match {
+          case f: Function0[_] => f() // executes a Zero arg function
+          case f: Function1[_, Any] => f(_) //TODO find a way to pass args
+          case i: Int => i // primitive types
+          case c: Char => c
+          case b: Boolean => b
+          case s: String => s
+          case _ => fields(key) //reference types
+        }
+      }
     }
     
     trait Color {
@@ -242,6 +297,8 @@ object Components {
       val INFO = "is-info"
       val GROUPED = "is-grouped"
       val MODAL_BUTTON = "modal-button"
+      val MODAL_CLOSE = "modal-close"
+      val MODAL_CONTENT = "modal-content"
       val DELETE = "delete"
     }
     
@@ -291,13 +348,6 @@ object Components {
     case object DummyBuilder extends ComponentBuilder {
       def render = this
       @dom def build = <div class="dummy"><!-- --></div>.asInstanceOf[HTMLElement]
-    }
-    
-    case class MyComponentBuilder() extends ComponentBuilder {
-      def render = this
-      var foo: String = _
-      var inner: HTMLElement = _
-      @dom def build = <div>{ foo.bind }{ inner.bind }</div>.asInstanceOf[HTMLElement] 
     }
   }
 }

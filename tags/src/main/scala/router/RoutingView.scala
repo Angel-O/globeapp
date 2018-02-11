@@ -1,6 +1,6 @@
 package router
 
-import components.Components.Implicits.{ toComponentBuilder , ComponentBuilder}
+import components.Components.Implicits.{ toComponentBuilder , ComponentBuilder }
 import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.dom
 import org.scalajs.dom.raw.HTMLElement
@@ -11,12 +11,17 @@ import com.thoughtworks.binding.Binding.Constants
 // We need to override memebers of this class on instantiation we might as well manually set
 // the routes. TODO remove the navigators from c.tor if there is not a valid use case
 class RoutingView(navigators: BrowserHistory => Unit*) extends ComponentBuilder {
-  def render = this
+  def render = {
+    println("CARS") //TODO this is never called....fix it
+    this
+  }
   implicit var history: BrowserHistory = _
+  def routeParams(index: Int) = if(history == null) "" else history.getParams(index).fold("")(identity) //equivalent of getOrElse("")
+
   def element: Binding[HTMLElement] = //TODO add support for pure html elements
     throw new IllegalArgumentException("element method in RoutingView must be overridden")
   
-  @dom def build: Binding[HTMLElement] = {
+  @dom def build = {
    
     val viewBuilder = toComponentBuilder(element.bind).bind
     val viewElement = viewBuilder.build
