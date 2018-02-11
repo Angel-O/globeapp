@@ -137,7 +137,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
       				label={"Confirm password"} 			
     					onChange={handleConfirmPasswordChange}
     					inputValue={confirmPassword.value}
-    					isDisabled={!pwdVal.isInstanceOf[Success]}/>.listen }
+    					isDisabled={!pwdVal}/>.listen }
 					 { renderValidation(confirmPasswordValidation.bind).bind }	
 				</div>
 				<div class={FIELD}>

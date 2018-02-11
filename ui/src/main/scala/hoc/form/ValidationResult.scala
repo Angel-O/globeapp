@@ -21,7 +21,7 @@ sealed trait ValidationResult{
   def |>(nextResult: => ValidationResult): ValidationResult = this match {
       case Error(_) | YetToBeValidated => this
       case Success(_) => nextResult
-    }
+  }
 }
 case class Error(message: String) extends ValidationResult
 case class Success(message: String) extends ValidationResult
