@@ -67,11 +67,11 @@ class UserRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi:
     entityCollection.flatMap(_.find(query).one[User])
   }
 
-  def updateUser(id: String, user: User): Future[Option[User]] = {
+  def updateUser(id: String, updated: User): Future[Option[User]] = {
     val selector = BSONDocument("_id" -> BSONObjectID.parse(id).get)
     val updateModifier = BSONDocument(
       "$set" -> BSONDocument(
-        "name" -> user.name))
+        "name" -> updated.name))
     entityCollection.flatMap(_.findAndUpdate(selector, updateModifier, fetchNewObject = true).map(_.result[User]))
   }
 

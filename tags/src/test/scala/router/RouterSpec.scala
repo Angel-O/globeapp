@@ -7,7 +7,7 @@ class RouterSpec extends FlatSpec with Matchers {
     import DynamicRoute._
     val path = "users" / ":username" / "posts" / Int
     
-    path.toString shouldEqual s"(users)${DynamicRoute.alpha}(posts)${DynamicRoute.numeric}"
+    path.toString shouldEqual s"(users)${DynamicRoute.alphaNumeric}(posts)${DynamicRoute.numeric}"
   }
   
   "Dynamic routes" should "extract correct parameters" in {

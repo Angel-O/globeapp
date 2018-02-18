@@ -49,4 +49,13 @@ class UserController @Inject() (cc: ControllerComponents, repository: UserReposi
         case None => NotFound
       })
    }
+
+   def updateUser(id: String) = Action.async(parse.json) { req => 
+      val body: String = Json.stringify(req.body)
+      val updated = read[User](body)
+      repository.updateUser(id, updated).map({
+        case Some(user) => Ok(write(user))
+        case None => NotFound
+      })
+   }
 }

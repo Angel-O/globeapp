@@ -17,3 +17,5 @@ GET		/api/users				   controllers.UserController.getAll
 POST		/api/users					controllers.UserController.postUser
 
 DELETE      /api/users              controllers.UserController.deleteUser
+
+PUT         /api/users/:id          controllers.UserController.updateUser(id)

@@ -23,7 +23,7 @@ object DynamicRoute{
   implicit class ToFrag(x: String) {
     def toFragment = StringFragment(x)
   }
-  val alpha = "([a-zA-Z]+)"
+  val alphaNumeric = "([a-zA-Z0-9]+)"
   val numeric = "([0-9]+)"
 }
  
@@ -71,8 +71,8 @@ case class FragmentSeq(fragments: Seq[Fragment]){
   def r = toString.r 
   override def toString = {
     fragments.map(x => x match {
-      case sf @ StringFragment(e) => if (sf.isParam) DynamicRoute.alpha else s"($e)" //TODO allow for alpha numeric patterns
-      case TypeFragment(_) => DynamicRoute.numeric //TODO renam to numeric fragment...
+      case sf @ StringFragment(e) => if (sf.isParam) DynamicRoute.alphaNumeric else s"($e)" //TODO allow for alpha numeric patterns
+      case TypeFragment(_) => DynamicRoute.numeric //TODO rename to numeric fragment...
       //case _ => s"(${x.toString})"
     }).mkString("")
   } 

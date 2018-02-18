@@ -56,7 +56,7 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
     case Rename(id, name) => {
       val toRename = getUserById(id)
       val renamed = User(name, toRename._id)
-      updated(value.map(x => if(x._id != Some(id)) x else renamed))
+      updated(value.map(x => if(x._id != Some(id)) x else renamed), updateUserEffect(id, renamed))
     }   
     case ChangeId(oldId, newId) => {
       updated(value.map(x => x._id == Some(oldId) match {
