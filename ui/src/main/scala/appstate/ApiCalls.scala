@@ -12,23 +12,82 @@ import scala.util.Success
 import scala.util.Failure
 import fr.hmil.roshttp.HttpRequest
 import diode.data.Failed
+import diode.NoAction
+
+import components.Components.Implicits.log
 
 object ApiCalls {
-  private def fetchUsers() = {
-    val future = Ajax.get(
-      url = "http://localhost:9000/api/users", 
+  import ApiMiddleware._
+  
+  //TODO store and pass endpoint root from config
+  private def fetchUsers() = Get(url = "http://localhost:9000/api/users")
+  private def createUser(user: User) = Post(url = "http://localhost:9000/api/users", payload = write(user))
+  private def deleteUser(id: String) = Delete(url = "http://localhost:9000/api/users", payload = write(id)) //TODO make it REST
+  private def updateUser(id: String, updated: User) = Put(url = s"http://localhost:9000/api/users/$id", payload = write(updated))
+
+  //TODO try and combine multiple effects to use pending state...
+  def fetchUsersEffect() = {
+    Effect(fetchUsers()
+        .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))
+        .recover({case ex => UsersFetched(Failed(ex))}))     
+  }
+  
+  def createUserEffect(user: User) = {
+    Effect(createUser(user).map(_ => NoAction)) //could map to a FetchUsers action...
+  }
+  
+  def deleteUserEffect(id: String) = {
+    Effect(deleteUser(id).map(_ => NoAction))
+  }
+  
+  def updateUserEffect(id: String, updated: User) = {
+    Effect(updateUser(id, updated).map(_ => NoAction))
+  }
+}
+
+object ApiMiddleware {
+  def Post(url: String, payload: Ajax.InputData) = {
+    Ajax.post(
+      url = url, 
+      data = payload, 
+      timeout = 9000, 
+      headers = Map("Content-type" -> "application/json"), 
+      withCredentials = false, 
+      responseType = "text")
+  }
+  
+  def Get(url: String) = {
+    Ajax.get(
+      url = url, 
       data = null, 
       timeout = 9000, 
       headers = Map.empty, 
       withCredentials = false, 
       responseType = "text")
-
-    future
+  }
+  
+  def Delete(url: String, payload: Ajax.InputData) = {  
+    Ajax.delete(
+      url = url, 
+      data = payload, 
+      timeout = 9000, 
+      headers = Map("Content-type" -> "application/json"), 
+      withCredentials = false, 
+      responseType = "text")
   }
 
-  
-      
-    // fut.map(xhr => {
+  def Put(url: String, payload: Ajax.InputData) = {
+    Ajax.put(
+      url = url, 
+      data = payload, 
+      timeout = 9000, 
+      headers = Map("Content-type" -> "application/json"), 
+      withCredentials = false, 
+      responseType = "text")
+  }
+}
+
+ // fut.map(xhr => {
     //   val res = xhr.responseText
     //   val users = read[Seq[User]](res)
     //   users
@@ -54,12 +113,3 @@ object ApiCalls {
 //          case _ => Success("Valid username, my friend")
 //        }
 //    })
-
-  //TODO try and combine multiple effects to use pending state...
-  def fetchUsersEffect() = {
-    Effect(fetchUsers()
-        .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))
-        .recover({case ex => UsersFetched(Failed(ex))}))
-      
-  }
-}

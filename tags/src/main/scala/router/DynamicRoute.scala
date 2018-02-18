@@ -28,6 +28,7 @@ object DynamicRoute{
 }
  
 // TODO check how this is used in tests and see if the same can be done elsewhere
+// TODO fix routing issue: /users/posts and userspo/sts are both valid now (maintain slashes...)
 class DynamicRoute(baseUri: String, path: FragmentSeq) {
   
   def params(url: String) = path.getRouteParams(url: String)
@@ -70,8 +71,8 @@ case class FragmentSeq(fragments: Seq[Fragment]){
   def r = toString.r 
   override def toString = {
     fragments.map(x => x match {
-      case sf @ StringFragment(e) => if (sf.isParam) DynamicRoute.alpha else s"($e)"
-      case TypeFragment(_) => DynamicRoute.numeric
+      case sf @ StringFragment(e) => if (sf.isParam) DynamicRoute.alpha else s"($e)" //TODO allow for alpha numeric patterns
+      case TypeFragment(_) => DynamicRoute.numeric //TODO renam to numeric fragment...
       //case _ => s"(${x.toString})"
     }).mkString("")
   } 

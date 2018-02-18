@@ -14,6 +14,8 @@ import appstate.Connect
 import appstate.UsersFetched
 import diode.data.Empty
 import appstate.FetchCars
+import appstate.CreateUser
+//import components.Components.Implicits.GenFn
 
 object RegistrationPage {
   import navigation.Navigators._
@@ -26,15 +28,20 @@ object RegistrationPage {
 					content={<div>
 										<RegistrationForm 
 											onSubmit={navigateToHome _} 
-											onClick={navigateToUserEdit _} 
+											onClick={handleSubmit _} 
 											fetchUsers={fetchUsers _}/>
 									</div>}
 					onSave={navigateToHome _}/>.build.bind
     }
     
-    def fetchUsers() = {
+    def fetchUsers(params: Any) = {
       //dispatch(UsersFetched()) //TODO investigate why dispatching 2 actions doesn't work
       dispatch(FetchUsers)
+    }
+    
+    def handleSubmit(name: Any) = {
+      dispatch(CreateUser(name.toStr))      
+      navigateToHome() 
     }
   }
 }

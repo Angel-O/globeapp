@@ -14,15 +14,19 @@ case object Users{
   def apply() = new Users(Seq())
 }
 
-case class Rename(id: Int, name: String) extends Action
+case class Rename(id: String, name: String) extends Action
 
-case class ChangeId(oldId: Int, newId: Int) extends Action
+case class ChangeId(oldId: String, newId: String) extends Action
+
+case class CreateUser(name: String) extends Action
 
 case object FetchUsers extends Action
 
 case class UsersFetched(potResult: Pot[Seq[User]] = Empty) extends PotAction[Seq[User], UsersFetched]{
   def next(newResult: Pot[Seq[User]]) = UsersFetched(newResult)
 }
+
+case class DeleteUser(id: String) extends Action
 
 
 //TESTING...

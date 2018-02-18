@@ -9,6 +9,7 @@ import diode.Dispatcher
 import diode.ModelR
 import diode.data.PotState._
 import diode.data.Pot
+import diode.Effect
 
 object AppCircuit extends Circuit[AppModel] {
   
@@ -54,15 +55,23 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
   override def handle = {
     case Rename(id, name) => {
       val toRename = getUserById(id)
-      val renamed = User(name, toRename.id)
-      updated(value.map(x => if(x.id != id) x else renamed))
+      val renamed = User(name, toRename._id)
+      updated(value.map(x => if(x._id != Some(id)) x else renamed))
     }   
     case ChangeId(oldId, newId) => {
-      updated(value.map(x => x.id == oldId match {
-        case true => User(getUserById(oldId).name, newId)
+      updated(value.map(x => x._id == Some(oldId) match {
+        case true => User(getUserById(oldId).name, Some(newId))
         case _ => x
         }))
     } 
+    case CreateUser(name) => {
+      //Effect.action()
+      val user = User(name)
+      updated(value :+ user, createUserEffect(user)) //TODO add effect...
+    }
+    case DeleteUser(id) => {
+      updated(value.filter(_._id != Some(id)), deleteUserEffect(id))
+    }
     //TODO fix this...use pot actions like they should be used...
     case FetchUsers => effectOnly(fetchUsersEffect())
     case action @ UsersFetched(users) => {
@@ -95,5 +104,9 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
     }
   }
 
-  private def getUserById(id: Int) = value.find(_.id == id).get
+  private def getUserById(id: String) = {
+    println("THE", id)
+    //value.foreach(x => println(x._id))
+    value.find(_._id == Some(id)).get
+  }
 }
