@@ -2,6 +2,7 @@ package utils
 
 import org.scalajs.dom.ext.Ajax
 
+//TODO move some stuff to config
 object ApiMiddleware {
   def Post(url: String, payload: Ajax.InputData) = {
     Ajax.post(

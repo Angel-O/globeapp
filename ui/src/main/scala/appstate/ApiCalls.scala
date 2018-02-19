@@ -22,11 +22,11 @@ object ApiCalls {
   }  
   def deleteUserEffect(id: String) = {
     Effect(Delete(url = "http://localhost:9000/api/users", payload = write(id))
-        .map(_ => NoAction))
+        .map(_ => NoAction)) //TODO map to a user deleted action...
   }  
   def updateUserEffect(id: String, updated: User) = {
     Effect(Put(url = s"http://localhost:9000/api/users/$id", payload = write(updated)) //TODO make it REST
-        .map(_ => NoAction))
+        .map(_ => NoAction)) //TODO map to a user updated action using xhr data...
   }
 }
 
