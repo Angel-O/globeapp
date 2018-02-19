@@ -1,91 +1,43 @@
 package appstate
 
-import org.scalajs.dom.ext.Ajax
 import scala.concurrent.ExecutionContext.Implicits.global
 import upickle.default._
 import apimodels.User
-import diode.Effect
-import diode.data.Ready
-import org.scalajs.dom.raw.XMLHttpRequest
-import diode.data.Pot
-import scala.util.Success
-import scala.util.Failure
-import fr.hmil.roshttp.HttpRequest
-import diode.data.Failed
-import diode.NoAction
+import diode.{Effect, NoAction}
+import diode.data.{Ready, Failed, Pot}
+import utils.api._ //, utils._
 
-import components.Components.Implicits.log
+//TODO store and pass endpoint root from config
+//TODO try and combine multiple effects to use pending state...
 
-object ApiCalls {
-  import ApiMiddleware._
-  
-  //TODO store and pass endpoint root from config
-  private def fetchUsers() = Get(url = "http://localhost:9000/api/users")
-  private def createUser(user: User) = Post(url = "http://localhost:9000/api/users", payload = write(user))
-  private def deleteUser(id: String) = Delete(url = "http://localhost:9000/api/users", payload = write(id)) //TODO make it REST
-  private def updateUser(id: String, updated: User) = Put(url = s"http://localhost:9000/api/users/$id", payload = write(updated))
-
-  //TODO try and combine multiple effects to use pending state...
+object ApiCalls { 
   def fetchUsersEffect() = {
-    Effect(fetchUsers()
+    Effect(Get(url = "http://localhost:9000/api/users")
         .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))
-        .recover({case ex => UsersFetched(Failed(ex))}))     
-  }
-  
+        .recover({ case ex => UsersFetched(Failed(ex)) }))     
+  } 
   def createUserEffect(user: User) = {
-    Effect(createUser(user).map(_ => NoAction)) //could map to a FetchUsers action...
-  }
-  
+    Effect(Post(url = "http://localhost:9000/api/users", payload = write(user))
+        .map(_ => NoAction)) //could map to a FetchUsers action...
+  }  
   def deleteUserEffect(id: String) = {
-    Effect(deleteUser(id).map(_ => NoAction))
-  }
-  
+    Effect(Delete(url = "http://localhost:9000/api/users", payload = write(id))
+        .map(_ => NoAction))
+  }  
   def updateUserEffect(id: String, updated: User) = {
-    Effect(updateUser(id, updated).map(_ => NoAction))
+    Effect(Put(url = s"http://localhost:9000/api/users/$id", payload = write(updated)) //TODO make it REST
+        .map(_ => NoAction))
   }
 }
 
-object ApiMiddleware {
-  def Post(url: String, payload: Ajax.InputData) = {
-    Ajax.post(
-      url = url, 
-      data = payload, 
-      timeout = 9000, 
-      headers = Map("Content-type" -> "application/json"), 
-      withCredentials = false, 
-      responseType = "text")
-  }
-  
-  def Get(url: String) = {
-    Ajax.get(
-      url = url, 
-      data = null, 
-      timeout = 9000, 
-      headers = Map.empty, 
-      withCredentials = false, 
-      responseType = "text")
-  }
-  
-  def Delete(url: String, payload: Ajax.InputData) = {  
-    Ajax.delete(
-      url = url, 
-      data = payload, 
-      timeout = 9000, 
-      headers = Map("Content-type" -> "application/json"), 
-      withCredentials = false, 
-      responseType = "text")
-  }
 
-  def Put(url: String, payload: Ajax.InputData) = {
-    Ajax.put(
-      url = url, 
-      data = payload, 
-      timeout = 9000, 
-      headers = Map("Content-type" -> "application/json"), 
-      withCredentials = false, 
-      responseType = "text")
-  }
-}
+
+
+
+//  private def fetchUsers() = Get(url = "http://localhost:9000/api/users")
+//  private def createUser(user: User) = Post(url = "http://localhost:9000/api/users", payload = write(user))
+//  private def deleteUser(id: String) = Delete(url = "http://localhost:9000/api/users", payload = write(id)) //TODO make it REST
+//  private def updateUser(id: String, updated: User) = Put(url = s"http://localhost:9000/api/users/$id", payload = write(updated))
 
  // fut.map(xhr => {
     //   val res = xhr.responseText
@@ -103,6 +55,7 @@ object ApiMiddleware {
 //    import monix.execution.Scheduler.Implicits.global
 //    import scala.util.{Failure, Success => Ok}
 //    //import fr.hmil.roshttp.response.SimpleHttpResponse
+      //import fr.hmil.roshttp.HttpRequest
 //    request.send().map( res => {
 //      val users = read[Seq[User]](res.body)
 //      log.warn("UOL", users)
