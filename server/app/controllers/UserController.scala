@@ -35,10 +35,9 @@ class UserController @Inject() (cc: ControllerComponents, repository: UserReposi
     
  // }
   
-   def postUser = Action.async(parse.json) { req => 
-     
-       val body: String = Json.stringify(req.body)
-       val user = read[User](body)
+   def postUser = Action.async(parse.json) { req =>   
+       val payload: String = Json.stringify(req.body)
+       val user = read[User](payload)
        repository.addUser(user).map(_ => Created)
    }
 
@@ -51,8 +50,8 @@ class UserController @Inject() (cc: ControllerComponents, repository: UserReposi
    }
 
    def updateUser(id: String) = Action.async(parse.json) { req => 
-      val body: String = Json.stringify(req.body)
-      val updated = read[User](body)
+      val payload: String = Json.stringify(req.body)
+      val updated = read[User](payload)
       repository.updateUser(id, updated).map({
         case Some(user) => Ok(write(user))
         case None => NotFound
