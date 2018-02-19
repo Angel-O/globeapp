@@ -30,6 +30,9 @@ import scala.xml.UnprefixedAttribute
 import router.BrowserRouterBuilder
 import router.RouteBuilder
 
+//import scala.reflect.api.TypeTags
+//import scala.reflect.runtime.universe._
+
 object Components {
 
   //TODO organize this class better...
@@ -138,6 +141,17 @@ object Components {
       Constants(x.build).mapBinding(identity)
     }
     
+    import scala.scalajs.js.WrappedArray
+    import scala.language.implicitConversions
+//    implicit def toStr(x: Any): String = x match {
+//      case y: WrappedArray[_] => y.array.mkString
+//    }
+    implicit class toS(x: Any) {
+      def toStr: String = x match {
+      case y: WrappedArray[_] => y.array.mkString
+      }
+    }
+    
     def toBindingSeq[T](elements: Seq[T]) = {
         var temp: Vars[T] = Vars.empty; 
         elements.foreach(x => temp.value += x)
@@ -171,7 +185,9 @@ object Components {
         @dom def getAll() = elements.all.bind
         getAll().bind
     }
-
+    
+    type GenFn = PartialFunction[Seq[Any], Any]
+    
     abstract class ComponentBuilder extends BulmaCssClasses with Dynamic{
     //abstract class ComponentBuilder extends BulmaCssClasses {
       def render: ComponentBuilder
@@ -219,22 +235,40 @@ object Components {
         element.asInstanceOf[HTMLElement]
       }
       
+      import scala.reflect.ClassTag
+      
+      def toGenFn0(f: => Any): GenFn = { case Seq() => f; }
+      def toGenFn1[A: ClassTag](f: (A) => Any): GenFn = { case Seq(x1: A) => f(x1); }
+      def toGenFn2[A: ClassTag, B: ClassTag](f: (A, B) => Any): GenFn = { case Seq(x1: A, x2: B) => f(x1, x2); }
+      
       //TODO ablity to add dynamic function fields with more than 0 params and Any other type...
-      private val fields = mutable.Map.empty[String, Any].withDefault {key => null}
+      //private val fields = mutable.Map.empty[String, Any].withDefault {key => null}
+      private val fields = mutable.Map.empty[String, Function1[Any, Any]].withDefault {key => null}
       
       def selectDynamic(key: String) = fields(key)
 
-      def updateDynamic(key: String)(value: Function0[_]) = fields(key) = value
+      //def updateDynamic(key: String)(value: Function0[_]) = fields(key) = value
+      def updateDynamic(key: String)(value: Function1[Any, Any]) = fields(key) = value
+      //def updateDynamic(key: String)(value: () => Any) = fields(key) = value
+      //def updateDynamic(key: String)(value: (Any*) => Any) = fields(key) = value
+      //def updateDynamic(key: String)(value: Function1[Any, Any]) = fields(key) = value
+//      def updateDynamic(key: String)(value: GenFn) = 
+//        fields.get(key) match {
+//          case None     => fields(key) = value
+//          case Some(f)  => fields(key) = f.orElse(value);
+//        }
 
-      def applyDynamic(key: String)(args: Any*) = { //args prolly not needed... just return the function
+      def applyDynamic(key: String)(args: Any*) = {//(implicit tag: TypeTag[T]) = { //args prolly not needed... just return the function
         fields(key) match {
-          case f: Function0[_] => f() // executes a Zero arg function
-          case f: Function1[_, Any] => f(_) //TODO find a way to pass args
-          case i: Int => i // primitive types
-          case c: Char => c
-          case b: Boolean => b
-          case s: String => s
-          case _ => fields(key) //reference types
+          //case f: Function0[_] => f() // executes a Zero arg function
+          //case f: ((Any) => Any) => ??? //if (tag.tpe =:= typeOf[Any]) f(args)
+          case f: Function1[Any, Any] => f(args) //TODO find a way to pass args
+          //case f: GenFn => f(args)
+//          case i: Int => i // primitive types
+//          case c: Char => c
+//          case b: Boolean => b
+//          case s: String => s
+//          case _ => fields(key) //reference types
         }
       }
     }

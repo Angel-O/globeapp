@@ -20,6 +20,7 @@ import diode.data.Pot
 import diode.data.PotState._
 import diode.data.{Ready, Pending}
 import appstate.Connect
+import appstate.CreateUser
 
 case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
    
@@ -107,10 +108,9 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
   }
   
   @dom def build = {
-
     // using a form tag rather than a div allows for page reload on submit (and autocompletion)...change as needed
     val form =
-      <form>
+      <div>
 				<div class={FIELD}>
         	<TextInput
       			label={"Name"} 			
@@ -196,7 +196,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
                 confirmPasswordValidation.bind).bind }
           </div>
 				</div>
-      </form>.asInstanceOf[HTMLElement]
+      </div>.asInstanceOf[HTMLElement]
      
     create(form, "registration-form")
   }
@@ -237,7 +237,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
               T&C accepted: ${termsAccepted.value}""")
               // Note components can have dynamic fields!! just refer to them by appending the this qualifier
               // (e.g. this.onClick) and convert them to the right type
-              this.onClick()
+              this.onClick(subscribeMe)
               onSubmit()
               }
     }
@@ -245,7 +245,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
     val submitButton = <Button 
 												label="Register" 
 												isPrimary={true}
-      									onClick={handleSubmit _}  
+      										onClick={handleSubmit _}  
 												isDisabled={inError}/>
 		submitButton
   }

@@ -127,10 +127,13 @@ lazy val server = (project in file("server"))
         //run := (run in Compile).dependsOn(fastOptJS in Compile in ui).evaluated,
         //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         libraryDependencies += guice,
+        libraryDependencies += {
+            val reactiveMongoVer = "0.12.6-play26"
+            "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer
+        },
         libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
-        sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl"),
-
-        EclipseKeys.preTasks := Seq(compile in Compile)
+        sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl")//,
+        //EclipseKeys.preTasks := Seq(compile in Compile)
         //,
         //mappings in (Compile, packageBin) ++= mappings.in(modelsJVM, Compile, packageBin).value,
         //mappings in (Compile, packageSrc) ++= mappings.in(modelsJVM, Compile, packageSrc).value
