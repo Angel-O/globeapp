@@ -23,38 +23,28 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class UserController @Inject() (cc: ControllerComponents, repository: UserRepository) extends AbstractController(cc) {
-  
-  //import Serializer._
   def getAll = Action.async { repository.getAll.map(all => Ok(write(all))) }
-//    val users = getUsers
-//    //Ok(Json.toJson(users))
-//    Ok(write(users))
-    
- //   repository.getAll.map(all => Ok(write(all)))
-    //Ok(Json.toJson(users))
-    
- // }
   
-   def postUser = Action.async(parse.json) { req =>   
-       val payload: String = Json.stringify(req.body)
-       val user = read[User](payload)
-       repository.addUser(user).map(_ => Created)
-   }
+  def postUser = Action.async(parse.json) { req =>   
+     val payload: String = Json.stringify(req.body)
+     val user = read[User](payload)
+     repository.addUser(user).map(_ => Created)
+  }
 
-   def deleteUser = Action.async(parse.json) { req => 
-      val id: String = req.body.as[String]
-      repository.deleteUser(id).map({
-        case Some(user) => Ok(write(user))
-        case None => NotFound
-      })
-   }
+  def deleteUser = Action.async(parse.json) { req => 
+     val id: String = req.body.as[String]
+     repository.deleteUser(id).map({
+       case Some(user) => Ok(write(user))
+       case None => NotFound
+     })
+  }
 
-   def updateUser(id: String) = Action.async(parse.json) { req => 
+  def updateUser(id: String) = Action.async(parse.json) { req => 
       val payload: String = Json.stringify(req.body)
       val updated = read[User](payload)
       repository.updateUser(id, updated).map({
         case Some(user) => Ok(write(user))
         case None => NotFound
       })
-   }
+  }
 }
