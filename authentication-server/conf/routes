@@ -12,3 +12,5 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 POST		/api/login				    controllers.ApplicationController.login
 
 POST 	/api/register				controllers.ApplicationController.register
+
+GET		/api/users					controllers.ApplicationController.getAll
