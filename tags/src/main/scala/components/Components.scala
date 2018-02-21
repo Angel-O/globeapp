@@ -188,7 +188,7 @@ object Components {
     
     type GenFn = PartialFunction[Seq[Any], Any]
     
-    abstract class ComponentBuilder extends BulmaCssClasses with Dynamic{
+    abstract class ComponentBuilder extends BulmaCssClasses {//with Dynamic{
     //abstract class ComponentBuilder extends BulmaCssClasses {
       def render: ComponentBuilder
       def build: Binding[HTMLElement] 
@@ -235,6 +235,7 @@ object Components {
         element.asInstanceOf[HTMLElement]
       }
       
+      //TODO remove all dynamic stuff or create a dynamicComponentBuilder
       import scala.reflect.ClassTag
       
       def toGenFn0(f: => Any): GenFn = { case Seq() => f; }

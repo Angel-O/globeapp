@@ -21,7 +21,9 @@ object JsonFormats{
   //import play.api.libs.json.Reads._
   import play.api.libs.json._
   import play.api.libs.functional.syntax._
-  implicit val userFormat: OFormat[User] = Json.format[User]
+
+  // DO NOT USE THIS it will interfere with deserialization...
+  //implicit val userFormat: OFormat[User] = Json.format[User]
   
   implicit val userReads: Reads[User] = (
     (JsPath \ "name").read[String] and

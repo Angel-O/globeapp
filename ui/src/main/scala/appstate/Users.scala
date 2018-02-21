@@ -5,6 +5,10 @@ import apimodels.User
 import diode.data.Pot
 import diode.data.Empty
 import diode.data.PotAction
+import diode.ModelRW
+import diode.ActionHandler
+import diode.data.PotState._
+import ApiCalls._
 
 // Model
 case object Users{ def apply() = new Users(Seq()) }
@@ -19,4 +23,61 @@ case object FetchUsers extends Action
 case class DeleteUser(id: String) extends Action
 case class UsersFetched(potResult: Pot[Seq[User]] = Empty) extends PotAction[Seq[User], UsersFetched]{
   def next(newResult: Pot[Seq[User]]) = UsersFetched(newResult)
+}
+
+// Action Handler
+class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(modelRW){
+  override def handle = {
+    case Rename(id, name) => {
+      val toRename = getUserById(id)
+      val renamed = User(name, toRename._id)
+      updated(value.map(x => if(x._id != Some(id)) x else renamed), updateUserEffect(id, renamed))
+    }   
+    case ChangeId(oldId, newId) => {
+      updated(value.map(x => x._id == Some(oldId) match {
+        case true => User(getUserById(oldId).name, Some(newId))
+        case _ => x
+        }))
+    } 
+    case CreateUser(name) => {
+      //Effect.action()
+      val user = User(name)
+      updated(value :+ user, createUserEffect(user)) //TODO add effect...
+    }
+    case DeleteUser(id) => {
+      updated(value.filter(_._id != Some(id)), deleteUserEffect(id))
+    }
+    //TODO fix this...use pot actions like they should be used...
+    case FetchUsers => effectOnly(fetchUsersEffect())
+    case action @ UsersFetched(users) => {
+      action handle { // equivalent to users.state match ===> handles the state of the action
+        case PotEmpty => {
+          println("nothing yet")
+          updated(action.potResult.pending().get)
+        }
+        case PotReady => {
+          println("data is here")
+          //println("THERE", users.get)
+          updated(action.potResult.ready(users.get).get)
+        }
+        case PotFailed => {
+          val ex = action.result.failed.get
+          updated(action.potResult.fail(ex).get)
+          //println(users); 
+          //noChange //TODO log errors, but not here...
+        }
+        case PotPending => {
+          if(action.potResult.isPending){
+            println("on its way...");
+            updated(action.potResult.pending().get)//not triggered atm
+          }
+          println("nothing changed...");
+          noChange //not triggered atm
+        }
+        case _ => noChange
+      }
+    }
+  }
+
+  private def getUserById(id: String) = value.find(_._id == Some(id)).get
 }

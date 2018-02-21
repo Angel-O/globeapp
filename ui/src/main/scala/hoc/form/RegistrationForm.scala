@@ -21,12 +21,16 @@ import diode.data.PotState._
 import diode.data.{Ready, Pending}
 import appstate.Connect
 import appstate.CreateUser
+import appstate.AppModel
+import appstate.ConnectorBuilder
 
-case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
+case class RegistrationFormBuilder() extends ConnectorBuilder{
    
   def render = this 
   
   var onSubmit: () => Unit = _
+  var onClick: String => Unit = _
+  var fetchUsers: () => Unit = _
   //var users: Seq[User] = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
@@ -95,7 +99,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
   
   // async validation
   private def validateUserNameAlreadyTaken(userName: String) = { 
-    this.fetchUsers() //TODO this needs to be awaited...   
+    fetchUsers() //TODO this needs to be awaited...   
     val outcome = users.state match {
       // pending not triggered..
       case PotEmpty | PotPending => validateName(userName)//Error("Fetching data...") //TODO replace with progress bar...
@@ -237,7 +241,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with Connect{
               T&C accepted: ${termsAccepted.value}""")
               // Note components can have dynamic fields!! just refer to them by appending the this qualifier
               // (e.g. this.onClick) and convert them to the right type
-              this.onClick(subscribeMe)
+              onClick(name.value)
               onSubmit()
               }
     }

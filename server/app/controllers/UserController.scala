@@ -23,7 +23,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class UserController @Inject() (cc: ControllerComponents, repository: UserRepository) extends AbstractController(cc) {
-  def getAll = Action.async { repository.getAll.map(all => Ok(write(all))) }
+  def getAll = Action.async { 
+    repository.getAll.map(all => Ok(write(all))) }
   
   def postUser = Action.async(parse.json) { req =>   
      val payload: String = Json.stringify(req.body)
