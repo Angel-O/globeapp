@@ -12,12 +12,12 @@ object RouteProvider {
  
   // mapping view components (the actual pages to display)
   private def mapViewsToURIs = {
-    
-    
+     
     //TODO use dynamic Route class...
     val mapping: List[(Path, () => RoutingView)] = List(
         HomePageURI.tail.toPath -> HomePage.view _, 
         RegisterPageURI.tail.toPath -> RegistrationPage.view _,
+        LoginPageURI.tail.toPath -> LoginPage.view _,
         SamplePageURI.tail.toPath -> SamplePage.view _,
         UserPostURI -> UserEditPage.view _)
         

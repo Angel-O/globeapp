@@ -3,6 +3,7 @@ package components.input
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.Binding.Var
 import org.scalajs.dom.raw.Event
+import com.thoughtworks.binding.dom
 
 trait Icons extends LeftIcon with RightIcon
 
@@ -19,7 +20,9 @@ trait RightIcon{
 //TODO remove form Item mixin
 trait InputBase extends FormItem {  
   var label: String = _
+  var labelStyle: String = _
   var isDisabled: Boolean = false
+  @dom lazy val labelElement = <label class="label" style={labelStyle}>{ label }</label>
 }
 
 trait Selection{

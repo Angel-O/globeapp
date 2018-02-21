@@ -330,6 +330,7 @@ object Components {
       val NOTIFICATION = "notification"
       val INFO = "is-info"
       val GROUPED = "is-grouped"
+      val MODAL = "modal"
       val MODAL_BUTTON = "modal-button"
       val MODAL_CLOSE = "modal-close"
       val MODAL_CONTENT = "modal-content"

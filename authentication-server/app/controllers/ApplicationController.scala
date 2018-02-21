@@ -17,7 +17,7 @@ import reactivemongo.bson.BSONObjectID
 sealed trait Gender
 case object Male extends Gender
 case object Female extends Gender
-case object Gender extends Gender{
+case object Gender {
   import scala.language.implicitConversions
   import JsonFormats.GenderFormat.writes
   implicit def asString(gender: Gender): String = writes(gender).as[String]

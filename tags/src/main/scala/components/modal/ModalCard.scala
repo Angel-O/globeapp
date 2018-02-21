@@ -37,12 +37,12 @@ case class ModalCardBuilder() extends{ val targetId = s"modalCard_${ModalCardBui
 
       <div>
         { modalTrigger }
-        <div class="modal" id={ targetId }>
+        <div class={ modalClass } id={ targetId }>
           <div class="modal-background"></div>
           <div class="modal-card">
             <header class="modal-card-head">
               <p class="modal-card-title">{ title }</p>
-              { closeButton }
+              { unwrapElement(closeButton, smartClose).bind }
             </header>
             <section class="modal-card-body">
               { content }

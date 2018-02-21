@@ -118,7 +118,7 @@ import play.twirl.sbt.Import.TwirlKeys._
 
 lazy val server = (project in file("server"))
     //.dependsOn(ProjectRef(uri("models/JVM"), "jvm"))
-    .dependsOn(sharedJVM)
+    .dependsOn(sharedJVM, securityServer)
     .enablePlugins(PlayScala)
     .disablePlugins(WorkbenchPlugin)
     .settings(
@@ -128,7 +128,7 @@ lazy val server = (project in file("server"))
         //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         libraryDependencies += guice,
         libraryDependencies += {
-            val reactiveMongoVer = "0.12.6-play26"
+            val reactiveMongoVer = "0.13.0-play26"
             "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer
         },
         libraryDependencies += "com.pauldijou" %% "jwt-play" % "0.14.1",
@@ -138,7 +138,7 @@ lazy val server = (project in file("server"))
         //,
         //mappings in (Compile, packageBin) ++= mappings.in(modelsJVM, Compile, packageBin).value,
         //mappings in (Compile, packageSrc) ++= mappings.in(modelsJVM, Compile, packageSrc).value
-        )
+    )
 //        libraryDependencies += scalaTest % Test,
 //        libraryDependencies ++= { 
 //            val akkaVersion = "2.5.8"
@@ -152,7 +152,7 @@ lazy val server = (project in file("server"))
 //      )
 
 lazy val authenticationServer = (project in file("authentication-server"))
-    .dependsOn(sharedJVM)
+    .dependsOn(sharedJVM, securityServer)
     .enablePlugins(PlayScala)
     .disablePlugins(WorkbenchPlugin)
     .settings(
@@ -160,13 +160,25 @@ lazy val authenticationServer = (project in file("authentication-server"))
         name := "authentication-server",
         libraryDependencies += guice,
         libraryDependencies += {
-            val reactiveMongoVer = "0.12.6-play26"
+            val reactiveMongoVer = "0.13.0-play26"
             "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer
         },
         libraryDependencies += "com.pauldijou" %% "jwt-play" % "0.14.1",
         libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
         sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl")
-        )
+    )
+
+lazy val securityServer = (project in file("security-server"))
+    .dependsOn(sharedJVM)
+    .enablePlugins(PlayScala)
+    .disablePlugins(WorkbenchPlugin)
+    .settings(
+        commonSettings,
+        name := "security-server",
+        libraryDependencies += guice,
+        libraryDependencies += "com.pauldijou" %% "jwt-play" % "0.14.1",
+        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
+    )
 
 lazy val scalaReflect = Def.setting { "org.scala-lang" % "scala-reflect" % scalaVersion.value }
 

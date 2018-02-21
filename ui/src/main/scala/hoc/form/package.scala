@@ -5,4 +5,7 @@ package object form {
   
   @register
   val RegistrationForm = "RegistrationForm" 
+  
+  @register
+  val LoginForm = "LoginForm"
 }

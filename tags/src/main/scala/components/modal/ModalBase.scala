@@ -13,6 +13,7 @@ abstract class ModalBase() extends ComponentBuilder with Size{
   var content: HTMLElement = _
   var isPrimary: Boolean = _ //affects the trigger button
   var smartClose: Boolean = true
+  var openAtLaunch: Boolean = _
   
   protected var isOpen = Var(false)
   val targetId: String
@@ -20,6 +21,8 @@ abstract class ModalBase() extends ComponentBuilder with Size{
   
   protected def enableSmartClose() = if(smartClose) { closeOnClickOutside() }
   
+  protected def modalClass = getClassName(MODAL, (openAtLaunch, ACTIVE))
+   
   protected val launchModal = (e: Event) => {
     val target = document.querySelector(s"#${targetId}")
     target.classList.add(ACTIVE)
