@@ -7,6 +7,7 @@ import diode.{Effect, NoAction}
 import diode.data.{Ready, Failed, Pot}
 import utils.api._ //, utils._
 import apimodels.LoginDetails
+import apimodels.RegistrationDetails
 import org.scalajs.dom.raw.XMLHttpRequest
 
 //TODO store and pass endpoint root from config
@@ -37,6 +38,13 @@ object ApiCalls {
     Effect(Post(url = "http://localhost:3000/auth/api/login", payload = write(LoginDetails(username, password)))
         .map(xhr => UserLoggedIn(xhr.getResponseHeader("Authorization"))))
         //.recover({ case ex => ???}))//LoginFailed(ex) })
+  }
+  def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
+    import utils.log
+    log.warn("payload", write(RegistrationDetails(name, username, email, password, gender)))
+    
+    Effect(Post(url = "http://localhost:3000/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
+        .map(xhr => UserRegistered(xhr.getResponseHeader("Authorization"))))
   }
 }
 

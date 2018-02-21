@@ -32,8 +32,8 @@ object UserEditPage {
          val posts = routeParams(1)
          
          // using def: the users collection will be populated once the button is hit: so re-evaluation is needed!!!
-         def getId = users.value.find(x => x.name.toLowerCase == name) match {
-           case Some(user) => user._id.get
+         def getId = users.value.find(x => x.username.toLowerCase == name) match {
+           case Some(user) => user.id
            case None => ""
          }
          
@@ -72,7 +72,7 @@ object UserEditPage {
     connect()(AppCircuit.carSelector, cars.value = AppCircuit.carSelector.value)
     connect()(AppCircuit.userSelector, users.value = AppCircuit.userSelector.value)
     
-    @dom def renderUsers(users: Seq[User]) = toBindingSeq(users).map(x => <li onclick={(e: Event) => dispatch(DeleteUser(x._id.get))}> { x.name } </li>)
+    @dom def renderUsers(users: Seq[User]) = toBindingSeq(users).map(x => <li onclick={(e: Event) => dispatch(DeleteUser(x.id))}> { x.username } </li>)
     @dom def renderCars(cars: Seq[Car]) = toBindingSeq(cars).map(x => <li> { x.make } </li>)
   }
 }

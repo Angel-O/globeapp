@@ -10,6 +10,8 @@ import diode.ActionHandler
 import diode.data.PotState._
 import ApiCalls._
 
+//TODO most of the stuff here is no longer needed (on hold for now unless admin panel is implemented), users are created
+// upon registration, api users are sent via jwt...
 // Model
 case object Users{ def apply() = new Users(Seq()) }
 case class Users(users: Seq[User])
@@ -30,22 +32,22 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
   override def handle = {
     case Rename(id, name) => {
       val toRename = getUserById(id)
-      val renamed = User(name, toRename._id)
-      updated(value.map(x => if(x._id != Some(id)) x else renamed), updateUserEffect(id, renamed))
+      val renamed = User(toRename.id, name)
+      updated(value.map(x => if(x.id != id) x else renamed), updateUserEffect(id, renamed))
     }   
     case ChangeId(oldId, newId) => {
-      updated(value.map(x => x._id == Some(oldId) match {
-        case true => User(getUserById(oldId).name, Some(newId))
+      updated(value.map(x => x.id == oldId match {
+        case true => User(newId, getUserById(oldId).username)
         case _ => x
         }))
     } 
     case CreateUser(name) => {
       //Effect.action()
-      val user = User(name)
+      val user = User("dummy id", name)
       updated(value :+ user, createUserEffect(user)) //TODO add effect...
     }
     case DeleteUser(id) => {
-      updated(value.filter(_._id != Some(id)), deleteUserEffect(id))
+      updated(value.filter(_.id != id), deleteUserEffect(id))
     }
     //TODO fix this...use pot actions like they should be used...
     case FetchUsers => effectOnly(fetchUsersEffect())
@@ -79,5 +81,5 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
     }
   }
 
-  private def getUserById(id: String) = value.find(_._id == Some(id)).get
+  private def getUserById(id: String) = value.find(_.id == id).get
 }
