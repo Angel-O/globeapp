@@ -9,3 +9,15 @@ case object User extends ApiModel{
 }
 
 case class User(name: String, _id: Option[String] = None)
+
+case object LoginDetails{
+  implicit def rw: RW[LoginDetails] = macroRW
+  def apply(username: String, password: String) = new LoginDetails(username, password)
+}
+case class LoginDetails(username: String, password: String)
+
+//case object RegistrationDetails{
+//  implicit def rw: RW[RegistrationDetails] = macroRW
+//  def apply(username: String, password: String) = new RegistrationDetails(username, password)
+//}
+//case class RegistrationDetails(name: String, username: String, email: String, password: String, gender: Gender)

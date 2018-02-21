@@ -105,6 +105,7 @@ lazy val ui = (project in file("ui"))
         libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
         libraryDependencies += "com.thoughtworks.binding" %%% "futurebinding" % "latest.release",
         libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+        libraryDependencies += "com.github.dwickern" %% "scala-nameof" % "1.0.3" % "provided",
         //libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0",
         libraryDependencies += "fr.hmil" %%% "roshttp" % "2.1.0",
         //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",

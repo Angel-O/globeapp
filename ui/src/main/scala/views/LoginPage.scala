@@ -6,6 +6,7 @@ import components.Components.Implicits._
 import router.RoutingView
 import com.thoughtworks.binding.dom
 import hoc.form._
+import appstate.Login
 
 object LoginPage {
   import navigation.Navigators._
@@ -16,14 +17,14 @@ object LoginPage {
       <SimpleModal openAtLaunch={true} smartClose={false}
 				content={
           <div>
-      				<LoginForm onSubmit={ () => println("What") }/>
+      				<LoginForm onSubmit={ handleSubmit _ }/>
         	 </div>}
 			/>.build.bind
     }
 
-    def handleSubmit(name: Any) = {
-      dispatch(CreateUser(name.toStr))
-      navigateToUserEdit()
+    def handleSubmit(username: String, password: String) = {
+      dispatch(Login(username, password))
+      //navigateToUserEdit()
     }
   }
 }

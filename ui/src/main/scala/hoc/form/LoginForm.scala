@@ -27,6 +27,7 @@ import diode.data.PotState._
 import diode.data.{Ready, Pending}
 import appstate.Connect
 import appstate.CreateUser
+import utils.nameOf._
 
 object Styles {
   val labelStyle = "color: white"
@@ -36,23 +37,23 @@ case class LoginFormBuilder() extends ComponentBuilder {
 
   def render = this
 
-  var onSubmit: () => Unit = _
+  var onSubmit: (String, String) => Unit = _
 
   private var username, password = ""
   private val usernameValidation, passwordValidation, loginValidation: Var[ValidationResult] = Var(YetToBeValidated)
 
   private val handleUsernameChange = (value: String) => {
     username = value.trim()
-    validateRequiredField(username, "username", usernameValidation)
+    validateRequiredField(username, nameOf(username), usernameValidation)
     //validateLogin()
   }
   private val handlePasswordChange = (value: String) => {
     password = value //TODO does it need trimming??
-    validateRequiredField(password, "password", passwordValidation)
+    validateRequiredField(password, nameOf(password), passwordValidation)
     //validateLogin()
   }
   private def validateRequiredField(value: String, fieldName: String, validation: Var[ValidationResult]) = value.isEmpty match {
-    case true => validation.value = Error(s"Please provide a $fieldName")
+    case true => validation.value = Error(s"Please provide a ${fieldName}")
     case false => validation.value = Success("")
   }
 //  private def validateLogin() = (username.toList, password.toList) match {
@@ -62,9 +63,10 @@ case class LoginFormBuilder() extends ComponentBuilder {
 //    case (u+:_, p+:_) => loginValidation.value = Success("")
 //  }
   
+  //TODO use form tag rather than div
   @dom def build = {
     val form =
-      <form>
+      <div>
         <div class={ FIELD }>
           <TextInput label={ "Username" } labelStyle={Styles.labelStyle} onChange={ handleUsernameChange }/>
           { renderValidation(usernameValidation.bind).bind }
@@ -77,7 +79,7 @@ case class LoginFormBuilder() extends ComponentBuilder {
           { renderSubmitButton(usernameValidation.bind, passwordValidation.bind).bind }
         </div>
         { renderValidation(loginValidation.bind).bind }
-      </form>.asInstanceOf[HTMLElement]
+      </div>.asInstanceOf[HTMLElement]
 
     create(form, "login-form")
   }
@@ -92,7 +94,7 @@ case class LoginFormBuilder() extends ComponentBuilder {
       handlePasswordChange(password)
     }
 
-    def handleSubmit() = if(notFullyValidated) runValidation() else onSubmit()
+    def handleSubmit() = if(notFullyValidated) runValidation() else onSubmit(username, password)
 
     val submitButton = 
       <Button 

@@ -11,21 +11,25 @@ import diode.data.PotState._
 import diode.data.Pot
 import diode.Effect
 
+case class AppModel(users: Users, cars: Cars, auth: Auth, self: AppModel = null) 
+
 object AppCircuit extends Circuit[AppModel] {
   
-  def initialModel = AppModel(Users(), Cars())
+  def initialModel = AppModel(Users(), Cars(), Auth())
   
   //NO longer used...
   def defaultSelector[M,T]: ModelRW[M,T] = zoomTo(x => x.self).asInstanceOf[ModelRW[M,T]]
   val userSelector = zoomTo(x => x.users.users)
   val carSelector = zoomTo(x => x.cars.cars)
+  val authSelector = zoomTo(x => x.auth.jwt)
   
   // Using foldHandlers rather than composeHandlers to
   // allow all handlers to process the actions without stopping
   // soon as the the action has been handled
   override val actionHandler = foldHandlers(
     new UserHandler(userSelector),
-    new CarHandler(carSelector)
+    new CarHandler(carSelector),
+    new AuthHandler(authSelector)
   )
 }
 
@@ -39,6 +43,17 @@ trait Connect{
     
     val ac: Circuit[M] = AppCircuit.asInstanceOf[Circuit[M]]
     ac.subscribe(cursor) (_ => update)
+  }
+}
+
+class AuthHandler[M](modelRW: ModelRW[M, Option[String]]) extends ActionHandler(modelRW){
+  override def handle = {
+    case Login(username, password) => effectOnly(loginEffect(username, password))
+    case UserLoggedIn(token) => {
+      import utils.log
+      log.warn("TOKEN", token)
+      updated(Some(token))
+    }
   }
 }
 
