@@ -22,10 +22,12 @@ case class SimpleModalBuilder() extends {
         
     val modalTrigger = <a class={triggerClass} data:data-target={targetId}>
                          { label }
-                       </a>//.asInstanceOf[HTMLElement] 
+                       </a>.asInstanceOf[HTMLElement] 
      
     //TODO add size modifier for close button
     val closeButton = <button class={MODAL_CLOSE} data:aria-label="close"></button>.asInstanceOf[HTMLElement]
+    
+    val hideTrigger = !openAtLaunch //TODO make unwrapElement method more idiomatic... 
                        
     modalTrigger.addEventListener("click", launchModal)                                  
     closeButton.addEventListener("click", closeModal)
@@ -33,13 +35,13 @@ case class SimpleModalBuilder() extends {
     enableSmartClose()
 
       <div>
-        { modalTrigger }
-        <div class="modal" id={ targetId }>
+        { unwrapElement(modalTrigger, hideTrigger).bind }
+        <div class={modalClass} id={ targetId }>
           <div class="modal-background"></div>
 					<div class="modal-content">
     				{ content }
   				</div>
-					{ closeButton }
+					{ unwrapElement(closeButton, smartClose).bind }
         </div>
       </div>//.asInstanceOf[HTMLElement]
   }

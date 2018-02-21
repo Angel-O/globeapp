@@ -11,24 +11,57 @@ import diode.data.PotState._
 import diode.data.Pot
 import diode.Effect
 
-object AppCircuit extends Circuit[AppModel] {
+import components.Components.Implicits.ComponentBuilder
+
+// Global state tree
+case class AppModel(users: Users, cars: Cars, auth: Auth, self: AppModel = null) 
+
+object AppCircuit extends Circuit[AppModel] with InitialModel[AppModel] {
   
-  def initialModel = AppModel(Users(), Cars())
+  def initialModel = AppModel(Users(), Cars(), Auth())
   
   //NO longer used...
   def defaultSelector[M,T]: ModelRW[M,T] = zoomTo(x => x.self).asInstanceOf[ModelRW[M,T]]
   val userSelector = zoomTo(x => x.users.users)
   val carSelector = zoomTo(x => x.cars.cars)
+  val authSelector = zoomTo(x => x.auth.jwt)
   
   // Using foldHandlers rather than composeHandlers to
   // allow all handlers to process the actions without stopping
   // soon as the the action has been handled
   override val actionHandler = foldHandlers(
     new UserHandler(userSelector),
-    new CarHandler(carSelector)
+    new CarHandler(carSelector),
+    new AuthHandler(authSelector)
   )
 }
 
+
+
+
+
+// TODO move this to separate project...ala Redux
+trait InitialModel[M <: AnyRef] {
+  def initialModel: M
+}
+abstract class Connector[M <: AnyRef](circuit: Circuit[M] with InitialModel[M]) 
+extends ComponentBuilder with InitialModel[M]{
+  
+  val dispatch: Dispatcher = circuit
+  def initialModel = circuit.initialModel
+  
+  def connect[M <: AnyRef,T]()(
+    cursor: ModelR[M,T] = circuit.zoom(identity), 
+    update: => Unit = Unit){
+    
+    val ac: Circuit[M] = circuit.asInstanceOf[Circuit[M]]
+    ac.subscribe(cursor) (_ => update)
+  }
+}
+
+abstract class ConnectorBuilder extends Connector[AppModel](AppCircuit)
+
+//TODO make this decoupled from AppCircuit and use only ConnectorBuilder or Connector
 trait Connect{
   val dispatch: Dispatcher = AppCircuit
   def initialModel = AppCircuit.initialModel
@@ -39,74 +72,5 @@ trait Connect{
     
     val ac: Circuit[M] = AppCircuit.asInstanceOf[Circuit[M]]
     ac.subscribe(cursor) (_ => update)
-  }
-}
-
-class CarHandler[M](modelRW: ModelRW[M, Seq[Car]]) extends ActionHandler(modelRW){
-  override def handle = {
-    case FetchCars => {
-      val cars = Seq(Car("Rari"), Car("Lambo"))
-      if (modelRW.value != cars) updated(cars) else noChange
-    }
-  }
-}
-
-class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(modelRW){
-  override def handle = {
-    case Rename(id, name) => {
-      val toRename = getUserById(id)
-      val renamed = User(name, toRename._id)
-      updated(value.map(x => if(x._id != Some(id)) x else renamed), updateUserEffect(id, renamed))
-    }   
-    case ChangeId(oldId, newId) => {
-      updated(value.map(x => x._id == Some(oldId) match {
-        case true => User(getUserById(oldId).name, Some(newId))
-        case _ => x
-        }))
-    } 
-    case CreateUser(name) => {
-      //Effect.action()
-      val user = User(name)
-      updated(value :+ user, createUserEffect(user)) //TODO add effect...
-    }
-    case DeleteUser(id) => {
-      updated(value.filter(_._id != Some(id)), deleteUserEffect(id))
-    }
-    //TODO fix this...use pot actions like they should be used...
-    case FetchUsers => effectOnly(fetchUsersEffect())
-    case action @ UsersFetched(users) => {
-      action handle { // equivalent to users.state match ===> handles the state of the action
-        case PotEmpty => {
-          println("nothing yet")
-          updated(action.potResult.pending().get)
-        }
-        case PotReady => {
-          println("data is here")
-          //println("THERE", users.get)
-          updated(action.potResult.ready(users.get).get)
-        }
-        case PotFailed => {
-          val ex = action.result.failed.get
-          updated(action.potResult.fail(ex).get)
-          //println(users); 
-          //noChange //TODO log errors, but not here...
-        }
-        case PotPending => {
-          if(action.potResult.isPending){
-            println("on its way...");
-            updated(action.potResult.pending().get)//not triggered atm
-          }
-          println("nothing changed...");
-          noChange //not triggered atm
-        }
-        case _ => noChange
-      }
-    }
-  }
-
-  private def getUserById(id: String) = {
-    println("THE", id)
-    //value.foreach(x => println(x._id))
-    value.find(_._id == Some(id)).get
-  }
+ }
 }

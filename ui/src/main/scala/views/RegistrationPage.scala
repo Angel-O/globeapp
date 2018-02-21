@@ -34,13 +34,13 @@ object RegistrationPage {
 					onSave={navigateToHome _}/>.build.bind
     }
     
-    def fetchUsers(params: Any) = {
+    def fetchUsers() = {
       //dispatch(UsersFetched()) //TODO investigate why dispatching 2 actions doesn't work
       dispatch(FetchUsers)
     }
     
-    def handleSubmit(name: Any) = {
-      dispatch(CreateUser(name.toStr))      
+    def handleSubmit(name: String) = {
+      dispatch(CreateUser(name))      
       navigateToHome() 
     }
   }

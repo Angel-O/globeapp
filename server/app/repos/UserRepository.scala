@@ -17,11 +17,12 @@ import reactivemongo.api.Cursor
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocumentReader
 
-
 object JsonFormats{
   //import play.api.libs.json.Reads._
   import play.api.libs.json._
   import play.api.libs.functional.syntax._
+
+  // DO NOT USE THIS it will interfere with deserialization...
   //implicit val userFormat: OFormat[User] = Json.format[User]
   
   implicit val userReads: Reads[User] = (
@@ -43,7 +44,8 @@ object JsonFormats{
 //    }
 }
 
-class UserRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi) {
+class UserRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi){
+  
   import JsonFormats._
   def entityCollection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection("users"))
   

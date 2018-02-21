@@ -6,6 +6,8 @@ import apimodels.User
 import diode.{Effect, NoAction}
 import diode.data.{Ready, Failed, Pot}
 import utils.api._ //, utils._
+import apimodels.LoginDetails
+import org.scalajs.dom.raw.XMLHttpRequest
 
 //TODO store and pass endpoint root from config
 //TODO try and combine multiple effects to use pending state...
@@ -27,6 +29,14 @@ object ApiCalls {
   def updateUserEffect(id: String, updated: User) = {
     Effect(Put(url = s"http://localhost:9000/api/users/$id", payload = write(updated)) //TODO make it REST
         .map(_ => NoAction)) //TODO map to a user updated action using xhr data...
+  }
+  def loginEffect(username: String, password: String) = {
+    import utils.log
+    log.warn("payload", write(LoginDetails(username, password)))
+    
+    Effect(Post(url = "http://localhost:3000/auth/api/login", payload = write(LoginDetails(username, password)))
+        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Authorization"))))
+        //.recover({ case ex => ???}))//LoginFailed(ex) })
   }
 }
 

@@ -105,6 +105,7 @@ lazy val ui = (project in file("ui"))
         libraryDependencies += "com.thoughtworks.binding" %%% "dom" % "latest.release",
         libraryDependencies += "com.thoughtworks.binding" %%% "futurebinding" % "latest.release",
         libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+        libraryDependencies += "com.github.dwickern" %% "scala-nameof" % "1.0.3" % "provided",
         //libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0",
         libraryDependencies += "fr.hmil" %%% "roshttp" % "2.1.0",
         //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
@@ -118,7 +119,7 @@ import play.twirl.sbt.Import.TwirlKeys._
 
 lazy val server = (project in file("server"))
     //.dependsOn(ProjectRef(uri("models/JVM"), "jvm"))
-    .dependsOn(sharedJVM)
+    .dependsOn(sharedJVM, securityServer)
     .enablePlugins(PlayScala)
     .disablePlugins(WorkbenchPlugin)
     .settings(
@@ -128,16 +129,17 @@ lazy val server = (project in file("server"))
         //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         libraryDependencies += guice,
         libraryDependencies += {
-            val reactiveMongoVer = "0.12.6-play26"
+            val reactiveMongoVer = "0.13.0-play26"
             "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer
         },
+        libraryDependencies += "com.pauldijou" %% "jwt-play" % "0.14.1",
         libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
         sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl")//,
         //EclipseKeys.preTasks := Seq(compile in Compile)
         //,
         //mappings in (Compile, packageBin) ++= mappings.in(modelsJVM, Compile, packageBin).value,
         //mappings in (Compile, packageSrc) ++= mappings.in(modelsJVM, Compile, packageSrc).value
-        )
+    )
 //        libraryDependencies += scalaTest % Test,
 //        libraryDependencies ++= { 
 //            val akkaVersion = "2.5.8"
@@ -149,6 +151,35 @@ lazy val server = (project in file("server"))
 //                "com.typesafe.akka" %% "akka-testkit"    % akkaVersion % Test)
 //        }
 //      )
+
+lazy val authenticationServer = (project in file("authentication-server"))
+    .dependsOn(sharedJVM, securityServer)
+    .enablePlugins(PlayScala)
+    .disablePlugins(WorkbenchPlugin)
+    .settings(
+        commonSettings,
+        name := "authentication-server",
+        libraryDependencies += guice,
+        libraryDependencies += {
+            val reactiveMongoVer = "0.13.0-play26"
+            "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer
+        },
+        libraryDependencies += "com.pauldijou" %% "jwt-play" % "0.14.1",
+        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
+        sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl")
+    )
+
+lazy val securityServer = (project in file("security-server"))
+    .dependsOn(sharedJVM)
+    .enablePlugins(PlayScala)
+    .disablePlugins(WorkbenchPlugin)
+    .settings(
+        commonSettings,
+        name := "security-server",
+        libraryDependencies += guice,
+        libraryDependencies += "com.pauldijou" %% "jwt-play" % "0.14.1",
+        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
+    )
 
 lazy val scalaReflect = Def.setting { "org.scala-lang" % "scala-reflect" % scalaVersion.value }
 
