@@ -8,7 +8,7 @@ import appstate.{AppModel, AppCircuit, Connect}
 object ApiMiddleware extends Connect { 
   
   private var token: String = ""
-  connect()(AppCircuit.authSelector, token = AppCircuit.authSelector.value.getOrElse(""))
+  connect()(AppCircuit.authSelector, token = AppCircuit.authSelector.value.jwt.getOrElse(""))
 
   val contentHeader = ("Content-type" -> "application/json")
   val headers: Map[String, String] = Map.empty

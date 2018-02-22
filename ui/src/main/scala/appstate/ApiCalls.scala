@@ -9,6 +9,7 @@ import utils.api._ //, utils._
 import apimodels.LoginDetails
 import apimodels.RegistrationDetails
 import org.scalajs.dom.raw.XMLHttpRequest
+import org.scalajs.dom.ext.AjaxException
 
 //TODO store and pass endpoint root from config
 //TODO try and combine multiple effects to use pending state...
@@ -37,8 +38,8 @@ object ApiCalls extends Connect {
     log.warn("payload", write(LoginDetails(username, password)))
     
     Effect(Post(url = "http://localhost:3000/auth/api/login", payload = write(LoginDetails(username, password)))
-        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Token")))) //TODO unexpose authorization header from server
-        //.recover({ case ex => ???}))//LoginFailed(ex) })
+        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Token"))) //TODO unexpose authorization header from server
+        .recover({ case ex => LoginFailed(getStatusCode(ex)) }))
   }
   def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
     import utils.log
@@ -46,6 +47,11 @@ object ApiCalls extends Connect {
     
     Effect(Post(url = "http://localhost:3000/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
         .map(xhr => UserRegistered(xhr.getResponseHeader("Token"))))
+  }
+
+  private def getStatusCode(t: Throwable) = t match {
+    case ex: AjaxException => ex.xhr.status
+    case _ => 0 //TODO using zero to signify uknown...is there a code for that already??
   }
 }
 

@@ -30,7 +30,7 @@ object AppCircuit extends Circuit[AppModel] with InitialModel[AppModel] {
     zoomTo(x => x.self).asInstanceOf[ModelRW[M, T]]
   val userSelector = zoomTo(x => x.users.users)
   val carSelector = zoomTo(x => x.cars.cars)
-  val authSelector = zoomTo(x => x.auth.jwt)
+  val authSelector = zoomTo(x => x.auth.params)
 
   // Using foldHandlers rather than composeHandlers to
   // allow all handlers to process the actions without stopping

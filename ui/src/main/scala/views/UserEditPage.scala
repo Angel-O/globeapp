@@ -53,7 +53,7 @@ object UserEditPage {
             <ul>{ renderCars(cars.bind).bind }</ul>
 						<br/>
             <Button label="Get cars" onClick={ () => dispatch(FetchCars) }/>
-						<Button label="Form" onClick={ navigateToForm _ }/>
+						<Button label="Form" onClick={ navigateToRegister _ }/>
 						<TextInput
       					label={"Name"} 			
     						onChange={handleNameChange}/>
