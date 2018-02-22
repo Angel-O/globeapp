@@ -26,3 +26,8 @@ class AuthHandler[M](modelRW: ModelRW[M, Option[String]]) extends ActionHandler(
     case UserRegistered(token) => updated(Some(token))
   }
 }
+
+// Selector
+object AuthSelector {
+  val getToken = () => AppCircuit.currentModel.auth.jwt.getOrElse("")
+}

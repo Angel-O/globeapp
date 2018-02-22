@@ -13,7 +13,7 @@ import org.scalajs.dom.raw.XMLHttpRequest
 //TODO store and pass endpoint root from config
 //TODO try and combine multiple effects to use pending state...
 
-object ApiCalls { 
+object ApiCalls extends Connect { 
   def fetchUsersEffect() = {
     Effect(Get(url = "http://localhost:9000/api/users")
         .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))
@@ -31,12 +31,13 @@ object ApiCalls {
     Effect(Put(url = s"http://localhost:9000/api/users/$id", payload = write(updated)) //TODO make it REST
         .map(_ => NoAction)) //TODO map to a user updated action using xhr data...
   }
+  //TODO move these where the actions are defined!!!
   def loginEffect(username: String, password: String) = {
     import utils.log
     log.warn("payload", write(LoginDetails(username, password)))
     
     Effect(Post(url = "http://localhost:3000/auth/api/login", payload = write(LoginDetails(username, password)))
-        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Authorization"))))
+        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Token")))) //TODO unexpose authorization header from server
         //.recover({ case ex => ???}))//LoginFailed(ex) })
   }
   def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
@@ -44,7 +45,7 @@ object ApiCalls {
     log.warn("payload", write(RegistrationDetails(name, username, email, password, gender)))
     
     Effect(Post(url = "http://localhost:3000/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
-        .map(xhr => UserRegistered(xhr.getResponseHeader("Authorization"))))
+        .map(xhr => UserRegistered(xhr.getResponseHeader("Token"))))
   }
 }
 

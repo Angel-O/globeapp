@@ -12,6 +12,7 @@ import repos.UserRepository
 import models.RegisteredUser
 import play.api.Logger
 import reactivemongo.bson.BSONObjectID
+import pdi.jwt.JwtSession
 
 // overkill
 sealed trait Gender
@@ -71,6 +72,9 @@ extends SecuredController(scc){
                   case true => {
                     val apiUser = User(registeredUser._id.stringify, registeredUser.username)
                     Ok.addingToJwtSession("user", write(apiUser)) 
+                    //val jwtSession = JwtSession() + ("user", write(apiUser))
+                    //val token = jwtSession.serialize
+                    //Ok.withHeaders(("Token", token))
                   }
                   case false => Unauthorized
                 }
