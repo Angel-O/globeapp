@@ -28,17 +28,15 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
    
   def render = this 
   
-  var onSubmit: () => Unit = _
-  var onClick: String => Unit = _
+  var onSubmit: (String, String, String, String, String) => Unit = _
   var fetchUsers: () => Unit = _
-  //var users: Seq[User] = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
   private var termsAccepted: Var[Boolean] = Var(false)
-  private val name, email, message, whereDidYouHearAboutUs, gender, 
+  private val name, username, email, message, whereDidYouHearAboutUs, gender, 
   subscriptionType, password, confirmPassword: Var[String] = Var("")
   private val nameValidation, emailValidation, messageValidation, whereDidYouHearAboutUsValidation, 
-  genderValidation, subscriptionTypeValidation, passwordValidation,
+  genderValidation, usernameValidation, subscriptionTypeValidation, passwordValidation,
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
   // no need to use Var (no reload needed)
@@ -48,14 +46,14 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   
   import FieldValidators._ 
   import scalajs.js
+  private val handleUsernameChange = (value: String) => {   
+    username.value = value.trim()
+    usernameValidation.value = validateUsername(username.value)|>validateUsernameAlreadyTaken(username.value)
+  } 
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
-//    (for { validation <- validateName(name.value)
-//           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else validation} 
-//    yield nameValidation.value = validation|>asyncValidation)
-//    .recover{case _ => nameValidation.value = validateName(name.value)}
-    nameValidation.value = validateName(name.value)|>validateUserNameAlreadyTaken(name.value)
-  } 
+    nameValidation.value = validateName(name.value)
+  }
   private val handleMessageChange = (value: String) => {   
     message.value = value.trim()
     messageValidation.value = validateMessage(message.value)
@@ -98,13 +96,13 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   }
   
   // async validation
-  private def validateUserNameAlreadyTaken(userName: String) = { 
+  private def validateUsernameAlreadyTaken(username: String) = { 
     fetchUsers() //TODO this needs to be awaited...   
     val outcome = users.state match {
       // pending not triggered..
-      case PotEmpty | PotPending => validateName(userName)//Error("Fetching data...") //TODO replace with progress bar...
-      case _ => users.map(_.exists(_.name == userName) match{
-        case true => Error(s"Username $userName already taken")
+      case PotEmpty | PotPending => validateUsername(username)//Error("Fetching data...") //TODO replace with progress bar...
+      case _ => users.map(_.exists(_.username == username) match{
+        case true => Error(s"Username $username already taken")
         case _ => Success("Valid username, son")
       }).get
     }
@@ -120,6 +118,12 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
       			label={"Name"} 			
     				onChange={handleNameChange}/>
 					 { renderValidation(nameValidation.bind).bind }	
+				</div>
+				<div class={FIELD}>
+        	<TextInput
+      			label={"Username"} 			
+    				onChange={handleUsernameChange}/>
+					 { renderValidation(usernameValidation.bind).bind }	
 				</div>
 				<div class={FIELD}>
         	<EmailInput
@@ -189,7 +193,8 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
 				<div class={getClassName(FIELD, GROUPED)}>
   				<div class={CONTROL}>
             { renderSubmitButton(
-                nameValidation.bind, 
+                nameValidation.bind,
+                usernameValidation.bind,
                 emailValidation.bind,
                 messageValidation.bind,
                 whereDidYouHearAboutUsValidation.bind,
@@ -213,6 +218,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
     //room for improvement...run only failing ones
     def runValidation() = {
       handleNameChange(name.value)
+      handleUsernameChange(username.value)
       handleEmailChange(email.value)
       handleMessageChange(message.value)
       handleWhereDidYouHearAboutUsChange(whereDidYouHearAboutUs.value)
@@ -222,29 +228,9 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
       handleConfirmPasswordChange(confirmPassword.value)
       handleSubscriptionTypeChange(subscriptionType.value)
     }
-    
-    //@noinline //do I need this annotation?? investigate fastOPTJS is being slow...
-    def handleSubmit() = notFullyValidated match{
-      case true => runValidation()
-      case _ => {
-        println(
-          s"""SUBMITTING...
-              name: ${name.value}
-              email: ${email.value}
-              message: ${message.value}
-              where did you hear about us? : ${whereDidYouHearAboutUs.value}
-              gender: ${gender.value}
-              subscription: ${subscriptionType.value}
-              subscribe me: $subscribeMe
-              password: ${password.value}
-              confirm password: ${confirmPassword.value}
-              T&C accepted: ${termsAccepted.value}""")
-              // Note components can have dynamic fields!! just refer to them by appending the this qualifier
-              // (e.g. this.onClick) and convert them to the right type
-              onClick(name.value)
-              onSubmit()
-              }
-    }
+  
+    def handleSubmit() = if(notFullyValidated) runValidation()
+                         else onSubmit(name.value, username.value, email.value, password.value, gender.value)
       
     val submitButton = <Button 
 												label="Register" 
@@ -275,6 +261,11 @@ object FieldValidators{
     validateRequiredField(fieldValue = value, fieldName = "Name")
     .|>(validateAlphaNumericField(value, fieldName = "Name"))
     .|>(validateFieldLength(fieldName = "Name", fieldLength = value.length, minLength = 2, maxLength = 10))
+  }
+  def validateUsername(value: String) = {
+    validateRequiredField(fieldValue = value, fieldName = "Username")
+    .|>(validateAlphaNumericField(value, fieldName = "Username"))
+    .|>(validateFieldLength(fieldName = "Username", fieldLength = value.length, minLength = 2, maxLength = 10))
   }
   def validateMessage(value: String) = { //TODO add remaining chars counter
     validateRequiredField(fieldValue = value, fieldName = "Message")

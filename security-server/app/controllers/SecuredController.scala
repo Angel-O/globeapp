@@ -27,6 +27,7 @@ protected class AuthenticatedActionBuilder @Inject()(bodyParser: BodyParsers.Def
 //        Logger.info(Json.stringify(json))
 //        Logger.info(json.as[String])
         val user = read[User](json.as[String])  
+        //val session = request.jwtSession.refresh
         block(new AuthenticatedRequest[A](user, request)).map(_.refreshJwtSession(request))
       }     
       case _ => Future(Unauthorized)

@@ -12,6 +12,7 @@ import repos.UserRepository
 import models.RegisteredUser
 import play.api.Logger
 import reactivemongo.bson.BSONObjectID
+import pdi.jwt.JwtSession
 
 // overkill
 sealed trait Gender
@@ -59,6 +60,7 @@ extends SecuredController(scc){
    
   
   def login = Action(parse.json).async { implicit request: Request[JsValue] =>
+    Logger.info("Logging in")
     val result = request.body
       .validate[LoginDetails]
       .fold( 
@@ -68,8 +70,11 @@ extends SecuredController(scc){
               .map({ 
                 case Some(registeredUser) => registeredUser.password == password match {
                   case true => {
-                    val apiUser = User(registeredUser.name, Some(registeredUser._id.stringify))
+                    val apiUser = User(registeredUser._id.stringify, registeredUser.username)
                     Ok.addingToJwtSession("user", write(apiUser)) 
+                    //val jwtSession = JwtSession() + ("user", write(apiUser))
+                    //val token = jwtSession.serialize
+                    //Ok.withHeaders(("Token", token))
                   }
                   case false => Unauthorized
                 }
@@ -79,14 +84,24 @@ extends SecuredController(scc){
      result
   }
   
+  def logout = Action.async { implicit req =>
+    Logger.info("Logging out")
+//    val json = req.jwtSession.apply("user").get
+//    val user = read[User](json.as[String])
+//    println("username", user.username)
+//    val result = Ok.withNewJwtSession
+//    val session = Ok.jwtSession - ("user")
+    Future{Ok.removingFromSession("user")}
+  }
+  
   def register = Action(parse.json).async { implicit request: Request[JsValue] =>
+    Logger.info("Registering user")
     val result = request.body
       .validate[RegistrationDetails]
       .map({ case RegistrationDetails(name, username, email, password, gender) => { //TODO check if user already exists...
-                //Logger.info(GenderFormat.asString(gender))
                 val registeredUser = RegisteredUser(name, username, email, password, gender)
                 repository.addUser(registeredUser) 
-                val apiUser = User(name, Some(registeredUser._id.stringify)) //TODO made api user id not optional, remove underscore
+                val apiUser = User(registeredUser._id.stringify, username) //TODO create id case class 
                 Ok.addingToJwtSession("user", write(apiUser))
              }
            })
@@ -95,8 +110,14 @@ extends SecuredController(scc){
     Future{result.get}
   }
   
+  def getAllUsernames = Action.async { 
+    Logger.info("Fetching usernames")
+    repository.getAll.map(all => Ok(write(all.map(_.username)))) 
+  }
+  
   def getAll = AuthenticatedAction.async { 
-    repository.getAll.map(all => Ok(write(all.map(x => User(x.name, Some(x._id.stringify)))))) 
+    Logger.info("Fetching users")
+    repository.getAll.map(all => Ok(write(all.map(x => User(x._id.stringify, x.username))))) 
   }
   
 //  def postUser = Action.async(parse.json) { req =>   
@@ -106,20 +127,22 @@ extends SecuredController(scc){
 //  }
 
   def deleteUser = AuthenticatedAction.async(parse.json) { req => 
+     Logger.info("Deleting users")
      //val id: String = req.body.as[String]
-     val id = req.user._id.get //TODO this id belongns to the logged in user...self deletion, remove parse json if not used
+     val id = req.user.id //TODO this id belongs to the logged in user...self deletion, remove parse json if not used
      repository.deleteUser(BSONObjectID.parse(id).get).map({
-       case Some(user) => Ok(write(User(user.name, Some(user._id.stringify))))
+       case Some(user) => Ok(write(User(user._id.stringify, user.username)))
        case None => NotFound
      })
   }
 
-  def updateUser = AuthenticatedAction.async(parse.json) { req => 
+  def updateUser = AuthenticatedAction.async(parse.json) { req =>
+      Logger.info("Updating users")
       //val payload: String = Json.stringify(req.body)
-      val id = req.user._id.get
+      val id = req.user.id
       val updated = req.body.validate[RegisteredUser].get //read[User](payload)
       repository.updateUser(BSONObjectID.parse(id).get, updated).map({
-        case Some(user) => Ok(write(User(user.name, Some(user._id.stringify))))
+        case Some(user) => Ok(write(User(user._id.stringify, user.name)))
         case None => NotFound
       })
   }

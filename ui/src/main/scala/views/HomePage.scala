@@ -68,7 +68,7 @@ object HomePage {
 								/>, 
 							  <Tile isParent={true}
 							    	children={Seq(
-							    	    <Tile isSuccess={true} onClick={navigateToForm _}
+							    	    <Tile isSuccess={true} onClick={navigateToRegister _}
 													content={
 													  <div class="content">
             									<p class="title">Tall tile</p>
@@ -76,7 +76,7 @@ object HomePage {
             									<div class="content">
 																<Button 
 																		label={ "click me or the whole tile" } 
-																		onClick={navigateToForm _}/>
+																		onClick={navigateToRegister _}/>
               									<!-- Content -->
             									</div>
           									</div>}

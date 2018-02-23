@@ -27,12 +27,14 @@ object JsonFormats{
   
   implicit val userReads: Reads[User] = (
     (JsPath \ "name").read[String] and
-    (JsPath \ "_id").readNullable[BSONObjectID].map(x => Some(x.get.stringify))
+    (JsPath \ "_id").read[String]
+    //(JsPath \ "id").readNullable[BSONObjectID].map(x => Some(x.get.stringify))
     )(User.apply _)
     
    implicit val usertWrites: OWrites[User] = (
     (JsPath \ "name").write[String] and
-    (JsPath \ "_id").writeNullable[String]
+    (JsPath \ "_id").write[String]
+    //(JsPath \ "id").writeNullable[String]
     )(unlift(User.unapply))
     
 //    implicit object UserReader extends BSONDocumentReader[User] {
@@ -57,25 +59,37 @@ class UserRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi:
   }
   
   def addUser(user: User): Future[WriteResult] = {
-    user._id match {
-      case Some(id) => if(BSONObjectID.parse(id).isFailure) throw new IllegalArgumentException("invalid id") 
-                       else entityCollection.flatMap(_.insert(user))
-      case None => entityCollection.flatMap(_.insert(user))
-    }
+    if(BSONObjectID.parse(user.id).isFailure) throw new IllegalArgumentException("invalid id") 
+    else entityCollection.flatMap(_.insert(user))
   }
+//  def addUser(user: User): Future[WriteResult] = {
+//    user._id match {
+//      case Some(id) => if(BSONObjectID.parse(id).isFailure) throw new IllegalArgumentException("invalid id") 
+//                       else entityCollection.flatMap(_.insert(user))
+//      case None => entityCollection.flatMap(_.insert(user))
+//    }
+//  }
   
   def getUser(id: String): Future[Option[User]] = {
     val query = BSONDocument("_id" -> BSONObjectID.parse(id).get)
     entityCollection.flatMap(_.find(query).one[User])
   }
-
+  
   def updateUser(id: String, updated: User): Future[Option[User]] = {
     val selector = BSONDocument("_id" -> BSONObjectID.parse(id).get)
     val updateModifier = BSONDocument(
       "$set" -> BSONDocument(
-        "name" -> updated.name))
+        "name" -> updated.username))
     entityCollection.flatMap(_.findAndUpdate(selector, updateModifier, fetchNewObject = true).map(_.result[User]))
   }
+
+//  def updateUser(id: String, updated: User): Future[Option[User]] = {
+//    val selector = BSONDocument("_id" -> BSONObjectID.parse(id).get)
+//    val updateModifier = BSONDocument(
+//      "$set" -> BSONDocument(
+//        "name" -> updated.name))
+//    entityCollection.flatMap(_.findAndUpdate(selector, updateModifier, fetchNewObject = true).map(_.result[User]))
+//  }
 
   def deleteUser(id: String): Future[Option[User]] = {
     val selector = BSONDocument("_id" -> BSONObjectID.parse(id).get)
