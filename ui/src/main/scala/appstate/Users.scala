@@ -8,7 +8,7 @@ import diode.data.PotAction
 import diode.ModelRW
 import diode.ActionHandler
 import diode.data.PotState._
-import ApiCalls._
+import UserEffects._
 
 //TODO most of the stuff here is no longer needed (on hold for now unless admin panel is implemented), users are created
 // upon registration, api users are sent via jwt...
@@ -82,4 +82,36 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]]) extends ActionHandler(model
   }
 
   private def getUserById(id: String) = value.find(_.id == id).get
+}
+
+// Effects
+object UserEffects{
+  import scala.concurrent.ExecutionContext.Implicits.global
+  import upickle.default._
+  import utils.api._ //, utils.log
+  import apimodels.User
+  import diode.{Effect, NoAction}
+  import diode.data.{Ready, Failed, Pot}
+
+  def fetchUsersEffect() = {
+    Effect(
+      Get(url = "http://localhost:9000/api/users")
+        .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))
+        .recover({ case ex => UsersFetched(Failed(ex)) }))
+  }
+  def createUserEffect(user: User) = {
+    Effect(
+      Post(url = "http://localhost:9000/api/users", payload = write(user))
+        .map(_ => NoAction)) //could map to a FetchUsers action...
+  }
+  def deleteUserEffect(id: String) = {
+    Effect(
+      Delete(url = "http://localhost:9000/api/users", payload = write(id))
+        .map(_ => NoAction)) //TODO map to a user deleted action...
+  }
+  def updateUserEffect(id: String, updated: User) = {
+    Effect(Put(url = s"http://localhost:9000/api/users/$id",
+               payload = write(updated)) //TODO make it REST
+      .map(_ => NoAction)) //TODO map to a user updated action using xhr data...
+  }
 }

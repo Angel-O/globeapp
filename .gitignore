@@ -17,13 +17,16 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
-#eclipse
+# eclipse
 .project
 .cache-main
 .cache-tests
 .classpath
 .settings/
 /bin/
+
+# vscode
+.vscode/
 
 # Ensime specific
 .ensime

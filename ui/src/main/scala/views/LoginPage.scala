@@ -9,13 +9,15 @@ import hoc.form._
 import appstate.{Login, AppCircuit}
 import org.scalajs.dom.raw.Event
 import com.thoughtworks.binding.Binding.Var
+import diode.NoAction
+import diode.ActionBatch
 
 //TODO extract custom styling
 //TODO make routing view a trait
 object LoginPage {
   import navigation.Navigators._
   def view() = new RoutingView() with Connect {
-  
+
     @dom
     override def element = {
       <SimpleModal openAtLaunch={true} smartClose={false}
@@ -33,15 +35,16 @@ object LoginPage {
     }
 
     def handleSubmit(username: String, password: String) = {
-      dispatch(Login(username, password))
+      dispatch(Login(username, password, navigateToHome _))
     }
 
-    def forwardToHomePage(errorCodeOption: Option[Int]) = {
-      //if there is no error code proceed to the home page otherwise do nothing
-      errorCodeOption.fold(navigateToHome())(_ => Unit)
-    }
+    // def forwardToHomePage(errorCodeOption: Option[Int]) = {
+    //   //if there is no error code proceed to the home page otherwise do nothing
+    //   errorCodeOption.fold(navigateToHome())(_ => Unit)
+    // }
 
-    //TODO will this work when log out is implemented ??
-    connect()(AppCircuit.authSelector, forwardToHomePage(AppCircuit.authSelector.value.errorCode))
+    // //TODO will this work when log out is implemented ??
+    // connect()(AppCircuit.authSelector,
+    //           forwardToHomePage(AppCircuit.authSelector.value.errorCode))
   }
 }

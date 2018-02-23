@@ -1,60 +1,66 @@
 package utils
 
 import org.scalajs.dom.ext.Ajax
+import org.scalajs.dom.window
+import org.scalajs.dom.raw.XMLHttpRequest
+import org.scalajs.dom.ext.AjaxException
 import appstate.{AppModel, AppCircuit, Connect}
 
 //TODO move some stuff to config
 //TODO store jwt in local or session storage or cookie
-object ApiMiddleware extends Connect { 
-  
-  private var token: String = ""
-  connect()(AppCircuit.authSelector, token = AppCircuit.authSelector.value.jwt.getOrElse(""))
+object ApiMiddleware { //extends Connect {
+
+  private def token: String = window.sessionStorage.getItem("Token") //""
+  //connect()(AppCircuit.authSelector, token = AppCircuit.authSelector.value.jwt.getOrElse(""))
 
   val contentHeader = ("Content-type" -> "application/json")
   val headers: Map[String, String] = Map.empty
   def setHeader = (header: (String, String)) => {
     header._2 match {
-      case "" => headers
-      case _ => headers + header
+      case "" | null => headers
+      case _         => headers + header
     }
   }
+  def getStatusCode(t: Throwable) = t match {
+    case ex: AjaxException => ex.xhr.status
+    case _ => 0 //TODO using zero to signify uknown...is there a code for that already??
+  }
   def Get(url: String) = {
-    Ajax.get(
-      url = url, 
-      data = null, 
-      timeout = 9000, 
-      headers = setHeader(("Token" -> token)), 
-      withCredentials = false, 
-      responseType = "text")
+    Ajax.get(url = url,
+             data = null,
+             timeout = 9000,
+             headers = setHeader(("Token" -> token)),
+             withCredentials = false,
+             responseType = "text")
   }
 
   def Post(url: String, payload: Ajax.InputData) = {
     Ajax.post(
-      url = url, 
-      data = payload, 
-      timeout = 9000, 
-      headers = setHeader(contentHeader) ++ setHeader(("Token" -> token)), 
-      withCredentials = false, 
+      url = url,
+      data = payload,
+      timeout = 9000,
+      headers = setHeader(contentHeader) ++ setHeader(("Token" -> token)),
+      withCredentials = false,
       responseType = "text")
   }
-  
-  def Delete(url: String, payload: Ajax.InputData) = {  
+
+  def Delete(url: String, payload: Ajax.InputData) = {
     Ajax.delete(
-      url = url, 
-      data = payload, 
-      timeout = 9000, 
-      headers = setHeader(contentHeader) ++ setHeader(("Token" -> token)), 
-      withCredentials = false, 
+      url = url,
+      data = payload,
+      timeout = 9000,
+      headers = setHeader(contentHeader) ++ setHeader(("Token" -> token)),
+      withCredentials = false,
       responseType = "text")
   }
 
   def Put(url: String, payload: Ajax.InputData) = {
     Ajax.put(
-      url = url, 
-      data = payload, 
-      timeout = 9000, 
-      headers = setHeader(contentHeader) ++ setHeader(("Token" -> token)), 
-      withCredentials = false, 
+      url = url,
+      data = payload,
+      timeout = 9000,
+      headers = setHeader(contentHeader) ++ setHeader(("Token" -> token)),
+      withCredentials = false,
       responseType = "text")
   }
 }

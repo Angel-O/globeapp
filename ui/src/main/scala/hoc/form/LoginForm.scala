@@ -75,7 +75,7 @@ case class LoginFormBuilder() extends ConnectorBuilder {
     val form =
       <div>
         <div class={ FIELD }>
-          <TextInput label={ "Username" } labelStyle={Styles.labelStyle} onChange={ handleUsernameChange }/>
+          <TextInput label={ "Username" } labelStyle={Styles.labelStyle} onChange={ handleUsernameChange } inputValue={username}/>
           { renderValidation(usernameValidation.bind).bind }
         </div>
         <div class={ FIELD }>

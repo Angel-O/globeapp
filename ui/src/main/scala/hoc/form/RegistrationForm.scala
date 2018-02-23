@@ -30,7 +30,6 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   
   var onSubmit: (String, String, String, String, String) => Unit = _
   var fetchUsers: () => Unit = _
-  //var users: Seq[User] = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
   private var termsAccepted: Var[Boolean] = Var(false)
@@ -49,10 +48,6 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   import scalajs.js
   private val handleUsernameChange = (value: String) => {   
     username.value = value.trim()
-//    (for { validation <- validateName(name.value)
-//           asyncValidation <- if(validation) validateUserNameAlreadyTaken(name.value) else validation} 
-//    yield nameValidation.value = validation|>asyncValidation)
-//    .recover{case _ => nameValidation.value = validateName(name.value)}
     usernameValidation.value = validateUsername(username.value)|>validateUsernameAlreadyTaken(username.value)
   } 
   private val handleNameChange = (value: String) => {   
@@ -233,30 +228,9 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
       handleConfirmPasswordChange(confirmPassword.value)
       handleSubscriptionTypeChange(subscriptionType.value)
     }
-    
-    //@noinline //do I need this annotation?? investigate fastOPTJS is being slow...
-    def handleSubmit() = notFullyValidated match{
-      case true => runValidation()
-      case _ => {
-        println(
-          s"""SUBMITTING...
-              name: ${name.value}
-              username: ${username.value}
-              email: ${email.value}
-              message: ${message.value}
-              where did you hear about us? : ${whereDidYouHearAboutUs.value}
-              gender: ${gender.value}
-              subscription: ${subscriptionType.value}
-              subscribe me: $subscribeMe
-              password: ${password.value}
-              confirm password: ${confirmPassword.value}
-              T&C accepted: ${termsAccepted.value}""")
-              // Note components can have dynamic fields!! just refer to them by appending the this qualifier
-              // (e.g. this.onClick) and convert them to the right type
-              //onClick(name.value)
-              onSubmit(name.value, username.value, email.value, password.value, gender.value)
-              }
-    }
+  
+    def handleSubmit() = if(notFullyValidated) runValidation()
+                         else onSubmit(name.value, username.value, email.value, password.value, gender.value)
       
     val submitButton = <Button 
 												label="Register" 

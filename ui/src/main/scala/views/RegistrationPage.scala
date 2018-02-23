@@ -21,28 +21,27 @@ import appstate.Register
 
 object RegistrationPage {
   import navigation.Navigators._
-  def view() = new RoutingView() with Connect{ //TODO connect is not needed
-     
+  def view() = new RoutingView() with Connect { //TODO connect is not needed
+
     @dom override def element = {
-      <ModalCard 
-					label={"Launch form"} 
-					title={"Register now"} 
+      <SimpleModal openAtLaunch={true} smartClose={false}
 					content={<div>
 										<RegistrationForm 
 											onSubmit={handleSubmit _}  
 											fetchUsers={fetchUsers _}/>
 									</div>}
-					onSave={navigateToHome _}/>.build.bind
+			/>.build.bind
     }
-    
-    def fetchUsers() = {
-      //dispatch(UsersFetched()) //TODO investigate why dispatching 2 actions doesn't work
-      dispatch(FetchUsers)
-    }
-    
-    def handleSubmit(name: String, username: String, email: String, password: String, gender: String) = {
-      dispatch(Register(name, username, email, password, gender))      
-      //navigateToHome() 
+
+    def fetchUsers() = dispatch(FetchUsers)
+
+    def handleSubmit(name: String,
+                     username: String,
+                     email: String,
+                     password: String,
+                     gender: String) = {
+      dispatch(
+        Register(name, username, email, password, gender, navigateToHome _))
     }
   }
 }

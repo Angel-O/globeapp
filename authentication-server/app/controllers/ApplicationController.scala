@@ -84,6 +84,16 @@ extends SecuredController(scc){
      result
   }
   
+  def logout = Action.async { implicit req =>
+    Logger.info("Logging out")
+//    val json = req.jwtSession.apply("user").get
+//    val user = read[User](json.as[String])
+//    println("username", user.username)
+//    val result = Ok.withNewJwtSession
+//    val session = Ok.jwtSession - ("user")
+    Future{Ok.removingFromSession("user")}
+  }
+  
   def register = Action(parse.json).async { implicit request: Request[JsValue] =>
     Logger.info("Registering user")
     val result = request.body
@@ -100,6 +110,11 @@ extends SecuredController(scc){
     Future{result.get}
   }
   
+  def getAllUsernames = Action.async { 
+    Logger.info("Fetching usernames")
+    repository.getAll.map(all => Ok(write(all.map(_.username)))) 
+  }
+  
   def getAll = AuthenticatedAction.async { 
     Logger.info("Fetching users")
     repository.getAll.map(all => Ok(write(all.map(x => User(x._id.stringify, x.username))))) 
@@ -114,7 +129,7 @@ extends SecuredController(scc){
   def deleteUser = AuthenticatedAction.async(parse.json) { req => 
      Logger.info("Deleting users")
      //val id: String = req.body.as[String]
-     val id = req.user.id //TODO this id belongns to the logged in user...self deletion, remove parse json if not used
+     val id = req.user.id //TODO this id belongs to the logged in user...self deletion, remove parse json if not used
      repository.deleteUser(BSONObjectID.parse(id).get).map({
        case Some(user) => Ok(write(User(user._id.stringify, user.username)))
        case None => NotFound

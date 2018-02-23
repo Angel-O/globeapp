@@ -23,7 +23,12 @@ case class TextInputBuilder() extends { val inputType = TextInput } with Textual
   def render = this
   
   var onChange: String => Any = _
-  //var inputValue: String = _ //TODO remove this...it is not needed
+
+  // without using this property the value of the input field would be
+  // out of sync with what the user sees: the cursor would reset to
+  // its position all the way to the left when the input box loses
+  // focus
+  var inputValue: String = _  
   
   //TODO remove this...it is not needed
   //private var value: Var[String] = Var("") // manage internal state: controlled component
@@ -37,7 +42,7 @@ case class TextInputBuilder() extends { val inputType = TextInput } with Textual
     
     val input = inputElement.bind.asInstanceOf[HTMLInputElement]
     input.oninput = handleChange
-    //input.value = this.inputValue
+    input.value = this.inputValue
      
     super.build.bind
   }
