@@ -11,11 +11,7 @@ import utils.Push
 
 object MainShell extends BulmaCssClasses with Connect with Push {
 
-  //TODO extract getClassName into a trait, or even better move it from
-  // componentBuilder to bulmaCSSclasses trait
   //TODO create sub-packages for each page
-  //TODO clicking on the logo causes an error: investigate
-
   @dom
   def render(content: HTMLElement) = {
     val logo = <NavbarLogo
@@ -24,18 +20,24 @@ object MainShell extends BulmaCssClasses with Connect with Push {
                             alt={"Globeapp logo"}
                             width={112}
                             height={28}/>}
-                    href={"#"}/>
+                    href={"#/globeapp"}/>
 
+    //TODO only show one or the other depending on login status
     val logoutButton = <Button label="logout" onClick={doLogout _}/>
     val loginButton = <Button label="login" onClick={navigateToLogin _}/>
+    val navbarItems = Seq(
+      <NavbarItem item="account" dropdownItems={Seq(logoutButton, loginButton)}/>)
 
     val navbar = <Navbar
                     isFixedTop={false} 
                     isTransparent={true}
                     logo={logo}
-                    rightItems={Seq(<NavbarItem item="account" dropdownItems={Seq(logoutButton, loginButton)}/>)}/>
+                    rightItems={navbarItems}/>
 
-    val shell = <div class="container is-fluid">{navbar}{content}</div>
+    val shell = <div class={getClassName(CONTAINER, FLUID)}>
+                  {navbar}
+                  {content}
+                </div>
 
     shell
   }

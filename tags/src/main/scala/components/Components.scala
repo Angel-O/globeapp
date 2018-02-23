@@ -205,18 +205,6 @@ object Components {
         else dummy.build
       }.bind
       
-      private def getClassToken(condition: Boolean, token: String) = if (condition) List(token) else Nil
-
-      type CandT = Either[(Boolean, String), String] 
-      implicit def toEitherRight(s: String) = Right(s)
-      implicit def toEitherLeft(ct: (Boolean, String)) = Left(ct)     
-      def getClassName(conditionsAndTokens: CandT*): String = {
-        conditionsAndTokens.map(x => x match {
-          case Left(ct) => getClassToken(ct._1, ct._2)
-          case Right(t) => getClassToken(true, t)
-        }).reduceLeft(_ ++ _).mkString(" ") 
-      }
-      
       def listen = {
         def create = toBindingSeq(Seq(build))
         val elem = create.map(_.bind)
@@ -285,57 +273,75 @@ object Components {
 
     trait BulmaCssClasses {
       val ACTIVE = "is-active"
-      val SELECTED = "is-selected"
-      val FOCUSED = "is-focused"
-      val PRIMARY = "is-primary"
-      val BUTTON = "button"
-      val TABLE = "table"
-      val TABLE_BORDERED = "is-bordered"
-      val TABLE_STRIPED = "is-striped"
-      val TABLE_NARROW = "is-narrow"
-      val TABLE_HOVERABLE = "is-hoverable"
-      val FULLWIDTH = "is-fullwidth"
-      val TABS = "tabs"
-      val CENTERED = "is-centered"
-      val TOGGLED = "is-toggle"
-      val RIGHT = "is-right"
-      val BOXED = "is-boxed"
-      val ROUNDED = "is-toggle is-toggle-rounded"
-      val MEDIUM = "is-medium"
-      val LARGE = "is-large"
-      val SMALL = "is-small"
-      val INVISIBLE = "is-invisible"
-      val HIDDEN = "is-hidden"
-      val ICON = "icon"
-      val HOVERABLE = "is-hoverable"
-      val FIXED_TOP = "is-fixed-top"
-      val FIXED_BOTTOM = "is-fixed-bottom"
-      val NAVBAR = "navbar"
-      val TRANSPARENT = "is-transparent"
-      val EXPANDED = "is-expanded"
-      val DROPDOWN = "dropdown"
-      val IS_UP = "is-up"
-      val DANGER = "is-danger"
-      val SUCCESS = "is-success"
-      val HELP = "help"
-      val HAS_ICONS_LEFT = "has-icons-left"
-      val FIELD = "field"
-      val CONTROL = "control"
-      val PARENT = "is-parent"
-      val CHILD = "is-child"
-      val TILE = "tile"
-      val VERTICAL = "is-vertical"
       val ANCESTOR = "is-ancestor"
-      val WARNING = "is-warning"
-      val IS_ = "is-"
-      val NOTIFICATION = "notification"
-      val INFO = "is-info"
+      val BOXED = "is-boxed"
+      val BUTTON = "button"
+      val CENTERED = "is-centered"
+      val CHILD = "is-child"
+      val CONTAINER = "container"
+      val CONTROL = "control"
+      val DANGER = "is-danger"
+      val DELETE = "delete"
+      val DROPDOWN = "dropdown"
+      val EXPANDED = "is-expanded"
+      val HAS_ICONS_LEFT = "has-icons-left"
+      val HELP = "help"
+      val FIELD = "field"
+      val FIXED_BOTTOM = "is-fixed-bottom"
+      val FIXED_TOP = "is-fixed-top"
+      val FLUID = "is-fluid"
+      val FOCUSED = "is-focused"
+      val FULLWIDTH = "is-fullwidth"
       val GROUPED = "is-grouped"
+      val HIDDEN = "is-hidden"
+      val HOVERABLE = "is-hoverable"
+      val ICON = "icon"
+      val INFO = "is-info"
+      val INVISIBLE = "is-invisible"
+      val IS_ = "is-"
+      val IS_UP = "is-up"
+      val LARGE = "is-large"
+      val MEDIUM = "is-medium"
       val MODAL = "modal"
       val MODAL_BUTTON = "modal-button"
       val MODAL_CLOSE = "modal-close"
       val MODAL_CONTENT = "modal-content"
-      val DELETE = "delete"
+      val NAVBAR = "navbar"
+      val NOTIFICATION = "notification"
+      val PARENT = "is-parent"
+      val PRIMARY = "is-primary"
+      val RIGHT = "is-right"
+      val ROUNDED = "is-toggle is-toggle-rounded"
+      val SELECTED = "is-selected"
+      val SMALL = "is-small"
+      val SUCCESS = "is-success"
+      val TABLE = "table"
+      val TABLE_BORDERED = "is-bordered"
+      val TABLE_HOVERABLE = "is-hoverable"
+      val TABLE_STRIPED = "is-striped"
+      val TABLE_NARROW = "is-narrow"
+      val TABS = "tabs"
+      val TILE = "tile"
+      val TOGGLED = "is-toggle"
+      val TRANSPARENT = "is-transparent"
+      val VERTICAL = "is-vertical"
+      val WARNING = "is-warning"
+      
+
+      // Note making this private would make compilation with fastOPTJS fail
+      // (maybe related to https://github.com/sbt/sbt/issues/2490 ???)
+      protected def getClassToken(condition: Boolean, token: String) = if (condition) List(token) else Nil
+
+      type CandT = Either[(Boolean, String), String] 
+      import scala.language.implicitConversions
+      implicit def toEitherRight(s: String) = Right(s)
+      implicit def toEitherLeft(ct: (Boolean, String)) = Left(ct)     
+      def getClassName(conditionsAndTokens: CandT*): String = {
+        conditionsAndTokens.map(x => x match {
+          case Left(ct) => getClassToken(ct._1, ct._2)
+          case Right(t) => getClassToken(true, t)
+        }).reduceLeft(_ ++ _).mkString(" ") 
+      }
     }
     
     trait HTMLClassManipulator{
