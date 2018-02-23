@@ -4,8 +4,10 @@ import com.thoughtworks.binding.{dom, Binding}
 import org.scalajs.dom.{document, Node}
 import components.Components.Implicits.CustomTags2
 import navigation.URIs
+import org.scalajs.dom.window
+import utils.Push
 
-object App {
+object App extends Push {
 
   def main(args: Array[String]): Unit = {
 
@@ -21,6 +23,14 @@ object App {
         .render(
           <div><BrowserRouter baseUrl={URIs.HomePageURI} routes={routes.bind}/></div>)
         .bind
+    }
+
+    // handling redirection on page refresh
+    // TODO check for validity as well ...aka token expiration
+    // this line can be moved after mounting the app to see the
+    // init location logged on the console
+    if (window.sessionStorage.getItem("Token") == null) {
+      push("/login")
     }
 
     // mount the App
