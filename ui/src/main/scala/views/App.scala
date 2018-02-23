@@ -3,6 +3,7 @@ package views
 import com.thoughtworks.binding.{dom, Binding}
 import org.scalajs.dom.{document, Node}
 import components.Components.Implicits.CustomTags2
+import components.Components.Implicits._
 import navigation.URIs
 import org.scalajs.dom.window
 import utils.Push
