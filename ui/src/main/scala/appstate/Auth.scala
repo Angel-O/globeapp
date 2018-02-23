@@ -64,10 +64,11 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
   private def storeToken(token: String) =
     window.sessionStorage.setItem("Token", token)
 
+  //TODO move this and above to jwt middleware along with getToken used in api middleware
   private def removeToken() =
-    window.sessionStorage.removeItem("Token")
+    window.sessionStorage.removeItem("Token") 
 
-  private def navigateToHome() = push("/")
+  private def navigateToHome() = push("/") //TODO move this to navigation package
 }
 
 // Effects

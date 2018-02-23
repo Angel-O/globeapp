@@ -9,7 +9,7 @@ import appstate.{AppModel, AppCircuit, Connect}
 //TODO move some stuff to config
 //Do not hardcode auth header name...read from config and use apply to set it
 //to improve reusability
-//def apply(string: authorizationHeaderName = "Authorization")
+//def apply(string: authorizationHeaderName = "Authorization") = ???
 object ApiMiddleware { 
   private def token: String = window.sessionStorage.getItem("Token")
   val contentHeader = ("Content-type" -> "application/json")
