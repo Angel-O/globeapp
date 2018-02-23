@@ -4,7 +4,7 @@ import diode.Action
 import diode.ModelRW
 import diode.ActionHandler
 import AuthEffects._
-import utils.log
+import utils.{log, Push}
 import org.scalajs.dom.window
 import diode.Effect
 
@@ -18,42 +18,40 @@ case object Auth {
 // Actions : Note these actions take a callback that will be passed
 // to the action invoked in the corresponding effect. Afer a user logged in
 // or registered the call back will trigger the navigation to the home page
-case class Login(username: String, password: String, callback: () => Unit)
+case class Login(username: String, password: String)
     extends Action
 case class Register(name: String,
                     username: String,
                     email: String,
                     password: String,
-                    gender: String,
-                    callback: () => Unit)
+                    gender: String)
     extends Action
 case object Logout extends Action
 case object UserLoggedOut extends Action
-case class UserLoggedIn(jwt: String, callback: () => Unit) extends Action
+case class UserLoggedIn(jwt: String) extends Action
 case class LoginFailed(errorCode: Int) extends Action //TODO use pot actions...
 // case class LoginFailed(potResult: Pot[Seq[User]] = Empty) extends PotAction[Seq[User], UsersFetched]{
 //   def next(newResult: Pot[Seq[User]]) = UsersFetched(newResult)
 // }
-case class UserRegistered(jwt: String, callback: () => Unit) extends Action
+case class UserRegistered(jwt: String) extends Action
 
 // Action handler
 class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
-    extends ActionHandler(modelRW) {
+    extends ActionHandler(modelRW) with Push {
   override def handle = {
-    case Login(username, password, callback) =>
-      effectOnly(loginEffect(username, password, callback))
-    case Register(name, username, email, password, gender, callback) =>
-      effectOnly(
-        registerEffect(name, username, email, password, gender, callback))
+    case Login(username, password) =>
+      effectOnly(loginEffect(username, password))
+    case Register(name, username, email, password, gender) =>
+      effectOnly(registerEffect(name, username, email, password, gender))
     case Logout => effectOnly(logoutEffect())
-    case UserLoggedIn(token, callback) => {
+    case UserLoggedIn(token) => {
       storeToken(token) //TODO turn this into an effect..
-      callback()
+      navigateToHome()
       updated(AuthParams(jwt = Some(token)))
     }
-    case UserRegistered(token, callback) => {
+    case UserRegistered(token) => {
       storeToken(token)
-      callback()
+      navigateToHome()
       updated(AuthParams(jwt = Some(token)))
     }
     case UserLoggedOut => {
@@ -68,6 +66,8 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
 
   private def removeToken() =
     window.sessionStorage.removeItem("Token")
+
+  private def navigateToHome() = push("/")
 }
 
 // Effects
@@ -78,18 +78,18 @@ object AuthEffects{
   import apimodels.RegistrationDetails
   import utils.api._ , utils.log
 
-  def loginEffect(username: String, password: String, callback: () => Unit) = {
+  def loginEffect(username: String, password: String) = {
     log.warn("payload", write(LoginDetails(username, password)))
     
     Effect(Post(url = "http://localhost:3000/auth/api/login", payload = write(LoginDetails(username, password)))
-        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Token"), callback)) //TODO unexpose authorization header from server
+        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Token"))) //TODO unexpose authorization header from server
         .recover({ case ex => LoginFailed(getStatusCode(ex)) }))
   }
-  def registerEffect(name: String, username: String, email: String, password: String, gender: String, callback: () => Unit) = {
+  def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
     log.warn("payload", write(RegistrationDetails(name, username, email, password, gender)))
     
     Effect(Post(url = "http://localhost:3000/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
-        .map(xhr => UserRegistered(xhr.getResponseHeader("Token"), callback)))
+        .map(xhr => UserRegistered(xhr.getResponseHeader("Token"))))
   }
   def logoutEffect() = {
     Effect(Get(url = "http://localhost:3000/auth/api/logout")

@@ -1,7 +1,7 @@
 package components.button
 
 import components.Components.Implicits._
-import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLButtonElement }
+import org.scalajs.dom.raw.{Event, HTMLElement, HTMLButtonElement}
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.Binding.Var
@@ -18,5 +18,6 @@ protected abstract class ButtonBaseBuilder() extends ComponentBuilder {
   }
 
   // using lazy val rather than val...
-  protected lazy val className = getClassName((true, BUTTON), (isPrimary, PRIMARY))
+  protected lazy val className =
+    getClassName((true, BUTTON), (isPrimary, PRIMARY))
 }

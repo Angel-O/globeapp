@@ -34,17 +34,7 @@ object LoginPage {
 			/>.build.bind
     }
 
-    def handleSubmit(username: String, password: String) = {
-      dispatch(Login(username, password, navigateToHome _))
-    }
-
-    // def forwardToHomePage(errorCodeOption: Option[Int]) = {
-    //   //if there is no error code proceed to the home page otherwise do nothing
-    //   errorCodeOption.fold(navigateToHome())(_ => Unit)
-    // }
-
-    // //TODO will this work when log out is implemented ??
-    // connect()(AppCircuit.authSelector,
-    //           forwardToHomePage(AppCircuit.authSelector.value.errorCode))
+    def handleSubmit(username: String, password: String) =
+      dispatch(Login(username, password))
   }
 }

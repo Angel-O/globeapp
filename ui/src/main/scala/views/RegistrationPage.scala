@@ -17,20 +17,19 @@ import appstate.FetchCars
 import appstate.CreateUser
 import appstate.Register
 
-//import components.Components.Implicits.GenFn
-
 object RegistrationPage {
   import navigation.Navigators._
   def view() = new RoutingView() with Connect { //TODO connect is not needed
 
     @dom override def element = {
-      <SimpleModal openAtLaunch={true} smartClose={false}
-					content={<div>
-										<RegistrationForm 
-											onSubmit={handleSubmit _}  
-											fetchUsers={fetchUsers _}/>
-									</div>}
-			/>.build.bind
+      <div>
+        <SimpleModal openAtLaunch={true} smartClose={false} content=
+          {<div>
+            <RegistrationForm 
+              onSubmit={handleSubmit _}  
+              fetchUsers={fetchUsers _}/>
+          </div>}/>
+      </div>
     }
 
     def fetchUsers() = dispatch(FetchUsers)
@@ -40,8 +39,7 @@ object RegistrationPage {
                      email: String,
                      password: String,
                      gender: String) = {
-      dispatch(
-        Register(name, username, email, password, gender, navigateToHome _))
+      dispatch(Register(name, username, email, password, gender))
     }
   }
 }
