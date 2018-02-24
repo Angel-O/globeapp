@@ -14,6 +14,7 @@ import diode.ActionBatch
 
 //TODO extract custom styling
 //TODO make routing view a trait
+//TODO add onsmmartClose property to navigate away when smartclose is set to true
 object LoginPage {
   import navigation.Navigators._
   def view() = new RoutingView() with Connect {
@@ -27,7 +28,7 @@ object LoginPage {
               <br/>
               <p style={"color: #00cc99"}>Don't have an account? 
                 <span 
-                  style={"text-decoration: underline;  cursor: pointer"} 
+                  style={"text-decoration: underline; cursor: pointer"} 
                   onclick={(e: Event) => navigateToRegister()}>Register</span>
               </p>
         	 </div>}

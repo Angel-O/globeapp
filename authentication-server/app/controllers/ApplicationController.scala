@@ -38,6 +38,10 @@ case object JsonFormats{
       case Female => JsString("female")
     }   
   }
+  implicit val userReads: OFormat[User] = Json.format[User]
+//  implicit val read: Reads[User] = (
+//      (JsPath \ "username").read[String] and
+//      (JsPath \ "password").read[String])(User.apply _)
 }
 
 case class LoginDetails(username: String, password: String)
@@ -108,6 +112,38 @@ extends SecuredController(scc){
       .recover({ case ex => BadRequest(JsError.toJson(ex.errors)) })
       
     Future{result.get}
+  }
+  
+  def verifyToken = Action.async { req =>
+    Logger.info("Verifying token")
+    //Logger.info(Json.stringify(req.jwtSession("user").get))
+    
+    Logger.info(req.jwtSession.claimData.toString)
+    val result = req.jwtSession.apply("user") match { //req.jwtSession.apply("user") match {
+      case Some(json) => {
+        //val user = read[User](json.as[String])
+        //if (user != null) Ok else Unauthorized
+        Logger.info("All good")
+        Ok
+      }
+      case None => Unauthorized
+    }
+    
+    Future{result}
+    
+    
+    //Logger.info(Json.stringify(req.jwtSession.claimData))
+    //val u = read[User](Json.stringify(req.jwtSession.claimData("user")))
+//    if(user != null) Future{Ok}
+//    else Future{Unauthorized}
+//    val userOption = req.jwtSession.claimData("user").asOpt[User] //TODO use upickle for consistency
+//    //Logger.info(userOption.get.username)
+//    val result = userOption match {
+//      case Some(_) => Ok
+//      case None => Unauthorized
+//    }
+//   
+//    Future{result}}
   }
   
   def getAllUsernames = Action.async { 

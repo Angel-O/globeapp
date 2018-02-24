@@ -3,21 +3,26 @@ package appstate
 import diode.Action
 import diode.ModelRW
 import diode.ActionHandler
-import AuthEffects._
-import utils.{log, Push}
-import org.scalajs.dom.window
-import diode.Effect
+import utils.{Push, safe}
+import config._
+import navigation.URIs._
 
-// Model
-case class AuthParams(jwt: Option[String] = None, errorCode: Option[Int] = None)
+//import upickle.default.{ReadWriter => RW, macroRW}
+
+// Model //TODO rename to AuthState
+protected case class AuthParams(jwt: Option[String] = None,
+                                errorCode: Option[Int] = None,
+                                username: Option[String] = None,
+                                loggedIn: Option[Boolean] = None,
+                                isTokenExpired: Option[Boolean] = None)
 case class Auth(params: AuthParams)
 case object Auth {
   def apply() = new Auth(AuthParams())
+  // implicit def rw: RW[Auth] = macroRW
+  // def apply(username: Option[String]) = Auth.apply()
 }
 
-// Actions : Note these actions take a callback that will be passed
-// to the action invoked in the corresponding effect. Afer a user logged in
-// or registered the call back will trigger the navigation to the home page
+// Primary Actions
 case class Login(username: String, password: String)
     extends Action
 case class Register(name: String,
@@ -27,84 +32,117 @@ case class Register(name: String,
                     gender: String)
     extends Action
 case object Logout extends Action
-case object UserLoggedOut extends Action
-case class UserLoggedIn(jwt: String) extends Action
-case class LoginFailed(errorCode: Int) extends Action //TODO use pot actions...
-// case class LoginFailed(potResult: Pot[Seq[User]] = Empty) extends PotAction[Seq[User], UsersFetched]{
-//   def next(newResult: Pot[Seq[User]]) = UsersFetched(newResult)
-// }
-case class UserRegistered(jwt: String) extends Action
+case object VerifyToken extends Action
 
-// Action handler
+
+// Derived Actions
+case object UserLoggedOut extends Action
+case class UserLoggedIn(jwt: String, username: String) extends Action
+case class LoginFailed(errorCode: Int) extends Action
+case class UserRegistered(jwt: String, username: String) extends Action
+case object TokenExpired extends Action
+case object TokenValid extends Action
+
+
+
+// Action handler 
 class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
-    extends ActionHandler(modelRW) with Push {
+    extends ActionHandler(modelRW)
+    with AuthEffects {
   override def handle = {
     case Login(username, password) =>
       effectOnly(loginEffect(username, password))
     case Register(name, username, email, password, gender) =>
       effectOnly(registerEffect(name, username, email, password, gender))
-    case Logout => effectOnly(logoutEffect())
-    case UserLoggedIn(token) => {
-      storeToken(token) //TODO turn this into an effect..
-      navigateToHome()
-      updated(AuthParams(jwt = Some(token)))
-    }
-    case UserRegistered(token) => {
-      storeToken(token)
-      navigateToHome()
-      updated(AuthParams(jwt = Some(token)))
-    }
-    case UserLoggedOut => {
-      removeToken()
-      updated(AuthParams())
-    }
-    case LoginFailed(code) => updated(AuthParams(errorCode = Some(code)))
+    case Logout => effectOnly(logoutEffect() + redirectEffect(HomePageURI))
+    case UserLoggedIn(token, username) =>
+      updated(AuthParams(jwt = Some(token),
+                         username = Some(username),
+                         loggedIn = Some(true),
+                         isTokenExpired = Some(false)),
+              storeTokenEffect(token) + redirectEffect(ROOT_PATH) + persistStorageEffect(username))
+    case UserRegistered(token, username) =>
+      updated(value.copy(jwt = Some(token),
+                         username = Some(username),
+                         loggedIn = Some(true),
+                         isTokenExpired = Some(false)),
+              storeTokenEffect(token) + redirectEffect(ROOT_PATH) + persistStorageEffect(username))
+    case UserLoggedOut     => updated(AuthParams(), removeTokenEffect() + wipeStorageEffect())
+    case LoginFailed(code) => updated(value.copy(errorCode = Some(code)))
+    case VerifyToken       => effectOnly(verifyTokenEffect())
+    case TokenExpired =>
+      updated(value.copy(isTokenExpired = Some(true)),
+              redirectEffect(LoginPageURI))
+    case TokenValid => updated(value.copy(loggedIn = Some(true)))
   }
-
-  private def storeToken(token: String) =
-    window.sessionStorage.setItem("Token", token)
-
-  //TODO move this and above to jwt middleware along with getToken used in api middleware
-  private def removeToken() =
-    window.sessionStorage.removeItem("Token") 
-
-  private def navigateToHome() = push("/") //TODO move this to navigation package
 }
+
 
 // Effects
-object AuthEffects{
+trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extending Push: it causes compliation around imports...
   import scala.concurrent.ExecutionContext.Implicits.global
+  import scala.concurrent.Future
   import upickle.default._
-  import apimodels.LoginDetails
-  import apimodels.RegistrationDetails
-  import utils.api._ , utils.log
-
+  import apimodels.{LoginDetails, RegistrationDetails}
+  import utils.api._, utils.jwt._, utils.persist._
+  import diode.{Effect, NoAction}
+  
   def loginEffect(username: String, password: String) = {
-    log.warn("payload", write(LoginDetails(username, password)))
-    
-    Effect(Post(url = "http://localhost:3000/auth/api/login", payload = write(LoginDetails(username, password)))
-        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Token"))) //TODO unexpose authorization header from server
-        .recover({ case ex => LoginFailed(getStatusCode(ex)) }))
+    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(LoginDetails(username, password)))
+        .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username))
+        .recover({ case ex => LoginFailed(getErrorCode(ex)) }))
   }
   def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
-    log.warn("payload", write(RegistrationDetails(name, username, email, password, gender)))
-    
-    Effect(Post(url = "http://localhost:3000/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
-        .map(xhr => UserRegistered(xhr.getResponseHeader("Token"))))
+    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
+        .map(xhr => UserRegistered(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username)))
   }
   def logoutEffect() = {
-    Effect(Get(url = "http://localhost:3000/auth/api/logout")
+    Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
         .map(_ => UserLoggedOut))
   }
-  // def fetchUserNamesEffect() = {
-  //   Effect(Get(url = "http://localhost:3000/auth/api/usernames")
-  //       .map(xhr => UsersFetched(Ready(read[Seq[User]](xhr.responseText))))
-  //       .recover({ case ex => UsersFetched(Failed(ex)) }))
-  // }
+  def redirectEffect(path: String) = {
+    Effect(Future{ push(path) }.map(_ => NoAction))
+  }
+  def storeTokenEffect(token: String) = {
+    Effect(Future{ storeToken(token) }.map(_ => NoAction))
+  }
+  def removeTokenEffect() = {
+    Effect(Future{ removeToken }.map(_ => NoAction))
+  }
+  def verifyTokenEffect() = {
+    Effect(Get(url = s"$AUTH_SERVER_ROOT/api/verify")
+    .map(xhr => {TokenValid})
+    .recover{case _ => TokenExpired}) //TODO add status code to provide proper info
+  }
+  def persistStorageEffect(username: String) = {
+    Effect(Future{ persist(Storage(username)) }.map(_ => NoAction) )
+  }
+  def wipeStorageEffect() = {
+    Effect(Future{ wipe() }.map(_ => NoAction) )
+  }
 }
-
 
 // Selector
-object AuthSelector {
-  val getToken = () => AppCircuit.currentModel.auth.params.jwt.getOrElse("")
+@safe
+trait AuthSelector extends {
+  override val cursor = AppCircuit.authSelector
+  override val circuit = AppCircuit
+} with GenericConnect[AppModel, AuthParams] {
+
+  import utils.persist._
+  def getToken() = value.jwt.getOrElse("OOO")
+  def getErrorCode() = value.errorCode.getOrElse(0)
+  def getUsername() = value.username.getOrElse(retrieve().username)
+  def getLoggedIn() = value.loggedIn.getOrElse(false)
+
+  connect()
 }
+
+// trait AuthSelector extends Connect{
+//   //val getToken = () => AppCircuit.currentModel.auth.params.jwt.getOrElse("OOO")
+//   val getToken = () => AppCircuit.authSelector.value.jwt.getOrElse("OOO")
+//   val getErrorCode = () => value.auth.params.errorCode.getOrElse(0)
+
+//   def connectWith(): Unit
+//   connect()(AppCircuit.authSelector, connectWith())
+// }

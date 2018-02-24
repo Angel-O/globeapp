@@ -15,5 +15,7 @@ trait HashUpdater {
   val baseUrl: Option[String] = None
   private def getUrl = baseUrl.getOrElse("")
   private lazy val navigateTo = navigator(getUrl)
-  def push(path: String) = navigateTo(path)
+
+  def push(path: String) =
+    if (path == getUrl) navigateTo("/") else navigateTo(path)
 }

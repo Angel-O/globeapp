@@ -32,7 +32,6 @@ import router.RouteBuilder
 
 //import scala.reflect.api.TypeTags
 //import scala.reflect.runtime.universe._
-
 object Components {
 
   //TODO organize this class better...
@@ -185,6 +184,13 @@ object Components {
         @dom def getAll() = elements.all.bind
         getAll().bind
     }
+
+    // implicit def resolveBinding[A](x: Binding.F[A]) = {
+    //   x.bind
+    // }
+    // implicit def resolveBinding2[A](x: Binding[A]) = {
+    //   x.bind
+    // }
     
     type GenFn = PartialFunction[Seq[Any], Any]
     

@@ -13,10 +13,21 @@ import diode.Effect
 import diode.Action
 import utils.log
 import scalajs.js
-
+import upickle.default.{ReadWriter => RW, macroRW}
+  
 import components.Components.Implicits.ComponentBuilder
 
 // Global state tree
+// case object AppModel{
+//   implicit def rw: RW[AppModel] = macroRW
+//   def apply(authParams: AuthParams) = new AppModel(auth = new Auth(authParams))
+// }
+case class Storage(username: String)
+case object Storage{
+  def apply(username: String) = new Storage(username)
+  def apply() = new Storage("") //TODO use option
+  implicit def rw: RW[Storage] = macroRW
+}
 case class AppModel(users: Users, cars: Cars, auth: Auth, self: AppModel = null)
 
 object AppCircuit extends Circuit[AppModel] with InitialModel[AppModel] {
@@ -65,7 +76,9 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with InitialModel[M])
                                 update: => Unit = Unit) {
 
     val ac: Circuit[M] = circuit.asInstanceOf[Circuit[M]]
-    def loggedUpdate() = { update; log.warn("STATE-AFTER", currentModel.asInstanceOf[js.Any]) }
+    def loggedUpdate() = {
+      update; log.warn("STATE-AFTER", currentModel.asInstanceOf[js.Any])
+    }
     ac.subscribe(cursor)(_ => loggedUpdate())
   }
 }
@@ -80,6 +93,7 @@ trait Connect {
     AppCircuit.apply(action)
   }
   def initialModel = AppCircuit.initialModel
+  def value = AppCircuit.currentModel
 
   def connect[M <: AnyRef, T]()(
       cursor: ModelR[M, T] = AppCircuit.zoom(identity),
@@ -92,6 +106,38 @@ trait Connect {
     }
     ac.subscribe(cursor)(_ => loggedUpdate())
   }
+}
 
-  connect()() // for logging purposes
+trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
+  def dispatch(action: Action) = {
+    log.warn("ACTION", action.toString)
+    log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
+    circuit.apply(action)
+  }
+  
+  val cursor: ModelR[M, T]
+  val circuit: Circuit[M] with InitialModel[M]
+
+  def value = cursor.value
+  def initialModel = circuit.initialModel
+  
+  def connectWith(): Unit
+
+  def connect() = { 
+    def loggedUpdate() = {
+      connectWith()
+      log.warn("STATE-AFTER: ", circuit.currentModel.asInstanceOf[js.Any])
+    }
+
+    circuit.subscribe(cursor)(_ => loggedUpdate())
+  }
+}
+
+// Note: defining this method separately because the compiler complains about empty names
+trait ConnectWith{
+  def connectWith(): Unit
+}
+
+trait SilentConnect[M <: AnyRef,T] extends GenericConnect[M,T]{
+  def connectWith() = Unit
 }

@@ -1,4 +1,6 @@
 package utils
+
+import config._
 import router.HashUpdater
 import com.github.ghik.silencer.silent;
 
@@ -7,5 +9,5 @@ import com.github.ghik.silencer.silent;
 // This is a util trait that allows to set the baseUrl once and reuse router
 // HashUpdater.push method Note: it is ok to silent the complier because the
 // baseUrl is used by a lazily evaluated method
-trait HashChanger extends { @silent override val baseUrl = Some("/globeapp") }
+trait HashChanger extends { @silent override val baseUrl = Some(ROOT_PATH) }
 with HashUpdater
