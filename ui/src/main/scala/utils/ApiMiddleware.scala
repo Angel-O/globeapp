@@ -13,10 +13,12 @@ object ApiMiddleware {
   val headers: Map[String, String] = Map.empty
 
   
-  def getStatusCode(t: Throwable) = t match {
+  def getErrorCode(t: Throwable) = t match {
     case ex: AjaxException => ex.xhr.status
     case _ => 0 //using zero to signify uknown response
   }
+
+  def getStatusCode(xhr: XMLHttpRequest) = xhr.status
 
   def Get(url: String) = {
     Ajax.get(url = url,

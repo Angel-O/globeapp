@@ -13,7 +13,8 @@ import config._
 object MainShell extends BulmaCssClasses with Push with AuthSelector {
 
   // State
-  val text: Var[String] = Var("HEY")
+  val username: Var[String] = Var(getUsername())
+  val loggedIn: Var[Boolean] = Var(getLoggedIn())
   //TODO create sub-packages for each page
   @dom
   def render(content: HTMLElement) = {
@@ -26,12 +27,17 @@ object MainShell extends BulmaCssClasses with Push with AuthSelector {
                             height={28}/>}
                     href={s"#$ROOT_PATH"}/>
 
-    //TODO only show one or the other depending on login status
-    val logoutButton = <Button label="logout" onClick={doLogout _}/>
-    val loginButton = <Button label="login" onClick={navigateToLogin _}/>
+    val (button, displayText) = loggedIn.bind match {
+      case true =>
+        (<Button label="logout" onClick={doLogout _}/>, username.value)
+      case false =>
+        (<Button label="login" onClick={() => navigateToLogin()}/>, "Account")
+    }
+
     val navbarItems = Seq(
-      <NavbarItem item={"account"} dropdownItems={Seq(logoutButton, loginButton)}/>,
-      <NavbarItem item={text}/>) //note how there is no need to call bind!!
+      <NavbarItem item={displayText} dropdownItems={Seq(button)} isRightDropdown={true} isHoverable={true}/>)
+    //note how there is no need to call bind TODO consolidate navbarItem and apply same logic for similar situations
+    //<NavbarItem item={username}/>)
 
     val navbar = <Navbar
                     isFixedTop={false} 
@@ -51,5 +57,8 @@ object MainShell extends BulmaCssClasses with Push with AuthSelector {
   def navigateToLogin() = push(LoginPageURI)
 
   // Connect to the auth selector state
-  def connectWith() = text.value = getToken()
+  def connectWith() = {
+    username.value = getUsername()
+    loggedIn.value = getLoggedIn()
+  }
 }

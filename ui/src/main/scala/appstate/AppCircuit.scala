@@ -13,10 +13,21 @@ import diode.Effect
 import diode.Action
 import utils.log
 import scalajs.js
-
+import upickle.default.{ReadWriter => RW, macroRW}
+  
 import components.Components.Implicits.ComponentBuilder
 
 // Global state tree
+// case object AppModel{
+//   implicit def rw: RW[AppModel] = macroRW
+//   def apply(authParams: AuthParams) = new AppModel(auth = new Auth(authParams))
+// }
+case class Storage(username: String)
+case object Storage{
+  def apply(username: String) = new Storage(username)
+  def apply() = new Storage("") //TODO use option
+  implicit def rw: RW[Storage] = macroRW
+}
 case class AppModel(users: Users, cars: Cars, auth: Auth, self: AppModel = null)
 
 object AppCircuit extends Circuit[AppModel] with InitialModel[AppModel] {
@@ -100,8 +111,8 @@ trait Connect {
 trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
   def dispatch(action: Action) = {
     log.warn("ACTION", action.toString)
-    log.warn("STATE-BEFORE: ", AppCircuit.currentModel.asInstanceOf[js.Any]);
-    AppCircuit.apply(action)
+    log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
+    circuit.apply(action)
   }
   
   val cursor: ModelR[M, T]
@@ -125,4 +136,8 @@ trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
 // Note: defining this method separately because the compiler complains about empty names
 trait ConnectWith{
   def connectWith(): Unit
+}
+
+trait SilentConnect[M <: AnyRef,T] extends GenericConnect[M,T]{
+  def connectWith() = Unit
 }

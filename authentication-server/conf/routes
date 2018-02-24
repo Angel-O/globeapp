@@ -18,3 +18,5 @@ POST 	/auth/api/register			controllers.ApplicationController.register
 GET		/api/users					controllers.ApplicationController.getAll
 
 GET		/api/usernames				controllers.ApplicationController.getAllUsernames
+
+GET		/api/verify					controllers.ApplicationController.verifyToken
