@@ -1,39 +1,37 @@
 package views
 
-import appstate.Connect
-import appstate.CreateUser
 import components.Components.Implicits._
-import router.RoutingView
+import router.{RoutingView, push}
 import com.thoughtworks.binding.dom
 import hoc.form._
-import appstate.{Login, AppCircuit}
+import appstate.{Login, AppCircuit, Connect}
 import org.scalajs.dom.raw.Event
-import com.thoughtworks.binding.Binding.Var
-import diode.NoAction
-import diode.ActionBatch
-import router.push
+import navigation.Navigators._
 
 //TODO extract custom styling
 //TODO make routing view a trait
-//TODO add onsmmartClose property to navigate away when smartclose is set to true
 object LoginPage {
-  import navigation.Navigators._
   def view() = new RoutingView() with Connect {
 
     @dom
     override def element = {
-      <SimpleModal openAtLaunch={true} smartClose={true} onSmartClose={onSmartClose _}
-				content={
-          <div style={"display: flex; flex-direction: column"}>
-      				<LoginForm onSubmit={ handleSubmit _ } />
-              <br/>
-              <p style={"color: #00cc99"}>Don't have an account? 
-                <span 
-                  style={"text-decoration: underline; cursor: pointer"} 
-                  onclick={(e: Event) => navigateToRegister()}>Register</span>
-              </p>
-        	 </div>}
-			/>.build.bind
+      <div>
+        <SimpleModal 
+          openAtLaunch={true}
+          onSmartClose={onSmartClose _}
+          content={
+            <div style={"display: flex; flex-direction: column"}>
+                <LoginForm onSubmit={ handleSubmit _ }/>
+                <br/>
+                <p style={"color: #00cc99"}> Don't have an account? 
+                  <span 
+                    style="text-decoration: underline; cursor: pointer" 
+                    onclick={(_: Event) => navigateToRegister()}>
+                    Register
+                  </span>
+                </p>
+            </div>}/>
+      </div>
     }
 
     def handleSubmit(username: String, password: String) =
