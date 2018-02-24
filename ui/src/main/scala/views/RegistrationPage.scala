@@ -16,6 +16,8 @@ import diode.data.Empty
 import appstate.FetchCars
 import appstate.CreateUser
 import appstate.Register
+import router.push
+import navigation.URIs._
 
 object RegistrationPage {
   import navigation.Navigators._
@@ -23,7 +25,9 @@ object RegistrationPage {
 
     @dom override def element = {
       <div>
-        <SimpleModal openAtLaunch={true} smartClose={false} content=
+        <SimpleModal 
+          openAtLaunch={true} 
+          onSmartClose={onSmartClose _} content=
           {<div>
             <RegistrationForm 
               onSubmit={handleSubmit _}  
@@ -41,5 +45,8 @@ object RegistrationPage {
                      gender: String) = {
       dispatch(Register(name, username, email, password, gender))
     }
+
+    def onSmartClose() =
+      push("")(HomePageURI) // avoid thread lock with login page...
   }
 }

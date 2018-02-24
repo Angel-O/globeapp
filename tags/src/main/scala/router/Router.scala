@@ -93,6 +93,10 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   //TODO seems to be triggered many times....should this be a singleton???
   private val handleHashChange = (e: HashChangeEvent) => {
     val location = e.newURL
+    history.addToHistory(window.location.hash match {
+        case "" => baseURL // no hash equal to home page
+        case hash => hash.tail
+    })
     val hashPosition = location.indexOf("#")
     val urlHasHash = hashPosition >= 0
     val destinationURI = location.substring(hashPosition).toList
@@ -120,12 +124,21 @@ case class BrowserHistory(val router: Router){
   private var history: Vector[String] = Vector.empty
   var params: Seq[String] = Seq.empty
   def navigateTo(path: String) = {
-    history = history :+ path
+    // updating history on hash event beacuse the hash can change without 
+    // going through navigators
     params = router.getParams(path)
     router.navigateTo(router.baseURL + (if(path == router.baseURL) "" else path))
   }
   def getParams(index: Int) = {
     if(index >= params.length) None else Some(params(index))
+  }
+  def addToHistory(path: String) = {
+    history = history :+ path
+  }
+  def getHistory() = history
+  def getLastVisited() = history.toList.reverse match { 
+    case h::s::_ => s 
+    case _ => router.baseURL 
   }
 }
 

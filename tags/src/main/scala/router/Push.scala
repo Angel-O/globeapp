@@ -3,7 +3,7 @@ package router
 import org.scalajs.dom.document
 
 private object Push {
-  def push(path: String) = document.location.hash = path
+  def push(path: String = "") = document.location.hash = path
   def apply(baseURI: String) = new Push(baseURI)
 }
 protected case class Push private (baseURI: String) {
