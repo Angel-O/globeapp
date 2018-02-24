@@ -4,9 +4,10 @@ import diode.Action
 import diode.ModelRW
 import diode.ActionHandler
 import AuthEffects._
-import utils.{log, Push}
+import utils.{log, Push}, utils.jwt._
 import org.scalajs.dom.window
 import diode.Effect
+import config._
 
 // Model
 case class AuthParams(jwt: Option[String] = None, errorCode: Option[Int] = None)
@@ -15,9 +16,6 @@ case object Auth {
   def apply() = new Auth(AuthParams())
 }
 
-// Actions : Note these actions take a callback that will be passed
-// to the action invoked in the corresponding effect. Afer a user logged in
-// or registered the call back will trigger the navigation to the home page
 case class Login(username: String, password: String)
     extends Action
 case class Register(name: String,
@@ -61,14 +59,7 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
     case LoginFailed(code) => updated(AuthParams(errorCode = Some(code)))
   }
 
-  private def storeToken(token: String) =
-    window.sessionStorage.setItem("Token", token)
-
-  //TODO move this and above to jwt middleware along with getToken used in api middleware
-  private def removeToken() =
-    window.sessionStorage.removeItem("Token") 
-
-  private def navigateToHome() = push("/") //TODO move this to navigation package
+  private def navigateToHome() = push("/")
 }
 
 // Effects
@@ -78,22 +69,23 @@ object AuthEffects{
   import apimodels.LoginDetails
   import apimodels.RegistrationDetails
   import utils.api._ , utils.log
+  import config._
 
   def loginEffect(username: String, password: String) = {
     log.warn("payload", write(LoginDetails(username, password)))
     
-    Effect(Post(url = "http://localhost:3000/auth/api/login", payload = write(LoginDetails(username, password)))
-        .map(xhr => UserLoggedIn(xhr.getResponseHeader("Token"))) //TODO unexpose authorization header from server
+    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(LoginDetails(username, password)))
+        .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME))) //TODO unexpose authorization header from server
         .recover({ case ex => LoginFailed(getStatusCode(ex)) }))
   }
   def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
     log.warn("payload", write(RegistrationDetails(name, username, email, password, gender)))
     
-    Effect(Post(url = "http://localhost:3000/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
-        .map(xhr => UserRegistered(xhr.getResponseHeader("Token"))))
+    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
+        .map(xhr => UserRegistered(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME))))
   }
   def logoutEffect() = {
-    Effect(Get(url = "http://localhost:3000/auth/api/logout")
+    Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
         .map(_ => UserLoggedOut))
   }
   // def fetchUserNamesEffect() = {

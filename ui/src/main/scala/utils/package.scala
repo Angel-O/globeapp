@@ -9,4 +9,6 @@ package object utils {
   lazy val nameOf = com.github.dwickern.macros.NameOf
 
   type Push = HashChanger
+
+  val jwt = JwtMiddleware
 }

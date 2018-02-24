@@ -8,6 +8,7 @@ import navigation.Navigators._
 import router.RoutingView
 import appstate.{Connect, Logout}
 import utils.Push
+import config._
 
 object MainShell extends BulmaCssClasses with Connect with Push {
 
@@ -20,7 +21,7 @@ object MainShell extends BulmaCssClasses with Connect with Push {
                             alt={"Globeapp logo"}
                             width={112}
                             height={28}/>}
-                    href={"#/globeapp"}/>
+                    href={s"#$ROOT_PATH"}/>
 
     //TODO only show one or the other depending on login status
     val logoutButton = <Button label="logout" onClick={doLogout _}/>
@@ -43,5 +44,5 @@ object MainShell extends BulmaCssClasses with Connect with Push {
   }
 
   def doLogout() = dispatch(Logout)
-  def navigateToLogin() = push("/login")
+  def navigateToLogin() = push(LoginPageURI)
 }

@@ -27,7 +27,7 @@ object LoginPage {
               <br/>
               <p style={"color: #00cc99"}>Don't have an account? 
                 <span 
-                  style={"text-decoration: underline;  cursor: pointer"} 
+                  style={"text-decoration: underline; cursor: pointer"} 
                   onclick={(e: Event) => navigateToRegister()}>Register</span>
               </p>
         	 </div>}
