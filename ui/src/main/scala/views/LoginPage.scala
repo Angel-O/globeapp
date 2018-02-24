@@ -11,6 +11,7 @@ import org.scalajs.dom.raw.Event
 import com.thoughtworks.binding.Binding.Var
 import diode.NoAction
 import diode.ActionBatch
+import router.push
 
 //TODO extract custom styling
 //TODO make routing view a trait
@@ -21,10 +22,10 @@ object LoginPage {
 
     @dom
     override def element = {
-      <SimpleModal openAtLaunch={true} smartClose={false}
+      <SimpleModal openAtLaunch={true} smartClose={true} onSmartClose={onSmartClose _}
 				content={
           <div style={"display: flex; flex-direction: column"}>
-      				<LoginForm onSubmit={ handleSubmit _ }/>
+      				<LoginForm onSubmit={ handleSubmit _ } />
               <br/>
               <p style={"color: #00cc99"}>Don't have an account? 
                 <span 
@@ -37,5 +38,8 @@ object LoginPage {
 
     def handleSubmit(username: String, password: String) =
       dispatch(Login(username, password))
+
+    //TODO probably there's a better solution to handle this
+    def onSmartClose() = push("")(history.getLastVisited)
   }
 }
