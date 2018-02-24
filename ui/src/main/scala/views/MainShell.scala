@@ -3,18 +3,21 @@ package views
 import navigation.URIs._
 import components.Components.Implicits._
 import org.scalajs.dom.raw.HTMLElement
-import com.thoughtworks.binding.dom
+import com.thoughtworks.binding.{dom, Binding}, Binding.{Var}
 import navigation.Navigators._
 import router.RoutingView
-import appstate.{Connect, Logout}
+import appstate.{Connect, Logout, AuthSelector}
 import utils.Push
 import config._
 
-object MainShell extends BulmaCssClasses with Connect with Push {
+object MainShell extends BulmaCssClasses with Push with AuthSelector {
 
+  // State
+  val text: Var[String] = Var("HEY")
   //TODO create sub-packages for each page
   @dom
   def render(content: HTMLElement) = {
+
     val logo = <NavbarLogo
                     image={<img 
                             src={"https://bulma.io/images/bulma-logo.png" } 
@@ -27,7 +30,8 @@ object MainShell extends BulmaCssClasses with Connect with Push {
     val logoutButton = <Button label="logout" onClick={doLogout _}/>
     val loginButton = <Button label="login" onClick={navigateToLogin _}/>
     val navbarItems = Seq(
-      <NavbarItem item="account" dropdownItems={Seq(logoutButton, loginButton)}/>)
+      <NavbarItem item={"account"} dropdownItems={Seq(logoutButton, loginButton)}/>,
+      <NavbarItem item={text}/>) //note how there is no need to call bind!!
 
     val navbar = <Navbar
                     isFixedTop={false} 
@@ -45,4 +49,7 @@ object MainShell extends BulmaCssClasses with Connect with Push {
 
   def doLogout() = dispatch(Logout)
   def navigateToLogin() = push(LoginPageURI)
+
+  // Connect to the auth selector state
+  def connectWith() = text.value = getToken()
 }

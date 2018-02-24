@@ -3,11 +3,11 @@ package appstate
 import diode.Action
 import diode.ModelRW
 import diode.ActionHandler
-import utils.Push
+import utils.{Push, safe}
 import config._
 import navigation.URIs._
 
-// Model
+// Model //TODO rename to AuthState
 protected case class AuthParams(jwt: Option[String] = None, errorCode: Option[Int] = None)
 case class Auth(params: AuthParams)
 case object Auth {
@@ -89,9 +89,25 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   }
 }
 
-
 // Selector
-object AuthSelector {
-  val getToken = () => AppCircuit.currentModel.auth.params.jwt.getOrElse("")
-  val getErrorCode = () => AppCircuit.currentModel.auth.params.errorCode.getOrElse(0)
+@safe
+trait AuthSelector extends {
+  override val cursor = AppCircuit.authSelector
+  override val circuit = AppCircuit
+} with GenericConnect[AppModel, AuthParams] {
+
+  def getToken() = value.jwt.getOrElse("OOO")
+  def getErrorCode() = value.errorCode.getOrElse(0)
+
+  connect()
 }
+
+
+// trait AuthSelector extends Connect{
+//   //val getToken = () => AppCircuit.currentModel.auth.params.jwt.getOrElse("OOO")
+//   val getToken = () => AppCircuit.authSelector.value.jwt.getOrElse("OOO")
+//   val getErrorCode = () => value.auth.params.errorCode.getOrElse(0)
+
+//   def connectWith(): Unit
+//   connect()(AppCircuit.authSelector, connectWith())
+// }

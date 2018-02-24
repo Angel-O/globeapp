@@ -65,7 +65,9 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with InitialModel[M])
                                 update: => Unit = Unit) {
 
     val ac: Circuit[M] = circuit.asInstanceOf[Circuit[M]]
-    def loggedUpdate() = { update; log.warn("STATE-AFTER", currentModel.asInstanceOf[js.Any]) }
+    def loggedUpdate() = {
+      update; log.warn("STATE-AFTER", currentModel.asInstanceOf[js.Any])
+    }
     ac.subscribe(cursor)(_ => loggedUpdate())
   }
 }
@@ -80,6 +82,7 @@ trait Connect {
     AppCircuit.apply(action)
   }
   def initialModel = AppCircuit.initialModel
+  def value = AppCircuit.currentModel
 
   def connect[M <: AnyRef, T]()(
       cursor: ModelR[M, T] = AppCircuit.zoom(identity),
@@ -92,6 +95,34 @@ trait Connect {
     }
     ac.subscribe(cursor)(_ => loggedUpdate())
   }
+}
 
-  connect()() // for logging purposes
+trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
+  def dispatch(action: Action) = {
+    log.warn("ACTION", action.toString)
+    log.warn("STATE-BEFORE: ", AppCircuit.currentModel.asInstanceOf[js.Any]);
+    AppCircuit.apply(action)
+  }
+  
+  val cursor: ModelR[M, T]
+  val circuit: Circuit[M] with InitialModel[M]
+
+  def value = cursor.value
+  def initialModel = circuit.initialModel
+  
+  def connectWith(): Unit
+
+  def connect() = { 
+    def loggedUpdate() = {
+      connectWith()
+      log.warn("STATE-AFTER: ", circuit.currentModel.asInstanceOf[js.Any])
+    }
+
+    circuit.subscribe(cursor)(_ => loggedUpdate())
+  }
+}
+
+// Note: defining this method separately because the compiler complains about empty names
+trait ConnectWith{
+  def connectWith(): Unit
 }
