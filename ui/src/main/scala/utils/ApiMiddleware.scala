@@ -7,10 +7,6 @@ import org.scalajs.dom.ext.AjaxException
 import appstate.{AppModel, AppCircuit, Connect}
 import config._
 
-//TODO move some stuff to config
-//Do not hardcode auth header name...read from config and use apply to set it
-//to improve reusability
-//def apply(string: authorizationHeaderName = "Authorization") = ???
 object ApiMiddleware { 
   private def token: String = window.sessionStorage.getItem(AUTHORIZATION_HEADER_NAME)
   val contentHeader = ("Content-type" -> "application/json")
@@ -19,7 +15,7 @@ object ApiMiddleware {
   
   def getStatusCode(t: Throwable) = t match {
     case ex: AjaxException => ex.xhr.status
-    case _ => 0 //TODO using zero to signify uknown...is there a code for that already??
+    case _ => 0 //using zero to signify uknown response
   }
 
   def Get(url: String) = {

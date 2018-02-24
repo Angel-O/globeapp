@@ -7,7 +7,7 @@ object URIs {
 
   val HomePageURI = ROOT_PATH //TODO improve support for slash as baseURL
   val RegisterPageURI = "/register"
-  val LoginPageURI = "/login" //TODO redirect to login if not authenticated
+  val LoginPageURI = "/login"
   val HelloPageURI = "/hello"
   val UserEditPageURI = "/users"
   val SamplePageURI = "/sample"
