@@ -44,23 +44,19 @@ abstract class ModalBase() extends ComponentBuilder with Size {
   private val closeOnClickOutside = () => {
 
     // Note: this function will be executed as part of the even handler
+    // returning the only the modal-card portion as an open Bulma modal background
+    // occupies the whole page, but we only need to detect clicks outside the modal body
+    // Note: the modal might be null for some weird reasons, hence the need to wrap he result
+    // into an Option...probably a timing issue when the component is re-mounted
     def getModal: Option[HTMLElement] = {
-      val modal =
-        document.querySelector(s"#${targetId}").asInstanceOf[HTMLElement]
-      // returning the only the modal-card portion as an open Bulma modal background
-      // occupies the whole page, but we only need to detect clicks outside the modal body
-      // Note: the modal might be null for some weird reasons so wee need to check against
-      // that...probably timing issue when the component is re-mounted
-      val modalBody = modal match {
-        case null =>
-          None
-        case _ =>
-          Some(
-            modal
-              .getElementsByClassName(modalContentClassName)
-              .head
-              .asInstanceOf[HTMLElement])
-      }
+      val modal = Option(
+        document.querySelector(s"#${targetId}").asInstanceOf[HTMLElement])
+
+      val modalBody = modal
+        .map(
+          _.getElementsByClassName(modalContentClassName).head
+            .asInstanceOf[HTMLElement])
+
       modalBody
     }
     // using target rather than currentTarget in combination
