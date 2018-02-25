@@ -3,7 +3,7 @@ package appstate
 import diode.Action
 import diode.ModelRW
 import diode.ActionHandler
-import utils.{Push, safe}
+import utils.{Push} //safe}
 import config._
 import navigation.URIs._
 
@@ -128,18 +128,17 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
 }
 
 // Selector
-@safe
-trait AuthSelector extends {
-  override val cursor = AppCircuit.authSelector
-  override val circuit = AppCircuit
-} with GenericConnect[AppModel, AuthParams] {
+//@safe
+trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
 
   import utils.persist._
   def getToken() = value.jwt.getOrElse("OOO")
   def getErrorCode() = value.errorCode.getOrElse(0)
   def getUsername() = value.username.getOrElse(retrieve().username)
   def getLoggedIn() = value.loggedIn.getOrElse(false)
-
+  
+  val cursor = AppCircuit.authSelector
+  val circuit = AppCircuit
   connect()
 }
 

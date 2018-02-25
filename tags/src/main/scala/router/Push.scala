@@ -12,7 +12,7 @@ protected case class Push private (baseURI: String) {
 
 trait HashUpdater {
   private val navigator = Push.apply _
-  val baseUrl: Option[String] = None
+  val baseUrl: Option[String]
   private def getUrl = baseUrl.getOrElse("")
   private lazy val navigateTo = navigator(getUrl)
 

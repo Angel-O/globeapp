@@ -108,13 +108,13 @@ lazy val ui = (project in file("ui"))
         libraryDependencies += "fr.hmil" %%% "roshttp" % "2.1.0",
         //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
         //https:/stackoverflow.com/questions/43717198/symbol-type-none-scalacheck-shrink-is-missing-from-the-classpath
-        libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.+",
-        libraryDependencies ++= {
-            val silencerVersion = "0.6"
-            Seq(
-            compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion),
-            "com.github.ghik" %% "silencer-lib" % silencerVersion)
-        }
+        libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.13.+"//,
+//        libraryDependencies ++= {
+//            val silencerVersion = "0.6"
+//            Seq(
+//            compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion),
+//            "com.github.ghik" %% "silencer-lib" % silencerVersion)
+//        }
     )
 
 import play.twirl.sbt.Import.TwirlKeys._
