@@ -1,36 +1,11 @@
 package hoc.form
 
-import components.Components.Implicits.{CustomTags2, ComponentBuilder, _}
-import org.scalajs.dom.raw.{
-  Event,
-  HTMLElement,
-  HTMLImageElement,
-  HTMLButtonElement
-}
-import com.thoughtworks.binding.{dom, Binding},
-Binding.{Var, Vars, Constants, BindingSeq}
-import org.scalajs.dom.raw.Node
-import org.scalajs.dom.document
-import com.thoughtworks.binding.FutureBinding
-import org.scalajs.dom.ext.Ajax
-import scala.concurrent.ExecutionContext.Implicits.global
-import scalajs.js
-import upickle.Js
-import scala.concurrent.Future
-import fr.hmil.roshttp.HttpRequest
-import apimodels.User
-import appstate.AppCircuit
-import diode.Dispatcher
-import appstate.FetchUsers
-import diode.data.Pot
-import diode.data.PotState._
-import diode.data.{Ready, Pending}
-import appstate.Connect
-import appstate.CreateUser
-import utils.nameOf._
-import appstate.ConnectorBuilder
+import components.Components.Implicits.{CustomTags2, ComponentBuilder}
+import com.thoughtworks.binding.{dom, Binding}, Binding.Var
+import appstate.{AppCircuit, ConnectorBuilder}
 import FormValidators.validateRequiredField
 import hoc.form.common.FormElements._
+import utils.nameOf._
 
 object Styles {
   val labelStyle = "color: white"
