@@ -133,7 +133,7 @@ trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
 
   import utils.persist._
   def getToken() = value.jwt.getOrElse("OOO")
-  def getErrorCode() = value.errorCode.getOrElse(0)
+  def getErrorCode() = value.errorCode
   def getUsername() = value.username.getOrElse(retrieve().username)
   def getLoggedIn() = value.loggedIn.getOrElse(false)
   

@@ -2,7 +2,7 @@ package hoc.form
 
 import components.Components.Implicits.{CustomTags2, ComponentBuilder}
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
-import appstate.{AppCircuit, ConnectorBuilder}
+import appstate.{AppCircuit, AuthSelector}
 import FormValidators.validateRequiredField
 import hoc.form.common.FormElements._
 import utils.nameOf._
@@ -11,7 +11,7 @@ object Styles {
   val labelStyle = "color: white"
 }
 
-case class LoginFormBuilder() extends ConnectorBuilder {
+case class LoginFormBuilder() extends ComponentBuilder with AuthSelector {
 
   def render = this
 
@@ -30,16 +30,11 @@ case class LoginFormBuilder() extends ConnectorBuilder {
     passwordValidation.value = validateRequiredField(password, nameOf(password), Some(s"Please provide a ${nameOf(password)}"))
     loginValidation.value = YetToBeValidated
   }
-  private def validateLogin(codeOption: Option[Int]) = codeOption.map { 
+  private def setLoginValidation(codeOption: Option[Int]) = codeOption.map { 
       case 401 => loginValidation.value = Error("Invalid username and password")
       case _ => loginValidation.value = Error("Something went wrong")
   }
   
-  // this is pretty weird...:validate login returns an option[Unit], yet I am able to 
-  // pass it to the connect method wich takes a => Unit (unit call by name)...
-  connect()(AppCircuit.authSelector, validateLogin(AppCircuit.authSelector.value.errorCode))
-
-  //TODO use form tag rather than div
   @dom def build = {
     val form =
       <div>
@@ -74,4 +69,6 @@ case class LoginFormBuilder() extends ConnectorBuilder {
   }
 
   def runSubmit() = onSubmit(username, password)
+
+  def connectWith() = setLoginValidation(getErrorCode())
 }
