@@ -17,20 +17,20 @@ import upickle.default.{ReadWriter => RW, macroRW}
   
 import components.Components.Implicits.ComponentBuilder
 
-// Global state tree
-// case object AppModel{
-//   implicit def rw: RW[AppModel] = macroRW
-//   def apply(authParams: AuthParams) = new AppModel(auth = new Auth(authParams))
-// }
-case class Storage(username: String)
-case object Storage{
-  def apply(username: String) = new Storage(username)
-  def apply() = new Storage("") //TODO use option
-  implicit def rw: RW[Storage] = macroRW
+
+// Represents the portion of the state that will be serialized 
+// in the location storage to be retrieved after a browser refresh
+case class PersistentState(username: String)
+case object PersistentState{
+  def apply(username: String) = new PersistentState(username)
+  def apply() = new PersistentState("") //TODO use option
+  implicit def rw: RW[PersistentState] = macroRW
 }
+
+// Global state tree
 case class AppModel(users: Users, cars: Cars, auth: Auth, self: AppModel = null)
 
-object AppCircuit extends Circuit[AppModel] with InitialModel[AppModel] {
+object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
 
   def initialModel = AppModel(Users(), Cars(), Auth())
 
@@ -39,6 +39,7 @@ object AppCircuit extends Circuit[AppModel] with InitialModel[AppModel] {
   //NO longer used...
   def defaultSelector[M, T]: ModelRW[M, T] =
     zoomTo(x => x.self).asInstanceOf[ModelRW[M, T]]
+  
   val userSelector = zoomTo(x => x.users.users)
   val carSelector = zoomTo(x => x.cars.cars)
   val authSelector = zoomTo(x => x.auth.params)
@@ -54,13 +55,13 @@ object AppCircuit extends Circuit[AppModel] with InitialModel[AppModel] {
 }
 
 // TODO move this to separate project...ala Redux
-trait InitialModel[M <: AnyRef] {
+trait ModelLens[M <: AnyRef] {
   def initialModel: M
   def currentModel: M
 }
-abstract class Connector[M <: AnyRef](circuit: Circuit[M] with InitialModel[M])
+abstract class Connector[M <: AnyRef](circuit: Circuit[M] with ModelLens[M])
     extends ComponentBuilder
-    with InitialModel[M] {
+    with ModelLens[M] {
 
   //val dispatch: Dispatcher = circuit
   def dispatch(action: Action) = {
@@ -85,7 +86,8 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with InitialModel[M])
 
 abstract class ConnectorBuilder extends Connector[AppModel](AppCircuit)
 
-//TODO make this decoupled from AppCircuit and use only ConnectorBuilder or Connector
+//Use generic connect rather than Connect since generic connect 
+//is decoupled from AppCircuit and use only ConnectorBuilder or Connector
 trait Connect {
   def dispatch(action: Action) = {
     log.warn("ACTION", action.toString)
@@ -116,7 +118,7 @@ trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
   }
   
   val cursor: ModelR[M, T]
-  val circuit: Circuit[M] with InitialModel[M]
+  val circuit: Circuit[M] with ModelLens[M]
 
   def value = cursor.value
   def initialModel = circuit.initialModel
