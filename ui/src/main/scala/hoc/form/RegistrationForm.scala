@@ -108,7 +108,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
     }
     outcome//.get
   }
-  
+
   @dom def build = {
     // using a form tag rather than a div allows for page reload on submit (and autocompletion)...change as needed
     val form =
@@ -210,7 +210,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
           </div>
 				</div>
       </div>
-     
+
     create(form, "registration-form")
   }
 
