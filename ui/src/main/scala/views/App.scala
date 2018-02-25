@@ -5,8 +5,6 @@ import org.scalajs.dom.{document, Node}
 import components.Components.Implicits.CustomTags2
 import components.Components.Implicits._
 import navigation.URIs._
-//import org.scalajs.dom.window
-//import utils.Push
 import config._
 import appstate.{AuthSelector, VerifyToken}
 import appstate.Connect
@@ -33,15 +31,9 @@ object App extends Connect { //{AuthSelector {
     // TODO check for validity as well ...aka token expiration
     // this line can be moved after mounting the app to see the
     // init location logged on the console
-    // if (window.sessionStorage.getItem(AUTHORIZATION_HEADER_NAME) == null) {
-    //   push(LoginPageURI)
-    // }
-
     dispatch(VerifyToken)
 
     // mount the App
     dom.render(document.body, render.asInstanceOf[Binding[Node]])
   }
-
-  //def connectWith() = ()
 }

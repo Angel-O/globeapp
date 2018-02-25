@@ -42,6 +42,7 @@ case class LoginFailed(errorCode: Int) extends Action
 case class UserRegistered(jwt: String, username: String) extends Action
 case object TokenExpired extends Action
 case object TokenValid extends Action
+case class StateRestored(state: Storage) extends Action
 
 
 
@@ -73,7 +74,8 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
     case TokenExpired =>
       updated(value.copy(isTokenExpired = Some(true)),
               redirectEffect(LoginPageURI))
-    case TokenValid => updated(value.copy(loggedIn = Some(true)))
+    case TokenValid => updated(value.copy(loggedIn = Some(true)), restoreFromStorageEffect())
+    case StateRestored(state) => updated(value.copy(username = Some(state.username))) 
   }
 }
 
@@ -119,6 +121,9 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   }
   def wipeStorageEffect() = {
     Effect(Future{ wipe() }.map(_ => NoAction) )
+  }
+  def restoreFromStorageEffect() = {
+    Effect(Future{ retrieve() }.map(state => StateRestored(state)) )
   }
 }
 
