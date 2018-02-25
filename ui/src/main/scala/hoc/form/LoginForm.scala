@@ -29,6 +29,8 @@ import appstate.Connect
 import appstate.CreateUser
 import utils.nameOf._
 import appstate.ConnectorBuilder
+import FormValidators.validateRequiredField
+import hoc.form.common.FormElements._
 
 object Styles {
   val labelStyle = "color: white"
@@ -45,21 +47,15 @@ case class LoginFormBuilder() extends ConnectorBuilder {
 
   private val handleUsernameChange = (value: String) => {
     username = value.trim()
-    validateRequiredField(username, nameOf(username), usernameValidation)
+    usernameValidation.value = validateRequiredField(username, nameOf(username), Some(s"Please provide a ${nameOf(username)}"))
     loginValidation.value = YetToBeValidated
-    //validateLogin()
   }
   private val handlePasswordChange = (value: String) => {
-    password = value //TODO does it need trimming??
-    validateRequiredField(password, nameOf(password), passwordValidation)
+    password = value
+    passwordValidation.value = validateRequiredField(password, nameOf(password), Some(s"Please provide a ${nameOf(password)}"))
     loginValidation.value = YetToBeValidated
-    //validateLogin()
   }
-  private def validateRequiredField(value: String, fieldName: String, validation: Var[ValidationResult]) = value.isEmpty match {
-    case true => validation.value = Error(s"Please provide a ${fieldName}")
-    case false => validation.value = Success("")
-  }
- private def validateLogin(codeOption: Option[Int]) = codeOption match {
+  private def validateLogin(codeOption: Option[Int]) = codeOption match {
    case None => loginValidation.value = Success("")
    case Some(code) => { code match{
      case 401 => loginValidation.value = Error("Invalid username and password")
@@ -75,53 +71,34 @@ case class LoginFormBuilder() extends ConnectorBuilder {
     val form =
       <div>
         <div class={ FIELD }>
-          <TextInput label={ "Username" } labelStyle={Styles.labelStyle} onChange={ handleUsernameChange } inputValue={username}/>
+          <TextInput label={ "Username" } labelStyle={Styles.labelStyle} 
+            onChange={ handleUsernameChange } inputValue={username}/>
           { renderValidation(usernameValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <PasswordInput label={ "Password" } labelStyle={Styles.labelStyle} onChange={ handlePasswordChange } inputValue={ password }/>
+          <PasswordInput label={ "Password" } labelStyle={Styles.labelStyle} 
+            onChange={ handlePasswordChange } inputValue={ password }/>
           { renderValidation(passwordValidation.bind).bind }
         </div>
         <div>
-          { renderSubmitButton(usernameValidation.bind, passwordValidation.bind).bind }
+          { renderSubmitButton(label = "Login",
+                       isPrimary = true,
+                       runValidation = runValidation _,
+                       runSubmit = runSubmit _,
+                       usernameValidation.bind,
+                       passwordValidation.bind).bind }
         </div>
         <br/>
         { renderValidation(loginValidation.bind).bind }  
-      </div>.asInstanceOf[HTMLElement]
+      </div>
 
     create(form, "login-form")
   }
 
-  @dom def renderSubmitButton(results: ValidationResult*) = {
-
-    val inError = results.exists(_.isInstanceOf[Error])
-    val notFullyValidated = results.exists(_ == YetToBeValidated)
-
-    def runValidation() = {
+  def runValidation() = {
       handleUsernameChange(username)
       handlePasswordChange(password)
-    }
-
-    def handleSubmit() = if(notFullyValidated) runValidation() else onSubmit(username, password)
-
-    val submitButton = 
-      <Button 
-				label="Login" 
-				isPrimary={true}
-    			onClick={handleSubmit _}  
-				isDisabled={inError}/>
-				
-    submitButton
   }
 
-  @dom def renderValidation(result: ValidationResult) = {
-
-    val (errorMsg, successMsg) = result match {
-      case Error(msg)       => (msg, "")
-      case Success(msg)     => ("", msg)
-      case YetToBeValidated => ("", "")
-    }
-
-    <FieldValidation errorMessage={errorMsg} successMessage={successMsg}/>
-  }
+  def runSubmit() = onSubmit(username, password)
 }

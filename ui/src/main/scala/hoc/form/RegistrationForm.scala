@@ -23,6 +23,7 @@ import appstate.Connect
 import appstate.CreateUser
 import appstate.AppModel
 import appstate.ConnectorBuilder
+import hoc.form.common.FormElements._
 
 case class RegistrationFormBuilder() extends ConnectorBuilder{
    
@@ -84,7 +85,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   private val handlePasswordChange = (value: String) => {
     password.value = value
     passwordValidation.value = validatePassword(password.value)
-    // needs to be re-evaluated (for instance if a user types in a password 
+    // needs to be re-evaluated (for instance if a user types in a password
     // then a matching one, but subsequently changes the original password.
     // this does not need to happen if the field is yet to be validated)
     if(confirmPasswordValidation.value != YetToBeValidated) 
@@ -97,7 +98,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   
   // async validation
   private def validateUsernameAlreadyTaken(username: String) = { 
-    fetchUsers() //TODO this needs to be awaited...   
+    fetchUsers() //TODO this needs to be awaited...
     val outcome = users.state match {
       // pending not triggered..
       case PotEmpty | PotPending => validateUsername(username)//Error("Fetching data...") //TODO replace with progress bar...
@@ -193,6 +194,10 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
 				<div class={getClassName(FIELD, GROUPED)}>
   				<div class={CONTROL}>
             { renderSubmitButton(
+                label="Register",
+                isPrimary = true,
+                runValidation = runValidation _,
+                runSubmit = runSubmit _,
                 nameValidation.bind,
                 usernameValidation.bind,
                 emailValidation.bind,
@@ -205,50 +210,31 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
                 confirmPasswordValidation.bind).bind }
           </div>
 				</div>
-      </div>.asInstanceOf[HTMLElement]
+      </div>
      
     create(form, "registration-form")
   }
-  
-  @dom def renderSubmitButton(results: ValidationResult*) = { 
-    
-    val inError = results.exists(_.isInstanceOf[Error])
-    val notFullyValidated = results.exists(_ == YetToBeValidated)
-    
-    //room for improvement...run only failing ones
-    def runValidation() = {
-      handleNameChange(name.value)
-      handleUsernameChange(username.value)
-      handleEmailChange(email.value)
-      handleMessageChange(message.value)
-      handleWhereDidYouHearAboutUsChange(whereDidYouHearAboutUs.value)
-      handleAcceptTermsChange(termsAccepted.value)
-      handleGenderChange(gender.value)
-      handlePasswordChange(password.value)
-      handleConfirmPasswordChange(confirmPassword.value)
-      handleSubscriptionTypeChange(subscriptionType.value)
-    }
-  
-    def handleSubmit() = if(notFullyValidated) runValidation()
-                         else onSubmit(name.value, username.value, email.value, password.value, gender.value)
-      
-    val submitButton = <Button 
-												label="Register" 
-												isPrimary={true}
-      										onClick={handleSubmit _}  
-												isDisabled={inError}/>
-		submitButton
+
+  //room for improvement...run only failing ones
+  def runValidation() = {
+    handleNameChange(name.value)
+    handleUsernameChange(username.value)
+    handleEmailChange(email.value)
+    handleMessageChange(message.value)
+    handleWhereDidYouHearAboutUsChange(whereDidYouHearAboutUs.value)
+    handleAcceptTermsChange(termsAccepted.value)
+    handleGenderChange(gender.value)
+    handlePasswordChange(password.value)
+    handleConfirmPasswordChange(confirmPassword.value)
+    handleSubscriptionTypeChange(subscriptionType.value)
   }
-  
-  @dom def renderValidation(result: ValidationResult) = {
-    
-    val (errorMsg, successMsg) = result match{
-      case Error(msg) => (msg, "")
-      case Success(msg) => ("", msg)
-      case YetToBeValidated => ("", "")
-    }
-    
-    <FieldValidation errorMessage={errorMsg} successMessage={successMsg}/>	
+
+  def runSubmit() = {
+    onSubmit(name.value,
+             username.value,
+             email.value,
+             password.value,
+             gender.value)
   }
 }
 
