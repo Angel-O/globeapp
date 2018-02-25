@@ -46,7 +46,6 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   connect()(AppCircuit.userSelector, users = Ready(AppCircuit.userSelector.value))
   
   import FieldValidators._ 
-  import scalajs.js
   private val handleUsernameChange = (value: String) => {   
     username.value = value.trim()
     usernameValidation.value = validateUsername(username.value)|>validateUsernameAlreadyTaken(username.value)
