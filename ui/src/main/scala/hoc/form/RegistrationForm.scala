@@ -169,8 +169,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
         </div>
         <div class={ getClassName(FIELD, GROUPED) }>
           <div class={ CONTROL }>
-            {
-              renderSubmitButton(
+            { renderSubmitButton(
                 label = "Register",
                 isPrimary = true,
                 runValidation = runValidation _,
@@ -184,8 +183,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
                 subscriptionTypeValidation.bind,
                 passwordValidation.bind,
                 acceptTermsValidation.bind,
-                confirmPasswordValidation.bind).bind
-            }
+                confirmPasswordValidation.bind).bind }
           </div>
         </div>
       </div>
