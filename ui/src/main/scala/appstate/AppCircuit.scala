@@ -97,6 +97,8 @@ trait Connect {
   def initialModel = AppCircuit.initialModel
   def value = AppCircuit.currentModel
 
+  //TODO investigate: equal sign is missing before method body and
+  // double set of params is weird...
   def connect[M <: AnyRef, T]()(
       cursor: ModelR[M, T] = AppCircuit.zoom(identity),
       update: => Unit = Unit) {

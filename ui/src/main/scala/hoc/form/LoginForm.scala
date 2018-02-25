@@ -30,15 +30,13 @@ case class LoginFormBuilder() extends ConnectorBuilder {
     passwordValidation.value = validateRequiredField(password, nameOf(password), Some(s"Please provide a ${nameOf(password)}"))
     loginValidation.value = YetToBeValidated
   }
-  private def validateLogin(codeOption: Option[Int]) = codeOption match {
-   case None => loginValidation.value = Success("")
-   case Some(code) => { code match{
-     case 401 => loginValidation.value = Error("Invalid username and password")
-     case _ => loginValidation.value = Error("Something went wrong")
-    }
-   }
- }
+  private def validateLogin(codeOption: Option[Int]) = codeOption.map { 
+      case 401 => loginValidation.value = Error("Invalid username and password")
+      case _ => loginValidation.value = Error("Something went wrong")
+  }
   
+  // this is pretty weird...:validate login returns an option[Unit], yet I am able to 
+  // pass it to the connect method wich takes a => Unit (unit call by name)...
   connect()(AppCircuit.authSelector, validateLogin(AppCircuit.authSelector.value.errorCode))
 
   //TODO use form tag rather than div
