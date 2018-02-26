@@ -2,10 +2,11 @@ package hoc.form
 
 import components.Components.Implicits.{CustomTags2, ComponentBuilder}
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
-import appstate.{AppCircuit, AuthSelector}
-import FormValidators.validateRequiredField
-import hoc.form.common.FormElements._
+import appstate.AuthSelector
+import common.FormValidators.validateRequiredField
+import common._, common.FormElements._
 import utils.nameOf._
+
 
 object Styles {
   val labelStyle = "color: white"
@@ -39,12 +40,12 @@ case class LoginFormBuilder() extends ComponentBuilder with AuthSelector {
     val form =
       <div>
         <div class={ FIELD }>
-          <TextInput label={ "Username" } labelStyle={Styles.labelStyle} 
-            onChange={ handleUsernameChange } inputValue={username}/>
+          <TextInput label={ "Username" } labelStyle={ Styles.labelStyle } 
+            onChange={ handleUsernameChange } inputValue={ username }/>
           { renderValidation(usernameValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <PasswordInput label={ "Password" } labelStyle={Styles.labelStyle} 
+          <PasswordInput label={ "Password" } labelStyle={ Styles.labelStyle } 
             onChange={ handlePasswordChange } inputValue={ password }/>
           { renderValidation(passwordValidation.bind).bind }
         </div>

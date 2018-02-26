@@ -1,4 +1,4 @@
-package hoc.form
+package hoc.form.common
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global

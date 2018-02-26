@@ -2,14 +2,13 @@ package hoc.form.common
 
 import com.thoughtworks.binding.dom
 import components.Components.Implicits.{CustomTags2, ComponentBuilder, _}
-import hoc.form._ //TODO organize packages better
 
 object FormElements {
-  @dom def renderSubmitButton(label: String,
-                              isPrimary: Boolean,
-                              runValidation: () => Unit,
-                              runSubmit: () => Unit,
-                              results: ValidationResult*) = {
+  def renderSubmitButton(label: String,
+                         isPrimary: Boolean,
+                         runValidation: () => Unit,
+                         runSubmit: () => Unit,
+                         results: ValidationResult*) = {
 
     val inError = results.exists(_.isError)
     val notFullyValidated = results.exists(_.isNotValidated)
@@ -17,14 +16,18 @@ object FormElements {
     def handleSubmit() =
       if (notFullyValidated) runValidation() else runSubmit()
 
-    <Button 
-        label={label} 
-        isPrimary={isPrimary}
-        onClick={handleSubmit _}
-        isDisabled={inError}/>
+    @dom
+    val button =
+      <Button 
+          label={label} 
+          isPrimary={isPrimary}
+          onClick={handleSubmit _}
+          isDisabled={inError}/>
+
+    button
   }
 
-  @dom def renderValidation(result: ValidationResult) = {
+  def renderValidation(result: ValidationResult) = {
 
     val (errorMsg, successMsg) = result match {
       case Error(msg)       => (msg, "")
@@ -32,6 +35,10 @@ object FormElements {
       case YetToBeValidated => ("", "")
     }
 
-    <FieldValidation errorMessage={errorMsg} successMessage={successMsg}/>
+    @dom
+    val validation =
+      <FieldValidation errorMessage={errorMsg} successMessage={successMsg}/>
+
+    validation
   }
 }

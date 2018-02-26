@@ -1,4 +1,4 @@
-package views
+package views.register
 
 import router.RoutingView
 import com.thoughtworks.binding.dom

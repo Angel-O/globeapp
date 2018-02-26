@@ -11,11 +11,8 @@ object PersistStateMiddleware {
   }
 
   def retrieve() = {
-    val json = window.sessionStorage.getItem("State")
-    json match {
-      case null => PersistentState()
-      case _    => read[PersistentState](json)
-    }
+    val maybeJson = Option(window.sessionStorage.getItem("State")) 
+    maybeJson.fold(PersistentState())(json => read[PersistentState](json))
   }
 
   def wipe() = {

@@ -4,7 +4,7 @@ import com.thoughtworks.binding.dom
 import components.Components.Implicits.ComponentBuilder
 import scala.language.dynamics
 import scala.collection.mutable
-import views.TagsRegistry.CustomTags
+//import views.TagsRegistry.CustomTags
 import hoc.form.RegistrationFormBuilder
 //import components.Components.MyComponentBuilder
 

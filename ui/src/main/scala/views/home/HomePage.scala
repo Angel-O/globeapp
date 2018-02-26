@@ -1,4 +1,4 @@
-package views
+package views.home
 
 import navigation.URIs._
 import components.Components.Implicits._

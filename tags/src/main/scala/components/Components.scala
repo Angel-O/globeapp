@@ -60,6 +60,12 @@ object Components {
     //TODO what does identity do??? commnd click on checkbox input builder ==> fieldClassName property...
     implicit def toHTMLElement(x: Elem) = identity(x.asInstanceOf[HTMLElement])
     
+    // TODO is it a safe cast??
+    implicit def fromNodeToElement(x: org.scalajs.dom.raw.Node) = identity(x.asInstanceOf[HTMLElement])
+    
+    // TODO is it a safe cast??
+    implicit def fromTargetToElement(x: org.scalajs.dom.raw.EventTarget) = x.asInstanceOf[HTMLElement]
+    
     //IF Things go wrong comment this out (to test the above...comment this out as well)
     implicit def toHTMLElementBinding(x: Elem) = Var{x.asInstanceOf[HTMLElement]}
     

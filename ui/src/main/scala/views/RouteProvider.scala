@@ -5,6 +5,10 @@ import com.thoughtworks.binding.dom
 import components.Components.Implicits.{toBindingSeq, CustomTags2, _}
 import navigation.URIs._
 import router.DynamicRoute._
+import register._
+import login._
+import home._
+
 
 object RouteProvider {
   

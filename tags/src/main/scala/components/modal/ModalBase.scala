@@ -11,6 +11,7 @@ import com.thoughtworks.binding.{dom, Binding},
 Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLHRElement
+import org.scalajs.dom.raw.HTMLElement
 
 abstract class ModalBase() extends ComponentBuilder with Size {
   var label: String = _ //affects the trigger button
@@ -49,13 +50,10 @@ abstract class ModalBase() extends ComponentBuilder with Size {
     // Note: the modal might be null for some weird reasons, hence the need to wrap he result
     // into an Option...probably a timing issue when the component is re-mounted
     def getModal: Option[HTMLElement] = {
-      val modal = Option(
-        document.querySelector(s"#${targetId}").asInstanceOf[HTMLElement])
+      val modal = Option(document.querySelector(s"#${targetId}"))
 
-      val modalBody = modal
-        .map(
-          _.getElementsByClassName(modalContentClassName).head
-            .asInstanceOf[HTMLElement])
+      val modalBody: Option[HTMLElement] = modal
+        .map(_.getElementsByClassName(modalContentClassName).head)
 
       modalBody
     }
@@ -66,8 +64,7 @@ abstract class ModalBase() extends ComponentBuilder with Size {
       "click",
       (e: Event) => {
         getModal.map { modal =>
-          if (isOpen.value && !modal.contains(
-                e.target.asInstanceOf[HTMLElement])) closeModal(e)
+          if (isOpen.value && !modal.contains(e.target)) closeModal(e)
         }
       },
       true

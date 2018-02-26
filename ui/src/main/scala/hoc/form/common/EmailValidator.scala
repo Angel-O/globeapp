@@ -1,4 +1,4 @@
-package hoc.form
+package hoc.form.common
 
 object EmailValidator {
   // match a string with two tokens separated by the @ sign:

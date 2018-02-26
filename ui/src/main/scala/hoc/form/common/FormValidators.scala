@@ -1,8 +1,9 @@
-package hoc.form
+package hoc.form.common
 
 import scala.util.matching.Regex
 
 object FormValidators {
+  val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r
   
   def validateCheckbox(checked: Boolean, customErrorMessage: Option[String] = None) = {
     if(checked) Success("") 

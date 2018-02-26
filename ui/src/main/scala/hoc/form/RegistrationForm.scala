@@ -24,6 +24,7 @@ import appstate.CreateUser
 import appstate.AppModel
 import appstate.ConnectorBuilder
 import hoc.form.common.FormElements._
+import hoc.form.common._
 
 case class RegistrationFormBuilder() extends ConnectorBuilder{
    
@@ -48,7 +49,7 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   import FieldValidators._ 
   private val handleUsernameChange = (value: String) => {   
     username.value = value.trim()
-    usernameValidation.value = validateUsername(username.value)|>validateUsernameAlreadyTaken(username.value)
+    usernameValidation.value = validateUsername(username.value) |> validateUsernameAlreadyTaken(username.value)
   } 
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
@@ -110,7 +111,6 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   }
 
   @dom def build = {
-    // using a form tag rather than a div allows for page reload on submit (and autocompletion)...change as needed
     val form =
       <div>
         <div class={ FIELD }>
@@ -217,7 +217,6 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
 object FieldValidators{
   
   import FormValidators._
-  val passwordRegex = "(^[a-zA-Z0-9.!#$%&’'*+/=?^_`{|}~-]+)".r
   
   def validateName(value: String) = {    
     validateRequiredField(fieldValue = value, fieldName = "Name")

@@ -1,4 +1,4 @@
-package views
+package views.login
 
 import components.Components.Implicits._
 import router.{RoutingView, push}
