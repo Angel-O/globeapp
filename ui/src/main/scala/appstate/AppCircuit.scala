@@ -23,7 +23,7 @@ import components.Components.Implicits.ComponentBuilder
 case class PersistentState(username: String)
 case object PersistentState{
   def apply(username: String) = new PersistentState(username)
-  def apply() = new PersistentState("") //TODO use option
+  def apply() = new PersistentState("") //TODO use option after finding out how to persist global state
   implicit def rw: RW[PersistentState] = macroRW
 }
 
