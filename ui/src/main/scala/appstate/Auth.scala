@@ -55,7 +55,7 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
       effectOnly(loginEffect(username, password))
     case Register(name, username, email, password, gender) =>
       effectOnly(registerEffect(name, username, email, password, gender))
-    case Logout => effectOnly(logoutEffect() + redirectEffect(HomePageURI))
+    case Logout => effectOnly(logoutEffect())// + redirectEffect(HomePageURI))
     case UserLoggedIn(token, username) =>
       updated(AuthParams(jwt = Some(token),
                          username = Some(username),
