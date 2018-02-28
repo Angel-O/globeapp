@@ -1,15 +1,21 @@
 package views
 
-import com.thoughtworks.binding.{dom, Binding}
+import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import org.scalajs.dom.{document, Node}
 import components.Components.Implicits.CustomTags2
 import components.Components.Implicits._
 import navigation.URIs._
 import config._
-import appstate.{AuthSelector, VerifyToken}
-import appstate.Connect
+import appstate.{AuthSelector, VerifyToken, Logout, Connect}
+import utils.Push
 
-object App extends Connect { //{AuthSelector {
+//case class Props(username: String, loggedIn: Boolean)
+
+object App extends AuthSelector with Push {
+
+  // keeping track of logged in status (children components are affected by it)
+  val loggedIn: Var[Boolean] = Var(getLoggedIn())
+  val username: Var[String] = Var(getUsername())
 
   def main(args: Array[String]): Unit = {
 
@@ -17,13 +23,14 @@ object App extends Connect { //{AuthSelector {
 
     @dom def render = {
 
-      // build the router (this could just be wrapped into a div,
-      // to handle building and binding automatically rather than
-      // calling them manually)
-      //TODO pass config object
+      //TODO pass config object to router
       MainShell
         .render(
-          <div><BrowserRouter baseUrl={HomePageURI} routes={routes.bind}/></div>)
+          <div><BrowserRouter baseUrl={HomePageURI} routes={routes.bind}/></div>,
+          loggedIn.bind,
+          username.bind,
+          navigateToLogin _,
+          doLogout _)
         .bind
     }
 
@@ -35,5 +42,13 @@ object App extends Connect { //{AuthSelector {
 
     // mount the App
     dom.render(document.body, render.asInstanceOf[Binding[Node]])
+  }
+
+  def doLogout() = dispatch(Logout)
+  def navigateToLogin() = push(LoginPageURI)
+
+  def connectWith = {
+    loggedIn.value = getLoggedIn()
+    username.value = getUsername()
   }
 }

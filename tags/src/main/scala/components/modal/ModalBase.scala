@@ -13,10 +13,9 @@ import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLHRElement
 import org.scalajs.dom.raw.HTMLElement
 
-abstract class ModalBase() extends ComponentBuilder with Size {
+trait ModalBase extends ComponentBuilder with Size with Color {
   var label: String = _ //affects the trigger button
   var content: HTMLElement = _
-  var isPrimary: Boolean = _ //affects the trigger button
   var smartClose: Boolean = true
   var openAtLaunch: Boolean = _
   var onSmartClose: () => Unit = () => ()

@@ -17,7 +17,7 @@ import scalajs.js.Dynamic.{ global => g, newInstance => jsnew, literal => lit }
 import org.scalajs.dom.raw.HTMLAnchorElement
 import org.scalajs.dom.raw.HTMLDivElement
 
-case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithSiblings {
+case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithSiblings with Size{
   def render = this
 
   var tabLabels: Seq[Any] = _
@@ -28,9 +28,6 @@ case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithS
   var isFullWidth: Boolean = false
   var isRounded: Boolean = false
   var firstTabIsActive: Boolean = true
-  var isMedium: Boolean = false
-  var isLarge: Boolean = false
-  var isSmall: Boolean = false
   //var toggleTabs: Boolean = true NOT WORKING...apart from styling
 
   private var activeTab = Var(0)
@@ -57,21 +54,10 @@ case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithS
   // defaulting to the left if they're both true or false
   private lazy val notOnLeft = isCentered ^ isRight
   
-  // defaulting to regular size if none is specified. TODO fix this logic to make it sensible...
-  // (m)true, (l)false, (s)false, => medium
-  // (m)true, (l)false, (s)true => small
-  // (m)false, (l)true, (s)true => small
-  // (m)false, (l)true, (s)false => large
-  // (m)false, (l)false, (s)false => regular
-  // (m)true, (l)true, (s)true => small
-  // (m)false, (l)false, (s)false => regular
-  // (m)true, (l)true, (s)true => small
-  private lazy val notSmall = (isMedium ^ isLarge) && !isSmall
   private lazy val className = getClassName(
-    (true, TABS),
+    TABS,
     (notOnLeft, if (isCentered) CENTERED else (RIGHT)),
-    (notSmall, if (isMedium) MEDIUM else (LARGE)),
-    (isSmall, SMALL),
+    SIZE_CLASS,
     (isBoxed, BOXED),
     (isFullWidth, FULLWIDTH),
     (isRounded, ROUNDED))

@@ -1,20 +1,24 @@
 package components.button
 
 import components.Components.Implicits._
-import org.scalajs.dom.raw.{ Event, HTMLElement }
+import org.scalajs.dom.raw.{Event, HTMLElement}
 import com.thoughtworks.binding.dom
+import components.icon.IconBuilder
 
-case class SimpleButtonBuilder() extends ButtonBaseBuilder {
+case class SimpleButtonBuilder() extends ButtonBaseBuilder with Size {
   def render = this
-  var icon: HTMLElement = _ //TODO make it safe
+  var icon: IconBuilder = _
 
   // TODO find out if icon size is variable
-  
+
   @dom def build = {
 
     val button =
-      <a class={ className }>
-        <span class={getClassName((true, ICON), (true, SMALL))}>{ icon }</span>
+      <a class={ className }>   
+        { unwrapElement(
+          <span class={getClassName(ICON, SIZE_CLASS)}>
+            { unwrapBuilder(icon, icon != null).bind }
+          </span>, icon != null).bind }
         <span>{ label }</span>
       </a>.asInstanceOf[HTMLElement]
 

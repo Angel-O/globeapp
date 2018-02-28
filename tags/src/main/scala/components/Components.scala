@@ -23,6 +23,8 @@ import components.table._
 import components.dropdown._
 import components.modal._
 import components.input._ 
+import components.icon._
+import components.layout._
 
 import scala.xml.Elem
 import scala.xml.UnprefixedAttribute
@@ -95,6 +97,7 @@ object Components {
       def RegisterTag(builder: BuilderFunction, tagName: String) = this.tagName = builder
       
       // base components
+      def Banner() = new BannerBuilder()
       def Button() = new ButtonBuilder()
       def ButtonRaw() = new ButtonBuilderRaw()
       def Card() = new CardBuilder()
@@ -104,6 +107,7 @@ object Components {
       def Dropdown() = new DropdownBuilder()
       def EmailInput() = new EmailInputBuilder()
       def FieldValidation() = new FieldValidationBuilder()
+      def Icon() = new IconBuilder()
       def Input() = new InputBuilder()
       def InputRaw() = new InputBuilderRaw()
       def MenuItem() = new MenuItemBuilder()
@@ -212,6 +216,8 @@ object Components {
         if(condition) Option(optional).fold(dummy)(identity)
         else dummy
       }
+
+      // translated: if the condition is true use the element, if not use a placeholder
       @dom def unwrapElement(optional: => HTMLElement, condition: Boolean = true) = {
         if(condition) Option(optional).fold(dummy.build)(opt => Binding { opt })
         else dummy.build
@@ -274,6 +280,7 @@ object Components {
       }
     }
     
+    //TODO move color classes to this trait
     trait Color {
       var isPrimary: Boolean = _
       var isLink: Boolean = _
@@ -281,6 +288,48 @@ object Components {
       var isSuccess: Boolean = _
       var isWarning: Boolean = _
       var isDanger: Boolean = _
+
+      private val colors = Seq(isPrimary, isLink, isInfo, isSuccess, isWarning, isDanger)
+
+      val INFO = "is-info"
+      val LINK = "is-link"
+      val PRIMARY = "is-primary"
+      val DANGER = "is-danger"
+      val SUCCESS = "is-success"
+      val WARNING = "is-warning"
+
+      //TODO can I use symbols???
+      private val colorMap = Map(
+        isPrimary -> PRIMARY, 
+        isLink -> LINK, 
+        isInfo -> INFO, 
+        isSuccess -> SUCCESS, 
+        isWarning -> WARNING, 
+        isDanger -> DANGER)
+
+      lazy val COLOR_CLASS = colors.find(x => x == true).map(color => colorMap(color)).getOrElse("")
+    }
+
+    //TODO default value for boolen not working...investigate
+    trait Size {
+      var isLarge: Boolean = false 
+      var isMedium: Boolean = false
+      var isSmall: Boolean = false 
+
+      private val sizes = Seq(isLarge, isMedium, isSmall)
+
+      val SMALL = "is-small"
+      val MEDIUM = "is-medium"
+      val LARGE = "is-large"
+
+      private val sizeMap = Map(
+        isLarge -> LARGE,
+        isMedium -> MEDIUM,
+        isSmall -> SMALL
+      )
+      
+      // the largest size takes precedence
+      lazy val SIZE_CLASS = sizes.find(x => x == true).map(size => sizeMap(size)).getOrElse("")
     }
 
     trait BulmaCssClasses {
@@ -292,7 +341,6 @@ object Components {
       val CHILD = "is-child"
       val CONTAINER = "container"
       val CONTROL = "control"
-      val DANGER = "is-danger"
       val DELETE = "delete"
       val DROPDOWN = "dropdown"
       val EXPANDED = "is-expanded"
@@ -305,15 +353,13 @@ object Components {
       val FOCUSED = "is-focused"
       val FULLWIDTH = "is-fullwidth"
       val GROUPED = "is-grouped"
+      val HERO = "hero"
       val HIDDEN = "is-hidden"
       val HOVERABLE = "is-hoverable"
       val ICON = "icon"
-      val INFO = "is-info"
       val INVISIBLE = "is-invisible"
       val IS_ = "is-"
       val IS_UP = "is-up"
-      val LARGE = "is-large"
-      val MEDIUM = "is-medium"
       val MODAL = "modal"
       val MODAL_BUTTON = "modal-button"
       val MODAL_CLOSE = "modal-close"
@@ -321,12 +367,9 @@ object Components {
       val NAVBAR = "navbar"
       val NOTIFICATION = "notification"
       val PARENT = "is-parent"
-      val PRIMARY = "is-primary"
       val RIGHT = "is-right"
       val ROUNDED = "is-toggle is-toggle-rounded"
       val SELECTED = "is-selected"
-      val SMALL = "is-small"
-      val SUCCESS = "is-success"
       val TABLE = "table"
       val TABLE_BORDERED = "is-bordered"
       val TABLE_HOVERABLE = "is-hoverable"
@@ -337,7 +380,6 @@ object Components {
       val TOGGLED = "is-toggle"
       val TRANSPARENT = "is-transparent"
       val VERTICAL = "is-vertical"
-      val WARNING = "is-warning"
       
 
       // Note making this private would make compilation with fastOPTJS fail
@@ -362,18 +404,6 @@ object Components {
             elem.removeAttribute("class") 
         }
       }
-    }
-    
-    trait Size extends BulmaCssClasses{
-      var isLarge: Boolean = _ 
-      var isMedium: Boolean = _ 
-      var isSmall: Boolean = _ 
-      
-      // the largest size takes precedence
-      lazy val sizeIsSet = Seq(isLarge, isMedium, isSmall).find(identity).getOrElse(false)
-      
-      // the largest size takes precedence
-      lazy val SIZE_CLASS = if(isLarge) LARGE else if(isMedium) MEDIUM else SMALL 
     }
 
     trait ClickableToggleWithSiblings extends BulmaCssClasses with HTMLClassManipulator{

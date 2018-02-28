@@ -8,37 +8,17 @@ import com.thoughtworks.binding.{dom, Binding},
 Binding.{Var, Constants, BindingSeq}
 import navigation.Navigators._
 import router.RoutingView
-import appstate.{Connect, Logout, AuthSelector}
 import utils.Push
 import config._
 
-object MainShell extends BulmaCssClasses with Push with AuthSelector {
-
-  // State
-  val username: Var[String] = Var(getUsername())
-  val loggedIn: Var[Boolean] = Var(getLoggedIn())
-
-  // Note even if loggedIn is visible within the scope of the renderAccountMenuItem
-  // we need to pass it here as the render method needs to be bound to the logged in
-  // status Var. (Techincally we don't need to pass it, but it's a good idea to
-  // hihglight the dependency of the account menu item on the logged in status, all it's
-  // needed is to call .bind on the loggedIn Var BEFORE the renderAccountMenuItem
-  // is invoked, then we can just check the value (loggedIn.value))
-  @dom def renderAccountMenuItem(loggedIn: Boolean) = {
-    val loginButton =
-      <Button label="log in" isPrimary={true} onClick={() => navigateToLogin()}/>
-    val logoutButton = <Button label="log out" onClick={doLogout _}/>
-    if (loggedIn)
-      <NavbarItem 
-            item={username} 
-            isRightDropdown={true} 
-            isHoverable={true}
-            dropdownItems={Seq(logoutButton, <hr/>, "Polls", "Favourite apps", "Stats")} />
-    else <NavbarItem item={loginButton}/>
-  }
+object MainShell extends BulmaCssClasses {
 
   @dom
-  def render(content: HTMLElement) = {
+  def render(content: HTMLElement,
+             loggedIn: Boolean,
+             username: String,
+             login: () => Unit,
+             logout: () => Unit) = {
 
     val logo =
       <NavbarLogo href={s"#$ROOT_PATH"} image={
@@ -48,9 +28,9 @@ object MainShell extends BulmaCssClasses with Push with AuthSelector {
 
     val rightNavbarItems =
       Seq(
-        <NavbarItem item={<Button label="messages"/>}/>,
-        <NavbarItem item={<Button label="catalog"/>}/>,
-        renderAccountMenuItem(loggedIn.bind).bind
+        <NavbarItem item={<SimpleButton icon={ <Icon id="inbox"/> } label="messages"/>}/>,
+        <NavbarItem item={<SimpleButton icon={ <Icon id="mobile"/> } label="catalog"/>}/>,
+        renderAccountMenuItem(loggedIn, username, login, logout).bind
       )
 
     val leftNavbarItems =
@@ -67,19 +47,38 @@ object MainShell extends BulmaCssClasses with Push with AuthSelector {
         rightItems={rightNavbarItems}
         leftItems={leftNavbarItems}/>
 
+    val banner =
+      <Banner content={<h5>Welcome to globeapp</h5>}/>
+
     //The shell
     <div class={getClassName(CONTAINER, FLUID)}>
       {navbar}
+      {banner}
       {content}
     </div>
   }
 
-  def doLogout() = dispatch(Logout)
-  def navigateToLogin() = push(LoginPageURI)
+  // Note even if loggedIn is visible within the scope of the renderAccountMenuItem
+  // we need to pass it here as the render method needs to be bound to the logged in
+  // status Var. (Techincally we don't need to pass it, but it's a good idea to
+  // hihglight the dependency of the account menu item on the logged in status, all it's
+  // needed is to call .bind on the loggedIn Var BEFORE the renderAccountMenuItem
+  // is invoked, then we can just check the value (loggedIn.value))
+  @dom def renderAccountMenuItem(loggedIn: Boolean,
+                                 username: String,
+                                 login: () => Unit,
+                                 logout: () => Unit) = {
+    val loginButton =
+      <Button label="log in" isPrimary={true} onClick={login}/>
+    val logoutButton =
+      <Button label="log out" onClick={logout}/>
 
-  // Connect to the auth selector state
-  def connectWith() = {
-    username.value = getUsername()
-    loggedIn.value = getLoggedIn()
+    if (loggedIn)
+      <NavbarItem 
+            item={username} 
+            isRightDropdown={true} 
+            isHoverable={true}
+            dropdownItems={Seq("Polls", "Favourite apps", "Stats", <hr/>,logoutButton)} />
+    else <NavbarItem item={loginButton}/>
   }
 }

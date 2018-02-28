@@ -159,7 +159,7 @@ sealed trait TextualInput extends ComponentBuilder with InputBase with Icons{
   }
 }
 
-case class FieldValidationBuilder() extends ComponentBuilder{
+case class FieldValidationBuilder() extends ComponentBuilder with Color{
   def render = this
   var errorMessage: String = ""
   var successMessage: String = ""

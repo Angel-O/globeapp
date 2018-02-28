@@ -11,7 +11,8 @@ protected case class Push private (baseURI: String) {
 }
 
 trait HashUpdater {
-  private val navigator = Push.apply _
+  //def rather than val fixes a bug where this doesn't get initialized
+  private def navigator = Push.apply _
   val baseUrl: Option[String]
   private def getUrl = baseUrl.getOrElse("")
   private lazy val navigateTo = navigator(getUrl)

@@ -1,41 +1,50 @@
 package components.modal
 
-import components.Components.Implicits.{ CustomTags2, _ }
-import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
-import com.thoughtworks.binding.{dom, Binding}, Binding.{Var, Vars, Constants, BindingSeq}
+import components.Components.Implicits.{CustomTags2, _}
+import org.scalajs.dom.raw.{
+  Event,
+  HTMLElement,
+  HTMLImageElement,
+  HTMLButtonElement
+}
+import com.thoughtworks.binding.{dom, Binding},
+Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
 import components.dropdown.DropdownBuilder
 import org.scalajs.dom.raw.HTMLHRElement
 
 //using scala early initializers!!!
-case class ModalCardBuilder() extends{ val targetId = s"modalCard_${ModalCardBuilder.getId}" 
-                                       val modalContentClassName = "modal-card" } with ModalBase(){
+case class ModalCardBuilder() extends {
+  val targetId = s"modalCard_${ModalCardBuilder.getId}"
+  val modalContentClassName = "modal-card"
+} with ModalBase {
   def render = this
-  var title: String = _ 
+  var title: String = _
   var onSave: () => Unit = _
-  
+
   @dom def build = {
-    
-    val triggerClass = getClassName(
-        BUTTON, MODAL_BUTTON, 
-        (isPrimary, PRIMARY), 
-        (sizeIsSet, SIZE_CLASS))
+
+    val triggerClass =
+      getClassName(BUTTON, MODAL_BUTTON, COLOR_CLASS, SIZE_CLASS)
     val modalTrigger = <a class={triggerClass} data:data-target={targetId}>
                          { label }
-                       </a>//.asInstanceOf[HTMLElement] 
-    val saveButton = <button class={getClassName(BUTTON, SUCCESS)}>Save changes</button>//.asInstanceOf[HTMLElement]  
-    val cancelButton = <button class={getClassName(BUTTON)}>Cancel</button>//.asInstanceOf[HTMLElement]  
-    val closeButton = <button class={getClassName(DELETE)} data:aria-label="close"></button>//.asInstanceOf[HTMLElement]
-                       
-    modalTrigger.addEventListener("click", launchModal)                   
+                       </a>
+    val saveButton =
+      <button class={getClassName(BUTTON, SUCCESS)}>Save changes</button>
+    val cancelButton =
+      <button class={getClassName(BUTTON)}>Cancel</button>
+    val closeButton =
+      <button class={getClassName(DELETE)} data:aria-label="close"></button>
+
+    modalTrigger.addEventListener("click", launchModal)
     saveButton.addEventListener("click", closeModal)
     saveButton.addEventListener("click", (e: Event) => onSave()) //TODO this should be handled asyncronously
-    cancelButton.addEventListener("click", closeModal)                   
+    cancelButton.addEventListener("click", closeModal)
     closeButton.addEventListener("click", closeModal)
-    
+
     enableSmartClose()
 
-      <div>
+    <div>
         { modalTrigger }
         <div class={ modalClass } id={ targetId }>
           <div class="modal-background"></div>
@@ -53,7 +62,7 @@ case class ModalCardBuilder() extends{ val targetId = s"modalCard_${ModalCardBui
             </footer>
           </div>
         </div>
-      </div>//.asInstanceOf[HTMLElement]
+      </div>
   }
 }
 

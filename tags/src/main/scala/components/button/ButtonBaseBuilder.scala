@@ -7,10 +7,11 @@ import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.Binding.Var
 import com.thoughtworks.binding.Binding.Vars
 
-protected abstract class ButtonBaseBuilder() extends ComponentBuilder {
+protected abstract class ButtonBaseBuilder()
+    extends ComponentBuilder
+    with Color {
   var label: String = _
   var onClick: () => Unit = () => () //do nothing by default
-  var isPrimary: Boolean = _
 
   protected def handleOnclick = (e: Event) => {
     //val self = e.currentTarget.asInstanceOf[HTMLElement]

@@ -198,11 +198,11 @@ object Hello  {
 //													 </a>.asInstanceOf[HTMLElement];
 			val labelWithImage2 = <SimpleButton 
 															label="Pictures" 
-															icon={<a class="fa fa-image"/>}
+															icon={<Icon id="image"/>}
       												onClick={() => println("icon")}/>
       val labelWithImage3 = <SimpleButton 
 															label="Pictures" 
-															icon={<a class="fa fa-image"/>}
+															icon={<Icon id="image"/>}
       												onClick={() => println("icon")}/>
       
       
