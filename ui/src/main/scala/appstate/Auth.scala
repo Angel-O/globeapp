@@ -132,10 +132,10 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
 trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
 
   import utils.persist._
-  def getToken() = value.jwt.getOrElse("OOO")
-  def getErrorCode() = value.errorCode
-  def getUsername() = value.username.getOrElse(retrieve().username)
-  def getLoggedIn() = value.loggedIn.getOrElse(false)
+  def getToken() = model.jwt.getOrElse("OOO")
+  def getErrorCode() = model.errorCode
+  def getUsername() = model.username.getOrElse(retrieve().username)
+  def getLoggedIn() = model.loggedIn.getOrElse(false)
   
   val cursor = AppCircuit.authSelector
   val circuit = AppCircuit

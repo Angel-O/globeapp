@@ -18,7 +18,7 @@ import upickle.default.{ReadWriter => RW, macroRW}
 import components.Components.Implicits.ComponentBuilder
 
 
-// Represents the portion of the state that will be serialized 
+// Represents the portion of the state that will be serialized
 // in the location storage to be retrieved after a browser refresh
 case class PersistentState(username: String)
 case object PersistentState{
@@ -43,16 +43,44 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
   val userSelector = zoomTo(x => x.users.users)
   val carSelector = zoomTo(x => x.cars.cars)
   val authSelector = zoomTo(x => x.auth.params)
+  
+  val globalSelector:ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
+
 
   // Using foldHandlers rather than composeHandlers to
   // allow all handlers to process the actions without stopping
   // soon as the the action has been handled
   override val actionHandler = foldHandlers(
+    new LoggingHandler(globalSelector),
     new UserHandler(userSelector),
     new CarHandler(carSelector),
     new AuthHandler(authSelector)
   )
 }
+
+class LoggingHandler[M](modelRW: ModelRW[M, AppModel])
+    extends ActionHandler(modelRW)
+    with GenericConnect[AppModel, AppModel] {
+  import utils.log
+  import diode.NoAction
+  override def handle = {
+    case a: Action => {
+      if (a != NoAction) {
+        log.warn("ACTION", a.toString)
+        log.warn("STATE-BEFORE", value.asInstanceOf[js.Any])
+      }
+      //if(value != null)
+      noChange
+    }
+  }
+
+  val circuit = AppCircuit
+  def connectWith() = log.warn("STATE-AFTER: ", circuit.currentModel.asInstanceOf[js.Any])
+  val cursor = modelRW.root.asInstanceOf[ModelR[AppModel, AppModel]]
+
+  connect()
+}
+
 
 // TODO move this to separate project...ala Redux
 trait ModelLens[M <: AnyRef] {
@@ -65,8 +93,8 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with ModelLens[M])
 
   //val dispatch: Dispatcher = circuit
   def dispatch(action: Action) = {
-    log.warn("ACTION", action.toString)
-    log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
+    //log.warn("ACTION", action.toString)
+    //log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
     circuit.apply(action)
   }
 
@@ -78,7 +106,7 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with ModelLens[M])
 
     val ac: Circuit[M] = circuit.asInstanceOf[Circuit[M]]
     def loggedUpdate() = {
-      update; log.warn("STATE-AFTER", currentModel.asInstanceOf[js.Any])
+      update; //log.warn("STATE-AFTER", currentModel.asInstanceOf[js.Any])
     }
     ac.subscribe(cursor)(_ => loggedUpdate())
   }
@@ -86,12 +114,12 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with ModelLens[M])
 
 abstract class ConnectorBuilder extends Connector[AppModel](AppCircuit)
 
-//Use generic connect rather than Connect since generic connect 
+//Use generic connect rather than Connect since generic connect
 //is decoupled from AppCircuit and use only ConnectorBuilder or Connector
 trait Connect {
   def dispatch(action: Action) = {
-    log.warn("ACTION", action.toString)
-    log.warn("STATE-BEFORE: ", AppCircuit.currentModel.asInstanceOf[js.Any]);
+    //log.warn("ACTION", action.toString)
+    //log.warn("STATE-BEFORE: ", AppCircuit.currentModel.asInstanceOf[js.Any]);
     AppCircuit.apply(action)
   }
   def initialModel = AppCircuit.initialModel
@@ -106,7 +134,7 @@ trait Connect {
     val ac: Circuit[M] = AppCircuit.asInstanceOf[Circuit[M]]
     def loggedUpdate() = {
       update
-      log.warn("STATE-AFTER: ", AppCircuit.currentModel.asInstanceOf[js.Any])
+      //log.warn("STATE-AFTER: ", AppCircuit.currentModel.asInstanceOf[js.Any])
     }
     ac.subscribe(cursor)(_ => loggedUpdate())
   }
@@ -114,15 +142,15 @@ trait Connect {
 
 trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
   def dispatch(action: Action) = {
-    log.warn("ACTION", action.toString)
-    log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
+    //log.warn("ACTION", action.toString)
+    //log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
     circuit.apply(action)
   }
   
   val cursor: ModelR[M, T]
   val circuit: Circuit[M] with ModelLens[M]
 
-  def value = cursor.value
+  def model = cursor.value
   def initialModel = circuit.initialModel
   
   def connectWith(): Unit
@@ -130,7 +158,7 @@ trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
   def connect() = { 
     def loggedUpdate() = {
       connectWith()
-      log.warn("STATE-AFTER: ", circuit.currentModel.asInstanceOf[js.Any])
+      //log.warn("STATE-AFTER: ", circuit.currentModel.asInstanceOf[js.Any])
     }
 
     circuit.subscribe(cursor)(_ => loggedUpdate())
