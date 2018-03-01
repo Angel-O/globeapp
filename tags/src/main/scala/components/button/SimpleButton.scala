@@ -5,7 +5,7 @@ import org.scalajs.dom.raw.{Event, HTMLElement}
 import com.thoughtworks.binding.dom
 import components.icon.IconBuilder
 
-case class SimpleButtonBuilder() extends ButtonBaseBuilder with Size {
+case class SimpleButtonBuilder() extends ButtonBaseBuilder {
   def render = this
   var icon: IconBuilder = _
 
@@ -16,7 +16,7 @@ case class SimpleButtonBuilder() extends ButtonBaseBuilder with Size {
     val button =
       <a class={ className }>   
         { unwrapElement(
-          <span class={getClassName(ICON, SIZE_CLASS)}>
+          <span class={ getClassName(ICON, SIZE_CLASS) }>
             { unwrapBuilder(icon, icon != null).bind }
           </span>, icon != null).bind }
         <span>{ label }</span>

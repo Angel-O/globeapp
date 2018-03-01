@@ -7,9 +7,11 @@ import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.Binding.Var
 import com.thoughtworks.binding.Binding.Vars
 
-protected abstract class ButtonBaseBuilder()
+protected abstract class ButtonBaseBuilder
     extends ComponentBuilder
-    with Color {
+    with Color
+    with Size {
+
   var label: String = _
   var onClick: () => Unit = () => () //do nothing by default
 
@@ -18,7 +20,5 @@ protected abstract class ButtonBaseBuilder()
     //self.classList.toggle(FOCUSED)
   }
 
-  // using lazy val rather than val...
-  protected lazy val className =
-    getClassName((true, BUTTON), (isPrimary, PRIMARY))
+  def className = getClassName(COLOR_CLASS, BUTTON, SIZE_CLASS)
 }

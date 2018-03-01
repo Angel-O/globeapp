@@ -280,7 +280,6 @@ object Components {
       }
     }
     
-    //TODO move color classes to this trait
     trait Color {
       var isPrimary: Boolean = _
       var isLink: Boolean = _
@@ -289,7 +288,8 @@ object Components {
       var isWarning: Boolean = _
       var isDanger: Boolean = _
 
-      private val colors = Seq(isPrimary, isLink, isInfo, isSuccess, isWarning, isDanger)
+      protected lazy val colors = Seq(isPrimary, isLink, isInfo, isSuccess, isWarning, isDanger)
+      protected lazy val colorClasses = Seq(PRIMARY, LINK, INFO, SUCCESS, WARNING, DANGER)
 
       val INFO = "is-info"
       val LINK = "is-link"
@@ -298,38 +298,27 @@ object Components {
       val SUCCESS = "is-success"
       val WARNING = "is-warning"
 
-      //TODO can I use symbols???
-      private val colorMap = Map(
-        isPrimary -> PRIMARY, 
-        isLink -> LINK, 
-        isInfo -> INFO, 
-        isSuccess -> SUCCESS, 
-        isWarning -> WARNING, 
-        isDanger -> DANGER)
-
-      lazy val COLOR_CLASS = colors.find(x => x == true).map(color => colorMap(color)).getOrElse("")
+      lazy val COLOR_CLASS = colors.zip(colorClasses)
+      .find({ case (color, _) => color == true })
+      .map(_._2).getOrElse("")
     }
 
     //TODO default value for boolen not working...investigate
     trait Size {
-      var isLarge: Boolean = false 
-      var isMedium: Boolean = false
-      var isSmall: Boolean = false 
+      var isLarge: Boolean = _
+      var isMedium: Boolean = _
+      var isSmall: Boolean = _
 
-      private val sizes = Seq(isLarge, isMedium, isSmall)
+      protected lazy val sizes = Seq(isLarge, isMedium, isSmall)
+      protected lazy val sizeClasses = Seq(LARGE, MEDIUM, SMALL)
 
       val SMALL = "is-small"
       val MEDIUM = "is-medium"
       val LARGE = "is-large"
 
-      private val sizeMap = Map(
-        isLarge -> LARGE,
-        isMedium -> MEDIUM,
-        isSmall -> SMALL
-      )
-      
-      // the largest size takes precedence
-      lazy val SIZE_CLASS = sizes.find(x => x == true).map(size => sizeMap(size)).getOrElse("")
+      lazy val SIZE_CLASS = sizes.zip(sizeClasses)
+      .find({ case (size, _) => size == true })
+      .map(_._2).getOrElse("")
     }
 
     trait BulmaCssClasses {

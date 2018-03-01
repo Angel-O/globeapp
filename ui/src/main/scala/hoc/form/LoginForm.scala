@@ -4,14 +4,9 @@ import components.Components.Implicits.{CustomTags2, ComponentBuilder}
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import appstate.AuthSelector
 import common.FormValidators.validateRequiredField
-import common._, common.FormElements._
+import common._, common.FormElements._, common.Styles
 import utils.nameOf._
 //import com.thoughtworks.binding.Route
-
-
-object Styles {
-  val labelStyle = "color: white"
-}
 
 case class LoginFormBuilder() extends ComponentBuilder with AuthSelector {
 

@@ -1,20 +1,29 @@
 package components.input
 
-import components.Components.Implicits.{ CustomTags2, _ }
-import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
-import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
+import components.Components.Implicits.{CustomTags2, _}
+import org.scalajs.dom.raw.{
+  Event,
+  HTMLElement,
+  HTMLImageElement,
+  HTMLButtonElement
+}
+import com.thoughtworks.binding.{dom, Binding},
+Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
 import components.dropdown.DropdownBuilder
 import org.scalajs.dom.raw.HTMLHRElement
 import org.scalajs.dom.raw.HTMLSelectElement
 import org.scalajs.dom.raw.HTMLInputElement
 
-case class RadioInputBuilder() extends ComponentBuilder with InputBase with Selection {
+case class RadioInputBuilder()
+    extends ComponentBuilder
+    with InputBase
+    with Selection {
   def render = this
   var options: Seq[String] = Seq.empty
   val inputType = RadioInput
   var name: String = _ // Server name...TODO do I need this???
-  
+
   override protected val handleSelectionChange = (e: Event) => {
     val radioButton = e.currentTarget.asInstanceOf[HTMLInputElement]
     selectedItem.value = radioButton.value
@@ -27,13 +36,13 @@ case class RadioInputBuilder() extends ComponentBuilder with InputBase with Sele
     val fieldClassName = getClassName((true, FIELD))
     val optionItems = toBindingSeq(this.options)
 
-    val labelItem = unwrapElement(<label class={"label"}> { label } </label>, label != null)
-    
+    val labelItem = unwrapElement(labelElement.bind, label != null)
+
     <div class={ fieldClassName }>
       <div class="control">
 				{ labelItem.bind }
         {
-          optionItems.map(x => <label class={ inputType.name }>
+          optionItems.map(x => <label class={ inputType.name } style={ labelStyle }>
                                  { 
                                    val radioButton = <input type={ inputType.name } name={ name } value={ x }/>
                                    radioButton.onchange = handleSelectionChange 

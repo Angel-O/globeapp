@@ -25,6 +25,8 @@ import appstate.AppModel
 import appstate.ConnectorBuilder
 import hoc.form.common.FormElements._
 import hoc.form.common._
+import common.FormValidators._
+import common._, common.Styles
 
 case class RegistrationFormBuilder() extends ConnectorBuilder{
    
@@ -114,56 +116,62 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
     val form =
       <div>
         <div class={ FIELD }>
-          <TextInput label={ "Name" } onChange={ handleNameChange }/>
+          <TextInput label={ "Name" } labelStyle={ Styles.labelStyle } onChange={ handleNameChange }/>
           { renderValidation(nameValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <TextInput label={ "Username" } onChange={ handleUsernameChange }/>
+          <TextInput label={ "Username" } labelStyle={ Styles.labelStyle } onChange={ handleUsernameChange }/>
           { renderValidation(usernameValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <EmailInput label={ "Email" } onChange={ handleEmailChange } 
+          <EmailInput label={ "Email" } labelStyle={ Styles.labelStyle } onChange={ handleEmailChange } 
           inputValue={ email.value }/>
           { renderValidation(emailValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <PasswordInput label={ "Password" } onChange={ handlePasswordChange } 
+          <PasswordInput label={ "Password" } labelStyle={ Styles.labelStyle } onChange={ handlePasswordChange } 
           inputValue={ password.value }/>
           { renderValidation(passwordValidation.bind).bind }
         </div>
         <div class={ FIELD }>
           { val pwdVal = passwordValidation.bind
-            <PasswordInput label={ "Confirm password" } onChange={ handleConfirmPasswordChange } 
+            <PasswordInput label={ "Confirm password" } labelStyle={ Styles.labelStyle } 
+            onChange={ handleConfirmPasswordChange } 
             inputValue={ confirmPassword.value } isDisabled={ !pwdVal }/>.listen }
           { renderValidation(confirmPasswordValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <RadioInput options={ Seq("Male", "Female") } name={ "gender" } onSelect={ handleGenderChange }/>
+          <RadioInput options={ Seq("Male", "Female") } labelStyle={ Styles.labelStyle } 
+          name={ "gender" } onSelect={ handleGenderChange }/>
           { renderValidation(genderValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <RadioInput label={ "Subscription type" } options={ Seq("Full", "Trial", "Limited") } 
-          name={ "subscription-type" } onSelect={ handleSubscriptionTypeChange }/>
+          <RadioInput label={ "Subscription type" } labelStyle={ Styles.labelStyle } 
+          options={ Seq("Full", "Trial", "Limited") } name={ "subscription-type" } 
+          onSelect={ handleSubscriptionTypeChange }/>
           { renderValidation(subscriptionTypeValidation.bind).bind }
         </div>
         <div class={ FIELD }>
           <SelectInput label={ "Where did you hear about us ?" } 
+          labelStyle={Styles.labelStyle}
           options={ Seq("News", "Facebook", "Twitter", "Instagram", "Friends") } 
           disabledOptions={ Seq(0, 2) } leftIcon={ <i class="fa fa-globe"/> } 
           onSelect={ handleWhereDidYouHearAboutUsChange }/>
           { renderValidation(whereDidYouHearAboutUsValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <TextareaInput label={ "Additional info" } onChange={ handleMessageChange } 
-          inputValue={ message.value }/>
+          <TextareaInput label={ "Additional info" } labelStyle={ Styles.labelStyle } 
+          onChange={ handleMessageChange } inputValue={ message.value }/>
           { renderValidation(messageValidation.bind).bind }
         </div>
         <div class={ FIELD }>
           <CheckboxInput label="Subscribe me to latest news from GlobeApp" 
+          labelStyle={ Styles.labelStyle } 
           onSelect={ handleSubscribeMeChange }/>
         </div>
         <div class={ FIELD }>
           <CheckboxInput label={ "Accept Terms & Conditions" } 
+          labelStyle={ Styles.labelStyle }
           onSelect={ handleAcceptTermsChange }/>
           { renderValidation(acceptTermsValidation.bind).bind }
         </div>

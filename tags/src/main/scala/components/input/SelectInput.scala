@@ -76,7 +76,7 @@ case class SelectInputBuilder() extends ComponentBuilder with InputBase with Lef
 
     // TODO use Bulma classes
     <div class={ fieldClassName }>
-      <label class="label">{ label }</label>
+      { labelElement.bind }
       <div class={ controlClassName }>
         <div class={ selectClassName }>
           { selectBox }
