@@ -163,7 +163,7 @@ extends SecuredController(scc){
 //  }
 
   def deleteUser = AuthenticatedAction.async(parse.json) { req => 
-     Logger.info("Deleting users")
+     Logger.info("Deleting user")
      //val id: String = req.body.as[String]
      val id = req.user.id //TODO this id belongs to the logged in user...self deletion, remove parse json if not used
      repository.deleteUser(BSONObjectID.parse(id).get).map({
@@ -173,7 +173,7 @@ extends SecuredController(scc){
   }
 
   def updateUser = AuthenticatedAction.async(parse.json) { req =>
-      Logger.info("Updating users")
+      Logger.info("Updating user")
       //val payload: String = Json.stringify(req.body)
       val id = req.user.id
       val updated = req.body.validate[RegisteredUser].get //read[User](payload)

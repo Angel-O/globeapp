@@ -69,7 +69,6 @@ class LoggingHandler[M](modelRW: ModelRW[M, AppModel])
         log.warn("ACTION", a.toString)
         log.warn("STATE-BEFORE", value.asInstanceOf[js.Any])
       }
-      //if(value != null)
       noChange
     }
   }

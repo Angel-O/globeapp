@@ -172,6 +172,23 @@ lazy val authenticationServer = (project in file("authentication-server"))
         sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl")
     )
 
+lazy val appServer = (project in file("app-server"))
+    .dependsOn(sharedJVM, securityServer)
+    .enablePlugins(PlayScala)
+    .disablePlugins(WorkbenchPlugin)
+    .settings(
+        commonSettings,
+        name := "app-server",
+        libraryDependencies += guice,
+        libraryDependencies += {
+            val reactiveMongoVer = "0.13.0-play26"
+            "org.reactivemongo" %% "play2-reactivemongo" % reactiveMongoVer
+        },
+        libraryDependencies += "com.pauldijou" %% "jwt-play" % "0.14.1",
+        libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test,
+        sourceDirectories in (Compile, compileTemplates) += file("server/target/scala-2.12/twirl")
+    )
+
 lazy val securityServer = (project in file("security-server"))
     .dependsOn(sharedJVM)
     .enablePlugins(PlayScala)
