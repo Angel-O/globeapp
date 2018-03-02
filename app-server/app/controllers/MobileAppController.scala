@@ -18,6 +18,18 @@ class MobileAppController @Inject()(scc: SecuredControllerComponents,
     Logger.info("Fetching mobile apps")
     repository.getAll.map(all => Ok(write(all.map(_.toApi))))
   }
+  
+  def getApp(id: String) = AuthenticatedAction.async {
+    Logger.info("Fetching mobile app")
+    
+//    BSONObjectID.parse(id).map(validId => ...)
+//    .recover({case ex => BadRequest})
+    
+    repository.getApp(BSONObjectID.parse(id).get).map({
+      case Some(mobileApp) => Ok(write(mobileApp.toApi))
+      case None => NotFound
+    })
+  }
 
   def postApp = Action.async(parse.json) { req =>
     val payload: String = Json.stringify(req.body)
