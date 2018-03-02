@@ -7,30 +7,12 @@ import play.api.libs.json.Json
 import apimodels.{MobileApp => ApiApp}
 import upickle.default._
 import scala.concurrent.ExecutionContext.Implicits.global
-import models.MobileApp
-import reactivemongo.bson.BSONObjectID
-
-object Helpers {
-  import scala.language.implicitConversions
-  implicit class fromModelToApi(x: MobileApp) {
-    def toApi =
-      ApiApp(x._id.stringify, x.name, x.company, x.genre, x.price, x.store)
-  }
-  implicit class fromApiToModel(x: ApiApp) {
-    def toModel =
-      MobileApp(BSONObjectID.parse(x.id).get,
-                x.name,
-                x.company,
-                x.genre,
-                x.price,
-                x.store)
-  }
-}
+import models.MobileApp, models.Helpers._
+import reactivemongo.bson.BSONObjectID 
 
 class MobileAppController @Inject()(scc: SecuredControllerComponents,
                                     repository: MobileAppRepository)
     extends SecuredController(scc) {
-  import Helpers._
 
   def getAll = AuthenticatedAction.async {
     Logger.info("Fetching mobile apps")
