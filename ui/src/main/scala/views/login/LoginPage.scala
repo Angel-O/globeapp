@@ -1,9 +1,9 @@
 package views.login
 
 import components.Components.Implicits._
-import router.{RoutingView, push}
 import com.thoughtworks.binding.dom
-import hoc.form._
+import router.RoutingView
+import hoc.form.LoginForm
 import appstate.{Login, AppCircuit, Connect}
 import org.scalajs.dom.raw.Event
 import navigation.Navigators._
@@ -37,7 +37,6 @@ object LoginPage {
     def handleSubmit(username: String, password: String) =
       dispatch(Login(username, password))
 
-    //TODO probably there's a better solution to handle this
-    def onSmartClose() = push("")(history.getLastVisited)
+    def onSmartClose() = navigateTo(history.getLastVisited)
   }
 }

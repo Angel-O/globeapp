@@ -19,7 +19,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   val history = new BrowserHistory(this)
   
   private def root = {   
-    // the initial page is not necessarily the baseUrl: 
+    // the initial page is not necessarily the baseUrl:
     // the user might be on any page and hit refresh
     val rootPath = window.location.hash match {
         case "" => baseURL // no hash equal to home page
@@ -124,7 +124,7 @@ case class BrowserHistory(val router: Router){
   private var history: Vector[String] = Vector.empty
   var params: Seq[String] = Seq.empty
   def navigateTo(path: String) = {
-    // updating history on hash event beacuse the hash can change without 
+    // updating history on hash event beacuse the hash can change without
     // going through navigators
     params = router.getParams(path)
     router.navigateTo(router.baseURL + (if(path == router.baseURL) "" else path))
@@ -136,9 +136,11 @@ case class BrowserHistory(val router: Router){
     history = history :+ path
   }
   def getHistory() = history
-  def getLastVisited() = history.toList.reverse match { 
-    case h::s::_ => s 
-    case _ => router.baseURL 
+  def getLastVisited() = history.toList.reverse match {
+    case first :: second :: _ =>
+      if (second == router.baseURL) second
+      else second.replace(router.baseURL, "") //remove base url
+    case _ => router.baseURL
   }
 }
 

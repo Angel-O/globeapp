@@ -11,8 +11,6 @@ import diode.data.Pot
 import diode.data.PotState._
 import diode.data.{Ready, Pending}
 
-//import upickle.default.{ReadWriter => RW, macroRW}
-
 // Model //TODO rename to AuthState
 protected case class AuthParams(jwt: Option[String] = None,
                                 errorCode: Option[Int] = None,
@@ -23,8 +21,6 @@ protected case class AuthParams(jwt: Option[String] = None,
 case class Auth(params: AuthParams)
 case object Auth {
   def apply() = new Auth(AuthParams())
-  // implicit def rw: RW[Auth] = macroRW
-  // def apply(username: Option[String]) = Auth.apply()
 }
 
 // Primary Actions
@@ -171,18 +167,3 @@ trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
   val circuit = AppCircuit
   connect()
 }
-
-// case PotReady =>
-//         if (matchingUsernamesCount.get == 0) Success("Valid username")
-//         else Error(s"Username $username already taken")
-//       case PotPending => Success("...")
-//       case _          => Error("Something went wrong")
-
-// trait AuthSelector extends Connect{
-//   //val getToken = () => AppCircuit.currentModel.auth.params.jwt.getOrElse("OOO")
-//   val getToken = () => AppCircuit.authSelector.value.jwt.getOrElse("OOO")
-//   val getErrorCode = () => value.auth.params.errorCode.getOrElse(0)
-
-//   def connectWith(): Unit
-//   connect()(AppCircuit.authSelector, connectWith())
-// }

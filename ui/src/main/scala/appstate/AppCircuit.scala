@@ -28,7 +28,7 @@ case object PersistentState{
 }
 
 // Global state tree
-case class AppModel(users: Users, cars: Cars, auth: Auth, self: AppModel = null)
+case class AppModel(users: Users, cars: Cars, auth: Auth)
 
 object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
 
@@ -36,15 +36,11 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
 
   def currentModel = zoom(identity).value
 
-  //NO longer used...
-  def defaultSelector[M, T]: ModelRW[M, T] =
-    zoomTo(x => x.self).asInstanceOf[ModelRW[M, T]]
-  
   val userSelector = zoomTo(x => x.users.users)
   val carSelector = zoomTo(x => x.cars.cars)
   val authSelector = zoomTo(x => x.auth.params)
   
-  val globalSelector:ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
+  val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
 
 
   // Using foldHandlers rather than composeHandlers to
@@ -90,12 +86,7 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with ModelLens[M])
     extends ComponentBuilder
     with ModelLens[M] {
 
-  //val dispatch: Dispatcher = circuit
-  def dispatch(action: Action) = {
-    //log.warn("ACTION", action.toString)
-    //log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
-    circuit.apply(action)
-  }
+  def dispatch(action: Action) = circuit.apply(action)
 
   def initialModel = circuit.initialModel
   def currentModel = circuit.currentModel
@@ -104,10 +95,8 @@ abstract class Connector[M <: AnyRef](circuit: Circuit[M] with ModelLens[M])
                                 update: => Unit = Unit) {
 
     val ac: Circuit[M] = circuit.asInstanceOf[Circuit[M]]
-    def loggedUpdate() = {
-      update; //log.warn("STATE-AFTER", currentModel.asInstanceOf[js.Any])
-    }
-    ac.subscribe(cursor)(_ => loggedUpdate())
+    
+    ac.subscribe(cursor)(_ => update)
   }
 }
 
@@ -116,11 +105,7 @@ abstract class ConnectorBuilder extends Connector[AppModel](AppCircuit)
 //Use generic connect rather than Connect since generic connect
 //is decoupled from AppCircuit and use only ConnectorBuilder or Connector
 trait Connect {
-  def dispatch(action: Action) = {
-    //log.warn("ACTION", action.toString)
-    //log.warn("STATE-BEFORE: ", AppCircuit.currentModel.asInstanceOf[js.Any]);
-    AppCircuit.apply(action)
-  }
+  def dispatch(action: Action) = AppCircuit.apply(action)
   def initialModel = AppCircuit.initialModel
   def value = AppCircuit.currentModel
 
@@ -131,30 +116,23 @@ trait Connect {
       update: => Unit = Unit) {
 
     val ac: Circuit[M] = AppCircuit.asInstanceOf[Circuit[M]]
-    def loggedUpdate() = {
-      update
-      //log.warn("STATE-AFTER: ", AppCircuit.currentModel.asInstanceOf[js.Any])
-    }
-    ac.subscribe(cursor)(_ => loggedUpdate())
+    
+    ac.subscribe(cursor)(_ => update)
   }
 }
 
 trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
-  def dispatch(action: Action) = {
-    //log.warn("ACTION", action.toString)
-    //log.warn("STATE-BEFORE: ", circuit.currentModel.asInstanceOf[js.Any]);
-    circuit.apply(action)
-  }
+  def dispatch(action: Action) = circuit.apply(action)
   
   val cursor: ModelR[M, T]
   val circuit: Circuit[M] with ModelLens[M]
 
-  def model = cursor.value
-  def initialModel = circuit.initialModel
-  
   def connectWith(): Unit
 
-  def connect() = circuit.subscribe(cursor)(_ => connectWith())
+  protected def model = cursor.value
+  protected def initialModel = circuit.initialModel
+  
+  protected def connect() = circuit.subscribe(cursor)(_ => connectWith())
 }
 
 // Note: defining this method separately because the compiler complains about empty names
@@ -164,4 +142,7 @@ trait ConnectWith{
 
 trait SilentConnect[M <: AnyRef,T] extends GenericConnect[M,T]{
   def connectWith() = Unit
+  val cursor = null
+  val circuit = null //TODO needs to be able to dispatch..this can't be null
+  override def connect() = () => Unit
 }

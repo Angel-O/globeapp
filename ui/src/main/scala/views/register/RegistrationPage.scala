@@ -3,12 +3,9 @@ package views.register
 import router.RoutingView
 import com.thoughtworks.binding.dom
 import components.Components.Implicits.{CustomTags2, _}
-import hoc.form._
-import appstate.Connect
-import appstate.VerifyUsernameAlreadyTaken
-import appstate.Register
-import navigation.URIs._
-import navigation.Navigators._
+import hoc.form.RegistrationForm
+import appstate.{Connect, Register, VerifyUsernameAlreadyTaken}
+import navigation._, URIs._, Navigators._
 
 object RegistrationPage {
 
