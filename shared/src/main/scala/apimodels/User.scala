@@ -1,9 +1,7 @@
 package apimodels
 import upickle.default.{ReadWriter => RW, macroRW}
 
-sealed trait ApiModel
-
-case object User extends ApiModel {
+case object User{
   implicit def rw: RW[User] = macroRW
   def apply(id: String, username: String) = new User(id, username)
 }
@@ -35,20 +33,3 @@ case class RegistrationDetails(name: String,
                                email: String,
                                password: String,
                                gender: String)
-
-case object MobileApp extends ApiModel {
-  implicit def rw: RW[MobileApp] = macroRW
-  def apply(id: String,
-            name: String,
-            company: String,
-            genre: String,
-            price: Double,
-            store: String) =
-    new MobileApp(id, name, company, genre, price, store)
-}
-case class MobileApp(id: String,
-                     name: String,
-                     company: String,
-                     genre: String,
-                     price: Double,
-                     store: String)

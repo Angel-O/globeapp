@@ -28,17 +28,18 @@ case object PersistentState{
 }
 
 // Global state tree
-case class AppModel(users: Users, cars: Cars, auth: Auth)
+case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps)
 
 object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
 
-  def initialModel = AppModel(Users(), Cars(), Auth())
+  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps())
 
   def currentModel = zoom(identity).value
 
   val userSelector = zoomTo(x => x.users.users)
   val carSelector = zoomTo(x => x.cars.cars)
   val authSelector = zoomTo(x => x.auth.params)
+  val mobileAppSelector = zoomTo(x => x.mobileApps.apps)
   
   val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
 
@@ -50,7 +51,8 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
     new LoggingHandler(globalSelector),
     new UserHandler(userSelector),
     new CarHandler(carSelector),
-    new AuthHandler(authSelector)
+    new AuthHandler(authSelector),
+    new MobileAppsHandler(mobileAppSelector)
   )
 }
 

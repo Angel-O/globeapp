@@ -6,7 +6,7 @@ import components.Components.Implicits.CustomTags2
 import components.Components.Implicits._
 import navigation.URIs._
 import config._
-import appstate.{AuthSelector, VerifyToken, Logout, Connect}
+import appstate.{AuthSelector, VerifyToken, Logout, Connect, FetchAllMobileApps}
 import utils.Push
 
 //case class Props(username: String, loggedIn: Boolean)
@@ -47,7 +47,10 @@ object App extends AuthSelector with Push {
 
   def doLogout() = dispatch(Logout)
   def navigateToLogin() = push(LoginPageURI)
-  def navigateToCatalog() = push(CatalogPageURI)
+  def navigateToCatalog() = {
+    //dispatch(FetchAllMobileApps)
+    push(CatalogPageURI)
+    }
 
   def connectWith = {
     loggedIn.value = getLoggedIn()
