@@ -1,3 +1,11 @@
+name := "app-server"
+
+enablePlugins(PlayScala)
+
+libraryDependencies ++= CommonServer.dependencies
+libraryDependencies += CommonServer.reactiveMongo
+libraryDependencies += guice
+
 //name := """app-server"""
 //organization := "com.Angelo"
 //
@@ -15,3 +23,4 @@
 
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "com.Angelo.binders._"
+
