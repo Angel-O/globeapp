@@ -8,7 +8,7 @@ lazy val commonSettings = Seq(
     organization := "com.Angelo",
     scalaVersion := "2.12.3",
     version      := "0.1.0-SNAPSHOT",
-    scalacOptions ++= Seq("-feature"),
+    scalacOptions ++= Seq("-feature", "-deprecation"),
     ensimeScalaVersion in ThisBuild := "2.12.3"
 )
 

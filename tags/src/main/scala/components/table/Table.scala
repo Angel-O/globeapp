@@ -88,7 +88,7 @@ case class TableBuilder() extends ComponentBuilder {
   
   // using lazy val rather than val...
   private lazy val className = getClassName(
-      (true, TABLE),
+      TABLE,
       (isBordered, TABLE_BORDERED),
       (isStriped, TABLE_STRIPED),
       (isNarrow, TABLE_NARROW),
