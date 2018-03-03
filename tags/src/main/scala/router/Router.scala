@@ -43,6 +43,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   }
   
   private def buildView(path: String): RoutingView = {
+    println("BUILDING VIEW")
     val view = matchingRoute(path).view()
     history.params = getParams(path)
     view.history = this.history
@@ -110,6 +111,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
     if (route == Router.NotFound.view()){
       //simulate redirect
       //document.location.hash = Router.NotFound.path.toLiteral
+      println("BUG,BUG") //TODO this doesn't seem to be called..investigate
       e.stopImmediatePropagation()
     }    
     activePage.value = route
