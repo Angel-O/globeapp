@@ -8,3 +8,13 @@ GET     /                           controllers.HomeController.index
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+
+GET		/api/apps					controllers.MobileAppController.getAll
+
+GET		/api/apps/:id				controllers.MobileAppController.getApp(id: String)
+
+POST		/api/apps					controllers.MobileAppController.postApp
+
+PUT		/api/apps/:id				controllers.MobileAppController.updateApp(id: String)
+
+DELETE	/api/apps/:id				controllers.MobileAppController.deleteApp(id: String)

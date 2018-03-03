@@ -154,14 +154,7 @@ trait GenericConnect[M <: AnyRef, T] extends ConnectWith {
   
   def connectWith(): Unit
 
-  def connect() = { 
-    def loggedUpdate() = {
-      connectWith()
-      //log.warn("STATE-AFTER: ", circuit.currentModel.asInstanceOf[js.Any])
-    }
-
-    circuit.subscribe(cursor)(_ => loggedUpdate())
-  }
+  def connect() = circuit.subscribe(cursor)(_ => connectWith())
 }
 
 // Note: defining this method separately because the compiler complains about empty names

@@ -7,7 +7,7 @@ import play.api.libs.json.Json
 import apimodels.{MobileApp => ApiApp}
 import upickle.default._
 import scala.concurrent.ExecutionContext.Implicits.global
-import models.MobileApp, models.Helpers._
+import models.MobileApp, models.ConversionHelpers._
 import reactivemongo.bson.BSONObjectID 
 
 class MobileAppController @Inject()(scc: SecuredControllerComponents,
@@ -19,6 +19,7 @@ class MobileAppController @Inject()(scc: SecuredControllerComponents,
     repository.getAll.map(all => Ok(write(all.map(_.toApi))))
   }
   
+  // url param
   def getApp(id: String) = AuthenticatedAction.async {
     Logger.info("Fetching mobile app")
     
@@ -37,7 +38,8 @@ class MobileAppController @Inject()(scc: SecuredControllerComponents,
     repository.addApp(apiApp.toModel).map(_ => Created)
   }
 
-  def deleteApp = AuthenticatedAction.async(parse.json) { req =>
+  //TODO fix this
+  def deleteApp(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Deleting mobile app")
     val id: String = req.body.as[String]
     repository
@@ -48,7 +50,8 @@ class MobileAppController @Inject()(scc: SecuredControllerComponents,
       })
   }
 
-  def updateApp = AuthenticatedAction.async(parse.json) { req =>
+  //TODO fix this
+  def updateApp(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Updating mobile app")
     //val payload: String = Json.stringify(req.body)
     val id = req.user.id

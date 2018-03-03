@@ -7,6 +7,10 @@ import utils.{Push} //safe}
 import config._
 import navigation.URIs._
 
+import diode.data.Pot
+import diode.data.PotState._
+import diode.data.{Ready, Pending}
+
 //import upickle.default.{ReadWriter => RW, macroRW}
 
 // Model //TODO rename to AuthState
@@ -14,7 +18,8 @@ protected case class AuthParams(jwt: Option[String] = None,
                                 errorCode: Option[Int] = None,
                                 username: Option[String] = None,
                                 loggedIn: Option[Boolean] = None,
-                                isTokenExpired: Option[Boolean] = None)
+                                isTokenExpired: Option[Boolean] = None,
+                                matchingUsernames: Pot[Int] = Pot.empty)
 case class Auth(params: AuthParams)
 case object Auth {
   def apply() = new Auth(AuthParams())
@@ -33,6 +38,7 @@ case class Register(name: String,
     extends Action
 case object Logout extends Action
 case object VerifyToken extends Action
+case class VerifyUsernameAlreadyTaken(username: String) extends Action
 
 
 // Derived Actions
@@ -43,10 +49,12 @@ case class UserRegistered(jwt: String, username: String) extends Action
 case object TokenExpired extends Action
 case object TokenValid extends Action
 case class StateRestored(state: PersistentState) extends Action
+case class MatchingUsernamesCount(count: Int) extends Action
+case object VerifyUsernameAlreadyTakenFailed extends Action
 
 
 
-// Action handler 
+// Action handler
 class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
     extends ActionHandler(modelRW)
     with AuthEffects {
@@ -74,8 +82,19 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
     case TokenExpired =>
       updated(value.copy(isTokenExpired = Some(true)),
               redirectEffect(LoginPageURI) + wipeStorageEffect())
-    case TokenValid => updated(value.copy(loggedIn = Some(true)), restoreFromStorageEffect())
-    case StateRestored(state) => updated(value.copy(username = Some(state.username))) 
+    case TokenValid =>
+      updated(value.copy(loggedIn = Some(true)), restoreFromStorageEffect())
+    case StateRestored(state) =>
+      updated(value.copy(username = Some(state.username)))
+    case VerifyUsernameAlreadyTaken(username) =>
+      // reset first
+      val pendingResult = value.matchingUsernames.pending()
+      updated(value.copy(matchingUsernames = pendingResult),
+              verifyUsernameAlreadyTakenEffect(username))
+    case MatchingUsernamesCount(count) =>
+      val readyResult = value.matchingUsernames.ready(count)
+      updated(value.copy(matchingUsernames = readyResult))
+    case VerifyUsernameAlreadyTakenFailed => noChange //TODO mark as failed
   }
 }
 
@@ -88,6 +107,7 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   import apimodels.{LoginDetails, RegistrationDetails}
   import utils.api._, utils.jwt._, utils.persist._
   import diode.{Effect, NoAction}
+  import config._
   
   def loginEffect(username: String, password: String) = {
     Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(LoginDetails(username, password)))
@@ -102,6 +122,11 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
     Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
         .map(_ => UserLoggedOut))
   }
+  def verifyUsernameAlreadyTakenEffect(username: String) = {
+    Effect(Post(url = s"$AUTH_SERVER_ROOT/api/usernames", payload = username, contentHeader = TEXT_CONTENT_HEADER)
+        .map(xhr => MatchingUsernamesCount(xhr.responseText.toInt))
+        .recover({ case _ => VerifyUsernameAlreadyTakenFailed }))
+  }
   def redirectEffect(path: String) = {
     Effect(Future{ push(path) }.map(_ => NoAction))
   }
@@ -114,7 +139,7 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   def verifyTokenEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/api/verify")
     .map(xhr => {TokenValid})
-    .recover{case _ => TokenExpired}) //TODO add status code to provide proper info
+    .recover({ case _ => TokenExpired })) //TODO add status code to provide proper info
   }
   def persistStorageEffect(username: String) = {
     Effect(Future{ persist(PersistentState(username)) }.map(_ => NoAction) )
@@ -136,11 +161,22 @@ trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
   def getErrorCode() = model.errorCode
   def getUsername() = model.username.getOrElse(retrieve().username)
   def getLoggedIn() = model.loggedIn.getOrElse(false)
-  
+  def getMatchingUsernamesCount() = model.matchingUsernames.state match{
+    case PotReady => Some(model.matchingUsernames.get)
+    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result
+    case _ => None
+  }
+
   val cursor = AppCircuit.authSelector
   val circuit = AppCircuit
   connect()
 }
+
+// case PotReady =>
+//         if (matchingUsernamesCount.get == 0) Success("Valid username")
+//         else Error(s"Username $username already taken")
+//       case PotPending => Success("...")
+//       case _          => Error("Something went wrong")
 
 // trait AuthSelector extends Connect{
 //   //val getToken = () => AppCircuit.currentModel.auth.params.jwt.getOrElse("OOO")

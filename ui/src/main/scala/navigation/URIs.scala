@@ -11,5 +11,6 @@ object URIs {
   val HelloPageURI = "/hello"
   val UserEditPageURI = "/users"
   val SamplePageURI = "/sample"
+  val CatalogPageURI = "/catalog"
   val UserPostURI = UserEditPageURI.tail / ":username" / "posts" / Int
 }

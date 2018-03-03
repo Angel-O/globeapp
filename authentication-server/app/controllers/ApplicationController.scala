@@ -151,6 +151,12 @@ extends SecuredController(scc){
     repository.getAll.map(all => Ok(write(all.map(_.username)))) 
   }
   
+  def verifyUsernameAlreadyTaken = Action(parse.text).async { req =>
+    Logger.info("Finding matching username")
+    val username = req.body
+    repository.getAll.map(users => Ok(write(users.find(_.username == username).map(_ => 1).getOrElse(0)))) 
+  }
+  
   def getAll = AuthenticatedAction.async { 
     Logger.info("Fetching users")
     repository.getAll.map(all => Ok(write(all.map(x => User(x._id.stringify, x.username))))) 

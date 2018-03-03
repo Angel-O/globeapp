@@ -15,25 +15,22 @@ import fr.hmil.roshttp.HttpRequest
 import apimodels.User
 import appstate.AppCircuit
 import diode.Dispatcher
-import appstate.FetchUsers
-import diode.data.Pot
-import diode.data.PotState._
-import diode.data.{Ready, Pending}
 import appstate.Connect
-import appstate.CreateUser
 import appstate.AppModel
 import appstate.ConnectorBuilder
 import hoc.form.common.FormElements._
 import hoc.form.common._
 import common.FormValidators._
 import common._, common.Styles
+import appstate.AuthSelector
 
-case class RegistrationFormBuilder() extends ConnectorBuilder{
+
+case class RegistrationFormBuilder() extends ComponentBuilder with AuthSelector {
    
   def render = this 
   
   var onSubmit: (String, String, String, String, String) => Unit = _
-  var fetchUsers: () => Unit = _
+  var verifyUsernameAlreadyTaken: String => Unit = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
   private var termsAccepted: Var[Boolean] = Var(false)
@@ -43,15 +40,12 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   genderValidation, usernameValidation, subscriptionTypeValidation, passwordValidation,
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
-  // no need to use Var (no reload needed)
-  // Note good practice: initialize with value from circuit to make it obvious it comes from there
-  private var users = Pot.empty[Seq[User]] //= initialModel.users.users //TODO should model be potential???
-  connect()(AppCircuit.userSelector, users = Ready(AppCircuit.userSelector.value))
-  
   import FieldValidators._ 
   private val handleUsernameChange = (value: String) => {   
     username.value = value.trim()
-    usernameValidation.value = validateUsername(username.value) |> validateUsernameAlreadyTaken(username.value)
+    val validationResult = validateUsername(username.value)
+    usernameValidation.value = validationResult
+    if(validationResult) verifyUsernameAlreadyTaken(username.value)
   } 
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
@@ -99,18 +93,15 @@ case class RegistrationFormBuilder() extends ConnectorBuilder{
   }
   
   // async validation
-  private def validateUsernameAlreadyTaken(username: String) = { 
-    fetchUsers() //TODO this needs to be awaited...
-    val outcome = users.state match {
-      // pending not triggered..
-      case PotEmpty | PotPending => validateUsername(username)//Error("Fetching data...") //TODO replace with progress bar...
-      case _ => users.map(_.exists(_.username == username) match{
-        case true => Error(s"Username $username already taken")
-        case _ => Success("Valid username, son")
-      }).get
-    }
-    outcome//.get
+  private def validateUsernameAlreadyTaken(username: String) = {
+    usernameValidation.value = getMatchingUsernamesCount().map({
+      case 0 => Success("Valid username")
+      case 1 => Error(s"Username $username already taken")
+      case _ => Success("........") //pending state
+    }).getOrElse(Error("Something went wrong"))
   }
+
+  def connectWith() = validateUsernameAlreadyTaken(username.value)
 
   @dom def build = {
     val form =

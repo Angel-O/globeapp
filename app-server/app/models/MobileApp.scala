@@ -37,7 +37,7 @@ case object MobileApp {
   implicit val userFormat: OFormat[MobileApp] = Json.format[MobileApp]
 }
 
-object Helpers {
+object ConversionHelpers {
   implicit class fromModelToApi(x: MobileApp) {
     def toApi =
       ApiApp(x._id.stringify, x.name, x.company, x.genre, x.price, x.store)
