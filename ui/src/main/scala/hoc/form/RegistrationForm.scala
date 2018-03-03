@@ -1,27 +1,8 @@
 package hoc.form
 
 import components.Components.Implicits.{ CustomTags2, ComponentBuilder, _ }
-import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
-import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
-import org.scalajs.dom.raw.Node
-import org.scalajs.dom.document
-import com.thoughtworks.binding.FutureBinding
-import org.scalajs.dom.ext.Ajax
-import scala.concurrent.ExecutionContext.Implicits.global
-import scalajs.js
-import upickle.Js
-import scala.concurrent.Future
-import fr.hmil.roshttp.HttpRequest
-import apimodels.User
-import appstate.AppCircuit
-import diode.Dispatcher
-import appstate.Connect
-import appstate.AppModel
-import appstate.ConnectorBuilder
-import hoc.form.common.FormElements._
-import hoc.form.common._
-import common.FormValidators._
-import common._, common.Styles
+import com.thoughtworks.binding.{ dom, Binding }, Binding.Var
+import common._, FormElements._, FormValidators._
 import appstate.AuthSelector
 
 
@@ -190,18 +171,17 @@ case class RegistrationFormBuilder() extends ComponentBuilder with AuthSelector 
     create(form, "registration-form")
   }
 
-  //room for improvement...run only failing ones
   def runValidation() = {
-    handleNameChange(name.value)
-    handleUsernameChange(username.value)
-    handleEmailChange(email.value)
-    handleMessageChange(message.value)
-    handleWhereDidYouHearAboutUsChange(whereDidYouHearAboutUs.value)
-    handleAcceptTermsChange(termsAccepted.value)
-    handleGenderChange(gender.value)
-    handlePasswordChange(password.value)
-    handleConfirmPasswordChange(confirmPassword.value)
-    handleSubscriptionTypeChange(subscriptionType.value)
+    if(!nameValidation.value) handleNameChange(name.value)
+    if(!usernameValidation.value) handleUsernameChange(username.value)
+    if(!emailValidation.value) handleEmailChange(email.value)
+    if(!messageValidation.value) handleMessageChange(message.value)
+    if(!whereDidYouHearAboutUsValidation.value) handleWhereDidYouHearAboutUsChange(whereDidYouHearAboutUs.value)
+    if(!acceptTermsValidation.value) handleAcceptTermsChange(termsAccepted.value)
+    if(!genderValidation.value) handleGenderChange(gender.value)
+    if(!passwordValidation.value) handlePasswordChange(password.value)
+    if(!confirmPasswordValidation.value) handleConfirmPasswordChange(confirmPassword.value)
+    if(!subscriptionTypeValidation.value) handleSubscriptionTypeChange(subscriptionType.value)
   }
 
   def runSubmit() = {
