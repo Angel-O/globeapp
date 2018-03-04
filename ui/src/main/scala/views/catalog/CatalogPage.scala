@@ -64,7 +64,8 @@ object CatalogPage {
     }
 
     def filterAcrossAllFields(text: String, app: MobileApp) = {
-      val appToStringLiteral = s"${app.name}${app.company}${app.genre}${app.price}${app.store}"
+      val appToStringLiteral =
+        s"${app.name}${app.company}${app.genre}${app.price}${app.store}"
       //val appToStringLiteral = app.toString.toLowerCase ... ==> not good enough
       //val appToStringLiteral = ccToMap(app).map(_._2).foldLeft("")(_ + _).toLowerCase ==> not working on scalaJS
       appToStringLiteral.toLowerCase.contains(text.toLowerCase)
