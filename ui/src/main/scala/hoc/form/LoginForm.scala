@@ -37,7 +37,7 @@ case class LoginFormBuilder() extends ComponentBuilder with AuthSelector {
       <div>
         <div class={ FIELD }>
           <TextInput label={ "Username" } labelStyle={ Styles.labelStyle } 
-            onChange={ handleUsernameChange } inputValue={ username }/>
+            onChange={ handleUsernameChange } />
           { renderValidation(usernameValidation.bind).bind }
         </div>
         <div class={ FIELD }>

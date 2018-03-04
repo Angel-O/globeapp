@@ -15,7 +15,6 @@ object CatalogPage {
     dispatch(FetchAllMobileApps) // fetching on first load
 
     val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
-    val filterText = Var("")
     val appDialogIsOpen = Var(false)
     val selectedApp = Var[Option[MobileApp]](None)
 
@@ -32,8 +31,7 @@ object CatalogPage {
 
       <div>
 			  <h1>Apps catalog</h1>
-          <TextInput placeHolder="Search" 
-            inputValue={filterText.bind} 
+          <TextInput placeHolder="Search"  
             onChange={handleSearchBoxChange _}/>
           { val tableRows = generateRows(apps.bind).bind
             tableRows.isEmpty match {
@@ -56,7 +54,6 @@ object CatalogPage {
     }
 
     def handleSearchBoxChange(text: String) = {
-      filterText.value = text
       apps.value = getAllApps() // reset before filtering to avoid filtering over progressively decreasing data
       apps.value = apps.value.filter(app => searchMatchAcrossAllFields(text, app))
     }
@@ -91,18 +88,18 @@ object CatalogPage {
       val dialog = toBindingSeq(targetApp).map(app => {
         
         val dialogContent = 
-        <div>
-          <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
-            <div>
-              <h1> Name: { app.name } </h1>
-              <h2> Developed by: { app.company } </h2>
-              <h2> Genre: { app.genre } </h2>
-              <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
-              <h2> Store: { app.store } </h2>
-              <h3> Description: Coming soon </h3>
-              <h3> Rating: Coming soon </h3>
-            </div>}/>
-        </div>
+          <div>
+            <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
+              <div>
+                <h1> Name: { app.name } </h1>
+                <h2> Developed by: { app.company } </h2>
+                <h2> Genre: { app.genre } </h2>
+                <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
+                <h2> Store: { app.store } </h2>
+                <h3> Description: Coming soon </h3>
+                <h3> Rating: Coming soon </h3>
+              </div>}/>
+          </div>
 
         val modal = 
           <div>

@@ -70,7 +70,7 @@ object MainShell extends BulmaCssClasses {
                                  login: () => Unit,
                                  logout: () => Unit) = {
     val loginButton =
-      <Button label="log in" isWarning={true} onClick={login}/>
+      <SimpleButton label="log in" icon={ <Icon id="user"/> } isWarning={true} onClick={login}/>
     val logoutButton =
       <Button label="log out" onClick={logout}/>
 

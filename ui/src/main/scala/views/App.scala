@@ -47,10 +47,7 @@ object App extends AuthSelector with Push {
 
   def doLogout() = dispatch(Logout)
   def navigateToLogin() = push(LoginPageURI)
-  def navigateToCatalog() = {
-    //dispatch(FetchAllMobileApps)
-    push(CatalogPageURI)
-    }
+  def navigateToCatalog() = push(CatalogPageURI)
 
   def connectWith = {
     loggedIn.value = getLoggedIn()
