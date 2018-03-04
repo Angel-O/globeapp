@@ -1,3 +1,5 @@
+import scala.sys.process._ 
+
 name := "app-server"
 
 enablePlugins(PlayScala)
@@ -5,6 +7,17 @@ enablePlugins(PlayScala)
 libraryDependencies ++= CommonServer.dependencies
 libraryDependencies += CommonServer.reactiveMongo
 libraryDependencies += guice
+
+lazy val execScript = taskKey[Unit]("Execute the shell script")
+lazy val runit = inputKey[Unit]("run server in stage mode")
+execScript := { s"${name.value}/target/universal/stage/bin/${name.value} -Dhttp.port=3001" !}
+runit in Compile := { execScript.value }
+        
+
+commands += Command.command("go") { state =>
+    "; clean ; stage; runit" :: 
+    state
+}
 
 //name := """app-server"""
 //organization := "com.Angelo"

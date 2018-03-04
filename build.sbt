@@ -12,13 +12,25 @@ lazy val commonSettings = Seq(
     ensimeScalaVersion in ThisBuild := "2.12.3"
 )
 
+lazy val execScript0 = taskKey[Unit]("Execute ipt")
+lazy val execScript1 = taskKey[Unit]("Execute the shell script")
+lazy val execScript2 = taskKey[Unit]("Execute script")
+lazy val runall1 = inputKey[Unit]("run server in stage mode")
+execScript1 := { "app-server/target/universal/stage/bin/app-server -Dhttp.port=3001" !} 
+execScript2 := { "authentication-server/target/universal/stage/bin/authentication-server -Dhttp.port=3000" !}
+
 lazy val root = (project in file("."))
     .aggregate(ui, authenticationServer, appServer)
     .dependsOn(ui)
-    .settings(commonSettings)
-//            Runtime / ui := false
-//             fastOptJS / authenticationServer := false,
-//             fastOptJS / appServer := false)
+    .settings(
+        commonSettings,
+        execScript0 := { "sbt ;clean ;stage" ! },
+        runall1 in Compile := {
+            execScript0.value
+            execScript1.value
+            execScript2.value
+            //(run in Compile in server).evaluated
+        })
 
 lazy val authenticationServer = (project in file("authentication-server"))
     .dependsOn(sharedJVM, securityServer)
@@ -137,13 +149,21 @@ commands += Command.command("clie") { state =>
   }
 
 commands += Command.command("runall") { state =>
-    "project authenticationServer" :: "run -Dhttp.port=3000 -Dhttp.address=localhost" ::
-    "project appServer" :: "run -Dhttp.port=3001 -Dhttp.address=localhost" ::
+    "project authenticationServer" :: "go" ::
+    "project appServer" :: "go" ::
     "project ui" :: "~fastOptJS" ::
     state
 }
 
-
+//lazy val runall = inputKey[Unit]("run all servers")
+//commands += Command.command("go1") { state =>
+//    ";project appServer; clean ; stage; runit" :: 
+//    state
+//}
+//commands += Command.command("go2") { state =>
+//    ";project authenticationServer; clean ; stage; runit" :: 
+//    state
+//}
 
 
 //import complete.DefaultParsers._
