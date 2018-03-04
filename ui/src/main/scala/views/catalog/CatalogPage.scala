@@ -65,18 +65,19 @@ object CatalogPage {
 
     def filterAcrossAllFields(text: String, app: MobileApp) = {
       val appToStringLiteral =
-        s"${app.name}${app.company}${app.genre}${app.price}${app.store}"
+        s"${app.name}${app.company}${app.genre}${formatPrice(app.price)}${app.store}"
       //val appToStringLiteral = app.toString.toLowerCase ... ==> not good enough
       //val appToStringLiteral = ccToMap(app).map(_._2).foldLeft("")(_ + _).toLowerCase ==> not working on scalaJS
       appToStringLiteral.toLowerCase.contains(text.toLowerCase)
     }
 
+    def formatPrice(price: Double) = if (price > 0) price.toString else "FREE"
+
     @dom
     def generateRows(mobileApps: Seq[MobileApp]) = {
-      @dom def formatPrice(price: Double) = if (price > 0) price else "FREE"
       toBindingSeq(mobileApps)
         .map(app =>
-          <TableRow cells={Seq(app.name, app.company, app.genre, formatPrice(app.price).bind, app.store)}/>)
+          <TableRow cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)}/>)
         .all
         .bind
     }
