@@ -16,7 +16,7 @@ object RegistrationPage {
       @dom override def element = {
         <div>
         <SimpleModal 
-          openAtLaunch={true} 
+          isPageModal={true} 
           onSmartClose={navigateToHome _} content=
           {<div>
             <RegistrationForm 

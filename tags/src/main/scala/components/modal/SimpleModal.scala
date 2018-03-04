@@ -32,7 +32,7 @@ case class SimpleModalBuilder() extends {
       <button class={MODAL_CLOSE} data:aria-label="close"></button>
         .asInstanceOf[HTMLElement]
 
-    val hideTrigger = !openAtLaunch //TODO make unwrapElement method more idiomatic...
+    val showTrigger = !isPageModal && label != null //TODO make unwrapElement method more idiomatic...
 
     modalTrigger.addEventListener("click", launchModal)
     closeButton.addEventListener("click", closeModal)
@@ -40,7 +40,7 @@ case class SimpleModalBuilder() extends {
     enableSmartClose()
 
     <div>
-        { unwrapElement(modalTrigger, hideTrigger).bind }
+        { unwrapElement(modalTrigger, showTrigger).bind }
         <div class={modalClass} id={ targetId }>
           <div class="modal-background"></div>
 					<div class="modal-content">

@@ -54,10 +54,13 @@ case class TableRowBuilder() extends ComponentBuilder {
   def render = this
 
   var cells: Seq[Any] = _
+  var onClick: Int => Unit = (_: Int) => Unit //TODO add clickable trait
+  var index: Int = _
   
   private def handleClick = (e: Event) => {
     var self = e.currentTarget.asInstanceOf[HTMLElement]
     self.classList.toggle(SELECTED)
+    onClick(index)
   }
 
   @dom def build = {
@@ -97,14 +100,19 @@ case class TableBuilder() extends ComponentBuilder {
 
   @dom def build = {
     
-    val rows = toBindingSeq(this.rows)
+    val rowsAndIndices = toBindingSeq(rows.zipWithIndex)
     
     <table class={className}>
       { unwrapBuilder(header) }
       <tbody>
-        { rows.flatMap(_.bind) }
+        { rowsAndIndices.flatMap(rowAndIndex => getIndexedRow(rowAndIndex).bind) }
       </tbody>
       { unwrapBuilder(footer) }
     </table>.asInstanceOf[HTMLElement]
+  }
+
+  @dom def getIndexedRow(rowAndIndex: (TableRowBuilder, Int)) = {
+    rowAndIndex._1.index = rowAndIndex._2 
+    rowAndIndex._1.bind
   }
 }

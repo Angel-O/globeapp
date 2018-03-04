@@ -17,28 +17,32 @@ trait ModalBase extends ComponentBuilder with Size with Color {
   var label: String = _ //affects the trigger button
   var content: HTMLElement = _
   var smartClose: Boolean = true
-  var openAtLaunch: Boolean = _
+  var isPageModal: Boolean = _
   var onSmartClose: () => Unit = () => ()
+  var onClose: () => Unit = () => ()
 
-  protected var isOpen = Var(false)
+  var isOpen: Boolean = _
   val targetId: String
   val modalContentClassName: String
 
   protected def enableSmartClose() = if (smartClose) { closeOnClickOutside() }
 
-  protected def modalClass = getClassName(MODAL, (openAtLaunch, ACTIVE))
+  protected def modalClass =
+    getClassName(MODAL, (isPageModal || isOpen, ACTIVE))
 
   protected val launchModal = (e: Event) => {
     val target = document.querySelector(s"#${targetId}")
     target.classList.add(ACTIVE)
-    isOpen.value = true
+    isOpen = true
   }
 
   protected val closeModal = (e: Event) => {
-    val target = document.querySelector(s"#${targetId}")
-    target.classList.remove(ACTIVE)
-    isOpen.value = false
+    // with the new options this can be null
+    val targetOption = Option(document.querySelector(s"#${targetId}"))
+    targetOption.map(_.classList.remove(ACTIVE))
+    isOpen = false
     if (smartClose) onSmartClose()
+    onClose()
   }
 
   private val closeOnClickOutside = () => {
@@ -63,7 +67,7 @@ trait ModalBase extends ComponentBuilder with Size with Color {
       "click",
       (e: Event) => {
         getModal.map { modal =>
-          if (isOpen.value && !modal.contains(e.target)) closeModal(e)
+          if (isOpen && !modal.contains(e.target)) closeModal(e)
         }
       },
       true

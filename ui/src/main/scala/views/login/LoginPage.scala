@@ -17,7 +17,7 @@ object LoginPage {
     override def element = {
       <div>
         <SimpleModal 
-          openAtLaunch={true}
+          isPageModal={true}
           onSmartClose={onSmartClose _}
           content={
             <div style={"display: flex; flex-direction: column"}>

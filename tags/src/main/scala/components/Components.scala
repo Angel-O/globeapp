@@ -167,7 +167,14 @@ object Components {
         var bindingElementsSeq: BindingSeq[T] = temp
         bindingElementsSeq
     }
-    
+
+    def toBindingSeq[T](elements: Option[T]) = {
+        var temp: Vars[T] = Vars.empty; 
+        elements.foreach(x => temp.value += x)
+        var bindingElementsSeq: BindingSeq[T] = temp
+        bindingElementsSeq
+    }
+
       implicit class conv[T](els: BindingSeq[T]) extends IndexedSeq[T]{
     
        override def length: Int = 0
