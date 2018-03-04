@@ -111,6 +111,7 @@ object Components {
       def Input() = new InputBuilder()
       def InputRaw() = new InputBuilderRaw()
       def MenuItem() = new MenuItemBuilder()
+      def Message() = new MessageBuilder()
       def MyComponent() = new MyComponentBuilder() // TEST
       def ModalCard() = new ModalCardBuilder()
       def Navbar() = new NavbarBuilder()
@@ -286,6 +287,12 @@ object Components {
         }
       }
     }
+
+    trait Click {
+      def setPointerStyle(clickHandler: Any, element: HTMLElement) = {
+        Option(clickHandler).foreach( _ => element.style.cursor = "pointer")
+      }
+    }
     
     trait Color {
       var isPrimary: Boolean = _
@@ -357,6 +364,8 @@ object Components {
       val IS_ = "is-"
       val IS_UP = "is-up"
       val MESSAGE = "message"
+      val MESSAGE_HEADER = "message-header"
+      val MESSAGE_BODY = "message-body"
       val MODAL = "modal"
       val MODAL_BUTTON = "modal-button"
       val MODAL_CLOSE = "modal-close"

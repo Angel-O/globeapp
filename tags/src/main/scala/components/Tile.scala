@@ -8,13 +8,11 @@ import Components.Implicits.ComponentBuilder
 import Components.Implicits.autoBinding
 import Components.Implicits.toBindingSeq
 import Components.Implicits.toComponentBuilder
-import components.Components.Implicits.Color
+import components.Components.Implicits.{Color, Click}
 import org.scalajs.dom.raw.Event
 
-case class TileBuilder() extends ComponentBuilder with Color{
+case class TileBuilder() extends ComponentBuilder with Color with Click{
   def render = this
-  
-  private val defaultHandler : () => Unit = () => {}
   
   var isAncestor: Boolean = false
   var isParent: Boolean = _
@@ -22,12 +20,12 @@ case class TileBuilder() extends ComponentBuilder with Color{
   var width: Int = _ //TODO throw exception if it's out of range
   var children: Seq[TileBuilder] = Seq.empty
   var content: HTMLElement = _ // TODO allow for strings as well...
-  var onClick, onHover: () => Unit = defaultHandler //do nothing by default
+  var onClick, onHover: () => Unit = _
    
   private var isChild: Boolean = _ //NO NEED TO Set it from outside!!
   
-  private val handleOnClick = (e: Event) => onClick()
-  private val handleOnHover = (e: Event) => onHover()
+  private val handleOnClick = (e: Event) => Option(onClick).foreach(handler => handler())
+  private val handleOnHover = (e: Event) => Option(onHover).foreach(handler => handler())
   
   lazy val hasWidth = width > 0
   lazy val className = getClassName(
@@ -71,12 +69,12 @@ case class TileBuilder() extends ComponentBuilder with Color{
         { childrenTiles.flatMap(_.bind) }
     	</div>.asInstanceOf[HTMLElement]
     
+    //TODO map over option to avoid attachins event handlers that do nothing
+    //and move this logic to click Trait
     elem.addEventListener("click", handleOnClick)
-    elem.addEventListener("mouseenter", handleOnHover)
+    elem.addEventListener("mouseenter", handleOnHover) 
     
-    if (onClick != defaultHandler){
-      elem.style.cursor = "pointer"
-    }
+    setPointerStyle(onClick, elem)
     
     elem
   }

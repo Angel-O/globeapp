@@ -50,16 +50,16 @@ case class TableFooterBuilder() extends ComponentBuilder {
   }
 }
 
-case class TableRowBuilder() extends ComponentBuilder {
+case class TableRowBuilder() extends ComponentBuilder with Click{
   def render = this
 
   var cells: Seq[Any] = _
-  var onClick: Int => Unit = (_: Int) => Unit //TODO add clickable trait
+  var onClick: Int => Unit = _ 
   var index: Int = _
   var enableRowHighlight: Boolean = false
   
   private def handleClick = (e: Event) => { 
-    onClick(index)
+    Option(onClick).foreach( handler => handler(index))
   }
 
   private def highlightRow = (e: Event) => {
@@ -78,8 +78,11 @@ case class TableRowBuilder() extends ComponentBuilder {
     
     if (enableRowHighlight) row.addEventListener("click", highlightRow)
 
+    //TODO move logic to click trait using option
     row.addEventListener("click", handleClick)
     
+    setPointerStyle(onClick, row)
+
     row
   }
 }

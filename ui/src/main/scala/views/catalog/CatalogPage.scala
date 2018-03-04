@@ -1,6 +1,6 @@
 package views.catalog
 
-import components.Components.Implicits.{CustomTags2, toHtml, toBindingSeq, Color}
+import components.Components.Implicits.{CustomTags2, toHtml, toBindingSeq}
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView
@@ -10,7 +10,7 @@ import apimodels.MobileApp
 
 object CatalogPage {
 
-  def view() = new RoutingView() with MobileAppsSelector with Color{
+  def view() = new RoutingView() with MobileAppsSelector{
 
     dispatch(FetchAllMobileApps) // fetching on first load
 
@@ -85,27 +85,24 @@ object CatalogPage {
     @dom
     def renderAppDetailDialog(targetApp: Option[MobileApp], dialogIsOpen: Boolean) = {
  
-      // setting bulma style...it's a subtle color in the background
-      // TODO this is overkill for a small portion of this component
-      // either extract to its own component or simply use the bulma
-      // css class
-      isDanger = true 
-
       // turning option into binding seq: if the option is
       // None no element will be mounted into the DOM
       // TODO apply this approach wherever dummy is used
       val dialog = toBindingSeq(targetApp).map(app => {
         
         val dialogContent = 
-          <div class={getClassName(MESSAGE, COLOR_CLASS)} style={"padding: 1em"}>
-            <h1> Name: { app.name } </h1>
-            <h2> Developed by: { app.company } </h2>
-            <h2> Genre: { app.genre } </h2>
-            <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
-            <h2> Store: { app.store } </h2>
-            <h3> Description: Coming soon </h3>
-            <h3> Rating: Coming soon </h3>
-          </div> 
+        <div>
+          <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
+            <div>
+              <h1> Name: { app.name } </h1>
+              <h2> Developed by: { app.company } </h2>
+              <h2> Genre: { app.genre } </h2>
+              <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
+              <h2> Store: { app.store } </h2>
+              <h3> Description: Coming soon </h3>
+              <h3> Rating: Coming soon </h3>
+            </div>}/>
+        </div>
 
         val modal = 
           <div>
