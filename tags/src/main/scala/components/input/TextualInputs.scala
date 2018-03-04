@@ -117,7 +117,7 @@ case class TextareaInputBuilder() extends { val inputType = TextareaInput } with
     inputElement.value = inputValue
 
     <div class={ fieldClassName }>
-      { labelElement.bind }
+      { unwrapElement(labelElement.bind, label != null).bind }
       <div class="control">
         { inputElement.bind }
       </div>
@@ -129,7 +129,7 @@ sealed trait TextualInput extends ComponentBuilder with InputBase with Icons{
   var placeHolder: String = ""
 
   val inputType: InputType
-  @dom protected val inputElement = {
+  @dom protected lazy val inputElement = {
     
     val input = <input class="input" type={ inputType.name } placeholder={ placeHolder }/>
     
@@ -152,7 +152,7 @@ sealed trait TextualInput extends ComponentBuilder with InputBase with Icons{
                   </div>
 
     var element = <div class={ fieldClassName }>
-                    { labelElement.bind }
+                    { unwrapElement(labelElement.bind, label != null).bind }
                     { control }
                   </div>.asInstanceOf[HTMLElement]
      element

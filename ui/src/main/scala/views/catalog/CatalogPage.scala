@@ -20,32 +20,61 @@ object CatalogPage {
 
     val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
     val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
+    var filterText = Var("")
 
     @dom
     override def element = {
 
-      //NOTE 1: calling value rather than bind on apps would cause the 
+      //val allApps = Var(apps.bind)
+      //NOTE 1: calling value rather than bind on apps would cause the
       //fetching apps on first load to fail.
       //Note 2: bind the rows before passing them to the table
-      val tableRows = generateRows(apps.bind).bind 
+      //val tableRows = generateRows(apps.bind).bind
+      //Note 3: search box need to come before binding the apps and the
+      // rows otherwise a page refresh would be triggered each time
+      // the text changes
 
       <div>
 			  <h1>Apps catalog</h1>
-        <Table 
-          isBordered={true}
-          isStriped={true}
-          isFullWidth={true}
-          isHoverable={true}
-          header={<TableHeader cells={headers}/>}
-          rows={tableRows}
-          footer={<TableFooter cells={headers}/>}/>
+          <TextInput placeHolder="Search" 
+            inputValue={filterText.bind} 
+            onChange={handleSearchBoxChange _}/>
+          { val tableRows = generateRows(apps.bind).bind
+            tableRows.isEmpty match {
+              case true => 
+              <span>No apps to show</span>
+              case false => 
+              <div>
+                <Table isBordered={true} 
+                  isStriped={true}
+                  isFullWidth={true} 
+                  isHoverable={true}
+                  header={<TableHeader cells={headers}/>}
+                  rows={tableRows}
+                  footer={<TableFooter cells={headers}/>}/>
+              </div> } 
+          }
       </div>
     }
 
+    def handleSearchBoxChange(text: String) = {
+      filterText.value = text
+      apps.value = getAllApps() // reset before filtering to avoid filtering over progressively decreasing data
+      apps.value = apps.value.filter(app => filterAcrossAllFields(text, app))
+    }
+
+    def filterAcrossAllFields(text: String, app: MobileApp) = {
+      val appToStringLiteral =
+        s"${app.name}${app.company}${app.genre}${app.price}${app.store}"
+      //val appToStringLiteral = app.toString.toLowerCase ... ==> not good enough
+      //val appToStringLiteral = ccToMap(app).map(_._2).foldLeft("")(_ + _).toLowerCase ==> not working on scalaJS
+      appToStringLiteral.toLowerCase.contains(text.toLowerCase)
+    }
+
     @dom
-    def generateRows(apps: Seq[MobileApp]) = {
-      @dom def formatPrice(price: Double) = if(price > 0) price else "FREE"
-      toBindingSeq(apps) 
+    def generateRows(mobileApps: Seq[MobileApp]) = {
+      @dom def formatPrice(price: Double) = if (price > 0) price else "FREE"
+      toBindingSeq(mobileApps)
         .map(app =>
           <TableRow cells={Seq(app.name, app.company, app.genre, formatPrice(app.price).bind, app.store)}/>)
         .all
@@ -55,5 +84,13 @@ object CatalogPage {
     def onSmartClose() = navigateTo(history.getLastVisited)
 
     def connectWith() = apps.value = getAllApps()
+
+    // uses reflection...cool, but not suitable for scalaJS
+    // def ccToMap(cc: AnyRef) =
+    //   (Map[String, Any]() /: cc.getClass.getDeclaredFields) {
+    //     (a, f) =>
+    //       f.setAccessible(true)
+    //       a + (f.getName -> f.get(cc))
+    //   }
   }
 }
