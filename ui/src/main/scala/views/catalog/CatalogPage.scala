@@ -25,7 +25,6 @@ object CatalogPage {
     @dom
     override def element = {
 
-      //val allApps = Var(apps.bind)
       //NOTE 1: calling value rather than bind on apps would cause the
       //fetching apps on first load to fail.
       //Note 2: bind the rows before passing them to the table
