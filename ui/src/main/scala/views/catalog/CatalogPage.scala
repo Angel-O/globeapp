@@ -1,16 +1,12 @@
 package views.catalog
 
 import components.Components.Implicits.{CustomTags2, toHtml, toBindingSeq, Color}
-import components.table.TableRowBuilder
-import com.thoughtworks.binding.{dom, Binding}, Binding.{BindingSeq, Var}
-import hoc.form.LoginForm
+import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView
 import appstate.{Connect, Login}
-import org.scalajs.dom.raw.Event
 import appstate.{MobileAppsSelector, FetchAllMobileApps}
 import apimodels.MobileApp
-import utils.generateSeq
 
 object CatalogPage {
 
@@ -19,7 +15,7 @@ object CatalogPage {
     dispatch(FetchAllMobileApps) // fetching on first load
 
     val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
-    var filterText = Var("")
+    val filterText = Var("")
     val appDialogIsOpen = Var(false)
     val selectedApp = Var[Option[MobileApp]](None)
 
@@ -34,8 +30,6 @@ object CatalogPage {
       // rows otherwise a page refresh would be triggered each time
       // the text changes
 
-      val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
-
       <div>
 			  <h1>Apps catalog</h1>
           <TextInput placeHolder="Search" 
@@ -46,6 +40,7 @@ object CatalogPage {
               case true => 
               <span>No apps to show</span>
               case false => 
+              val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
               <div>
                 <Table isBordered={true} 
                   isStriped={true}
@@ -54,7 +49,7 @@ object CatalogPage {
                   header={<TableHeader cells={headers}/>}
                   rows={tableRows}
                   footer={<TableFooter cells={headers}/>}/>
-                { renderDialog(selectedApp.bind, appDialogIsOpen.bind).bind }
+                { renderAppDetailDialog(selectedApp.bind, appDialogIsOpen.bind).bind }
               </div> } 
           }
       </div>
@@ -63,19 +58,38 @@ object CatalogPage {
     def handleSearchBoxChange(text: String) = {
       filterText.value = text
       apps.value = getAllApps() // reset before filtering to avoid filtering over progressively decreasing data
-      apps.value = apps.value.filter(app => filterAcrossAllFields(text, app))
+      apps.value = apps.value.filter(app => searchMatchAcrossAllFields(text, app))
     }
 
-    def handleRowClick(rowIndex: Int) = {
+    def handleRowClick(rowIndex: Int) = { 
+      //TODO probably this needs Vars...they go hand in hand:
+      //there is no need for intermediated updates...same below...
       selectedApp.value = Some(apps.value(rowIndex))
-      println(selectedApp.value.map(_.name).get)
       appDialogIsOpen.value = true
     }
+    
+    def handleClose() = {
+      appDialogIsOpen.value = false
+      selectedApp.value = None
+    }
+    
+    def searchMatchAcrossAllFields(text: String, app: MobileApp) = {
+      val appToStringLiteral =
+        s"${app.name}${app.company}${app.genre}${formatPrice(app.price)}${app.store}"
+      
+      appToStringLiteral.toLowerCase.contains(text.toLowerCase)
+    }
+
+    def formatPrice(price: Double) = if (price > 0) price.toString else "FREE"
 
     @dom
-    def renderDialog(targetApp: Option[MobileApp], dialogIsOpen: Boolean) = {
+    def renderAppDetailDialog(targetApp: Option[MobileApp], dialogIsOpen: Boolean) = {
  
-      isDanger = true // setting bulma style...it's a subtle color in the background
+      // setting bulma style...it's a subtle color in the background
+      // TODO this is overkill for a small portion of this component
+      // either extract to its own component or simply use the bulma
+      // css class
+      isDanger = true 
 
       // turning option into binding seq: if the option is
       // None no element will be mounted into the DOM
@@ -107,15 +121,6 @@ object CatalogPage {
       dialog.all.bind
     }
 
-    def filterAcrossAllFields(text: String, app: MobileApp) = {
-      val appToStringLiteral =
-        s"${app.name}${app.company}${app.genre}${formatPrice(app.price)}${app.store}"
-      
-      appToStringLiteral.toLowerCase.contains(text.toLowerCase)
-    }
-
-    def formatPrice(price: Double) = if (price > 0) price.toString else "FREE"
-
     @dom
     def generateRows(mobileApps: Seq[MobileApp]) = {
       toBindingSeq(mobileApps)
@@ -125,11 +130,6 @@ object CatalogPage {
             onClick={handleRowClick _}/>)
         .all
         .bind
-    }
-
-    def handleClose() = {
-      appDialogIsOpen.value = false
-      selectedApp.value = None
     }
 
     def connectWith() = apps.value = getAllApps()
