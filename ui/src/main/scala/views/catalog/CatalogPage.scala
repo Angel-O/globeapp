@@ -13,17 +13,21 @@ import apimodels.MobileApp
 import utils.generateSeq
 
 object CatalogPage {
+
   def view() = new RoutingView() with MobileAppsSelector {
 
-    dispatch(FetchAllMobileApps) // fetch on load...not working: issue due to routing: It's time to change it
+    dispatch(FetchAllMobileApps) // fetching on first load
 
-    val apps: Var[Seq[MobileApp]] = Var(getAllApps()) //Seq.empty //Var() //TODO how to use Vars??
+    val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
     val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
 
     @dom
     override def element = {
 
-      val tableRows = generateRows.bind //Note!! bind it before passing it to the table
+      //NOTE 1: calling value rather than bind on apps would cause the 
+      //fetching apps on first load to fail.
+      //Note 2: bind the rows before passing them to the table
+      val tableRows = generateRows(apps.bind).bind 
 
       <div>
 			  <h1>Apps catalog</h1>
@@ -39,10 +43,11 @@ object CatalogPage {
     }
 
     @dom
-    val generateRows = {
-      toBindingSeq(apps.value)
+    def generateRows(apps: Seq[MobileApp]) = {
+      @dom def formatPrice(price: Double) = if(price > 0) price else "FREE"
+      toBindingSeq(apps) 
         .map(app =>
-          <TableRow cells={Seq(app.name, app.company, app.genre, app.price, app.store)}/>)
+          <TableRow cells={Seq(app.name, app.company, app.genre, formatPrice(app.price).bind, app.store)}/>)
         .all
         .bind
     }
