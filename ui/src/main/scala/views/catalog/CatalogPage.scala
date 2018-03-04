@@ -40,15 +40,20 @@ object CatalogPage {
             inputValue={filterText.bind} 
             onChange={handleSearchBoxChange _}/>
           { val tableRows = generateRows(apps.bind).bind
-          <div>
-            <Table isBordered={true} 
-              isStriped={true}
-              isFullWidth={true} 
-              isHoverable={true}
-              header={<TableHeader cells={headers}/>}
-              rows={tableRows}
-              footer={<TableFooter cells={headers}/>}/>
-          </div> }
+            tableRows.isEmpty match {
+              case true => 
+              <span>No apps to show</span>
+              case false => 
+              <div>
+                <Table isBordered={true} 
+                  isStriped={true}
+                  isFullWidth={true} 
+                  isHoverable={true}
+                  header={<TableHeader cells={headers}/>}
+                  rows={tableRows}
+                  footer={<TableFooter cells={headers}/>}/>
+              </div> } 
+          }
       </div>
     }
 
