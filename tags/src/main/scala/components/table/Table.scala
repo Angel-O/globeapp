@@ -56,11 +56,15 @@ case class TableRowBuilder() extends ComponentBuilder {
   var cells: Seq[Any] = _
   var onClick: Int => Unit = (_: Int) => Unit //TODO add clickable trait
   var index: Int = _
+  var enableRowHighlight: Boolean = false
   
-  private def handleClick = (e: Event) => {
+  private def handleClick = (e: Event) => { 
+    onClick(index)
+  }
+
+  private def highlightRow = (e: Event) => {
     var self = e.currentTarget.asInstanceOf[HTMLElement]
     self.classList.toggle(SELECTED)
-    onClick(index)
   }
 
   @dom def build = {
@@ -72,6 +76,8 @@ case class TableRowBuilder() extends ComponentBuilder {
                 { tail.map(x => <TableData content={ x }/>).flatMap(_.bind) }
               </tr>.asInstanceOf[HTMLElement]
     
+    if (enableRowHighlight) row.addEventListener("click", highlightRow)
+
     row.addEventListener("click", handleClick)
     
     row
@@ -88,6 +94,7 @@ case class TableBuilder() extends ComponentBuilder {
   var isNarrow: Boolean = false
   var isFullWidth: Boolean = false
   var isHoverable: Boolean = false
+  var enableRowHighlight: Boolean = false
   
   // using lazy val rather than val...
   private lazy val className = getClassName(
@@ -105,14 +112,15 @@ case class TableBuilder() extends ComponentBuilder {
     <table class={className}>
       { unwrapBuilder(header) }
       <tbody>
-        { rowsAndIndices.flatMap(rowAndIndex => getIndexedRow(rowAndIndex).bind) }
+        { rowsAndIndices.flatMap(rowAndIndex => getIndexedRowAndAddProperties(rowAndIndex).bind) }
       </tbody>
       { unwrapBuilder(footer) }
     </table>.asInstanceOf[HTMLElement]
   }
 
-  @dom def getIndexedRow(rowAndIndex: (TableRowBuilder, Int)) = {
-    rowAndIndex._1.index = rowAndIndex._2 
+  @dom def getIndexedRowAndAddProperties(rowAndIndex: (TableRowBuilder, Int)) = {
+    rowAndIndex._1.index = rowAndIndex._2 // add index
+    rowAndIndex._1.enableRowHighlight = enableRowHighlight // set row highlight
     rowAndIndex._1.bind
   }
 }
