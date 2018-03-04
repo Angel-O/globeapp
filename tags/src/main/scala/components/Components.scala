@@ -356,6 +356,7 @@ object Components {
       val INVISIBLE = "is-invisible"
       val IS_ = "is-"
       val IS_UP = "is-up"
+      val MESSAGE = "message"
       val MODAL = "modal"
       val MODAL_BUTTON = "modal-button"
       val MODAL_CLOSE = "modal-close"

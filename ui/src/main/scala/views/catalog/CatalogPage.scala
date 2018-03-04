@@ -1,6 +1,6 @@
 package views.catalog
 
-import components.Components.Implicits.{CustomTags2, toHtml, toBindingSeq}
+import components.Components.Implicits.{CustomTags2, toHtml, toBindingSeq, Color}
 import components.table.TableRowBuilder
 import com.thoughtworks.binding.{dom, Binding}, Binding.{BindingSeq, Var}
 import hoc.form.LoginForm
@@ -14,7 +14,7 @@ import utils.generateSeq
 
 object CatalogPage {
 
-  def view() = new RoutingView() with MobileAppsSelector {
+  def view() = new RoutingView() with MobileAppsSelector with Color{
 
     dispatch(FetchAllMobileApps) // fetching on first load
 
@@ -75,13 +75,15 @@ object CatalogPage {
     @dom
     def renderDialog(targetApp: Option[MobileApp], dialogIsOpen: Boolean) = {
  
-      // turning option into binding seq: if the option is 
+      isDanger = true // setting bulma style...it's a subtle color in the background
+
+      // turning option into binding seq: if the option is
       // None no element will be mounted into the DOM
       // TODO apply this approach wherever dummy is used
       val dialog = toBindingSeq(targetApp).map(app => {
         
-        val dialogContent =
-          <div style={"background: white; padding: 1em"}>
+        val dialogContent = 
+          <div class={getClassName(MESSAGE, COLOR_CLASS)} style={"padding: 1em"}>
             <h1> Name: { app.name } </h1>
             <h2> Developed by: { app.company } </h2>
             <h2> Genre: { app.genre } </h2>
@@ -89,7 +91,7 @@ object CatalogPage {
             <h2> Store: { app.store } </h2>
             <h3> Description: Coming soon </h3>
             <h3> Rating: Coming soon </h3>
-          </div>
+          </div> 
 
         val modal = 
           <div>
@@ -108,8 +110,7 @@ object CatalogPage {
     def filterAcrossAllFields(text: String, app: MobileApp) = {
       val appToStringLiteral =
         s"${app.name}${app.company}${app.genre}${formatPrice(app.price)}${app.store}"
-      //val appToStringLiteral = app.toString.toLowerCase ... ==> not good enough
-      //val appToStringLiteral = ccToMap(app).map(_._2).foldLeft("")(_ + _).toLowerCase ==> not working on scalaJS
+      
       appToStringLiteral.toLowerCase.contains(text.toLowerCase)
     }
 
@@ -119,12 +120,12 @@ object CatalogPage {
     def generateRows(mobileApps: Seq[MobileApp]) = {
       toBindingSeq(mobileApps)
         .map(app =>
-          <TableRow cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} onClick={handleRowClick _}/>)
+          <TableRow 
+            cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} 
+            onClick={handleRowClick _}/>)
         .all
         .bind
     }
-
-    //def onSmartClose() = navigateTo(history.getLastVisited)
 
     def handleClose() = {
       appDialogIsOpen.value = false
@@ -132,13 +133,5 @@ object CatalogPage {
     }
 
     def connectWith() = apps.value = getAllApps()
-
-    // uses reflection...cool, but not suitable for scalaJS
-    // def ccToMap(cc: AnyRef) =
-    //   (Map[String, Any]() /: cc.getClass.getDeclaredFields) {
-    //     (a, f) =>
-    //       f.setAccessible(true)
-    //       a + (f.getName -> f.get(cc))
-    //   }
   }
 }
