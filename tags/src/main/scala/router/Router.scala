@@ -43,7 +43,6 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   }
   
   private def buildView(path: String): RoutingView = {
-    println("BUILDING VIEW")
     val view = matchingRoute(path).view()
     history.params = getParams(path)
     view.history = this.history
