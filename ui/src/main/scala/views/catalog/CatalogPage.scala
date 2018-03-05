@@ -10,7 +10,7 @@ import apimodels.MobileApp
 
 object CatalogPage {
 
-  def view() = new RoutingView() with MobileAppsSelector{
+  def view() = new RoutingView() with MobileAppsSelector {
 
     dispatch(FetchAllMobileApps) // fetching on first load
 
@@ -47,7 +47,14 @@ object CatalogPage {
                   header={<TableHeader cells={headers}/>}
                   rows={tableRows}
                   footer={<TableFooter cells={headers}/>}/>
-                { renderAppDetailDialog(selectedApp.bind, appDialogIsOpen.bind).bind }
+                { //val targetApp = selectedApp.bind
+                  val dialogIsOpen = appDialogIsOpen.bind
+                  <div>
+                    <AppDetailDialog targetApp={selectedApp.bind} 
+                      dialogIsOpen={dialogIsOpen}
+                      handleClose={handleClose _}
+                      priceFormatter={formatPrice _}/> 
+                  </div>}     
               </div> } 
           }
       </div>
@@ -55,71 +62,35 @@ object CatalogPage {
 
     def handleSearchBoxChange(text: String) = {
       apps.value = getAllApps() // reset before filtering to avoid filtering over progressively decreasing data
-      apps.value = apps.value.filter(app => searchMatchAcrossAllFields(text, app))
+      apps.value =
+        apps.value.filter(app => searchMatchAcrossAllFields(text, app))
     }
 
-    def handleRowClick(rowIndex: Int) = { 
+    def handleRowClick(rowIndex: Int) = {
       //TODO probably this needs Vars...they go hand in hand:
       //there is no need for intermediated updates...same below...
       selectedApp.value = Some(apps.value(rowIndex))
       appDialogIsOpen.value = true
     }
-    
+
     def handleClose() = {
       appDialogIsOpen.value = false
       selectedApp.value = None
     }
-    
+
     def searchMatchAcrossAllFields(text: String, app: MobileApp) = {
       val appToStringLiteral =
         s"${app.name}${app.company}${app.genre}${formatPrice(app.price)}${app.store}"
-      
+
       appToStringLiteral.toLowerCase.contains(text.toLowerCase)
     }
 
     def formatPrice(price: Double) = if (price > 0) price.toString else "FREE"
 
     @dom
-    def renderAppDetailDialog(targetApp: Option[MobileApp], dialogIsOpen: Boolean) = {
- 
-      // turning option into binding seq: if the option is
-      // None no element will be mounted into the DOM
-      // TODO apply this approach wherever dummy is used
-      val dialog = toBindingSeq(targetApp).map(app => {
-        
-        val dialogContent = 
-          <div>
-            <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
-              <div>
-                <h1> Name: { app.name } </h1>
-                <h2> Developed by: { app.company } </h2>
-                <h2> Genre: { app.genre } </h2>
-                <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
-                <h2> Store: { app.store } </h2>
-                <h3> Description: Coming soon </h3>
-                <h3> Rating: Coming soon </h3>
-              </div>}/>
-          </div>
-
-        val modal = 
-          <div>
-            <SimpleModal
-              onClose={handleClose _} 
-              content={dialogContent}
-              isOpen={dialogIsOpen}/>
-          </div>
-
-        modal
-      })
-
-      dialog.all.bind
-    }
-
-    @dom
     def generateRows(mobileApps: Seq[MobileApp]) = {
       toBindingSeq(mobileApps)
-        .map(app =>
-          <TableRow 
+        .map(app => <TableRow 
             cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} 
             onClick={handleRowClick _}/>)
         .all
