@@ -64,7 +64,7 @@ trait PollEffects extends Push{
 // Selector
 trait PollSelector extends GenericConnect[AppModel, Seq[Poll]] {
   
-  def getPolls = model
+  def getPolls() = model
   def getPollById(id: String) = getPolls.find(_.id == id)
   def getPollsPartecipated(userId: String) = getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
 
