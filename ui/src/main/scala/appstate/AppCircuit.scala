@@ -3,7 +3,7 @@ package appstate
 import diode.Circuit
 import diode.ActionHandler
 import diode.ModelRW
-import apimodels.User
+import apimodels.user.User
 import ApiCalls._
 import diode.Dispatcher
 import diode.ModelR
@@ -28,11 +28,11 @@ case object PersistentState{
 }
 
 // Global state tree
-case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps)
+case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls)
 
 object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
 
-  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps())
+  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls())
 
   def currentModel = zoom(identity).value
 
@@ -40,6 +40,7 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
   val carSelector = zoomTo(x => x.cars.cars)
   val authSelector = zoomTo(x => x.auth.params)
   val mobileAppSelector = zoomTo(x => x.mobileApps.apps)
+  val pollSelector = zoomTo(x => x.polls.polls)
   
   val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
 
@@ -52,7 +53,8 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
     new UserHandler(userSelector),
     new CarHandler(carSelector),
     new AuthHandler(authSelector),
-    new MobileAppsHandler(mobileAppSelector)
+    new MobileAppsHandler(mobileAppSelector),
+    new PollHandler(pollSelector)
   )
 }
 

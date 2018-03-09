@@ -10,7 +10,7 @@ import navigation.URIs._
 // import diode.data.Pot
 // import diode.data.PotState._
 // import diode.data.{Ready, Pending}
-import apimodels.MobileApp
+import apimodels.mobileapp.MobileApp
 
 case class MobileApps(apps: Seq[MobileApp])
 case object MobileApps {

@@ -7,7 +7,7 @@ import components.Components.Implicits.{
   Color
 }
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
-import apimodels.MobileApp
+import apimodels.mobileapp.MobileApp
 import utils.nameOf._
 
 case class AppDetailDialogBuilder() extends ComponentBuilder with Color {

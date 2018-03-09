@@ -4,7 +4,7 @@ import play.api.mvc._
 import scala.concurrent.Future
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import apimodels.User
+import apimodels.user.{User, LoginDetails, RegistrationDetails}
 import pdi.jwt.JwtSession._
 import upickle.default._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -14,55 +14,9 @@ import play.api.Logger
 import reactivemongo.bson.BSONObjectID
 import pdi.jwt.JwtSession
 
-// overkill
-sealed trait Gender
-case object Male extends Gender
-case object Female extends Gender
-case object Gender {
-  import scala.language.implicitConversions
-  import JsonFormats.GenderFormat.writes
-  implicit def asString(gender: Gender): String = writes(gender).as[String]
-}
-
-case object JsonFormats{
-  implicit val loginFormat: OFormat[LoginDetails] = Json.format[LoginDetails]
-  implicit val registrationFormat: OFormat[RegistrationDetails] = Json.format[RegistrationDetails]
-  implicit object GenderFormat extends Format[Gender] {
-    def reads(json: JsValue): JsResult[Gender] = json.as[String].toLowerCase() match{
-      case "male" => JsSuccess(Male)
-      case "female" => JsSuccess(Female)
-      case _ => JsError("Invalid Gender")
-    } 
-    def writes(gender: Gender) = gender match {
-      case Male => JsString("male")
-      case Female => JsString("female")
-    }   
-  }
-  implicit val userReads: OFormat[User] = Json.format[User]
-//  implicit val read: Reads[User] = (
-//      (JsPath \ "username").read[String] and
-//      (JsPath \ "password").read[String])(User.apply _)
-}
-
-case class LoginDetails(username: String, password: String)
-case class RegistrationDetails(name: String, username: String, email: String, password: String, gender: Gender)
-
 class ApplicationController @Inject()(repository: UserRepository, scc: SecuredControllerComponents) 
 extends SecuredController(scc){
-  import JsonFormats._
-  
-//  val loginDetails: Reads[(String, String)] = (
-//      (JsPath \ "username").read[String] and
-//      (JsPath \ "password").read[String]).tupled
-    
-//  val registrationDetails: Reads[(String, String, String, String, Gender)] = (
-//      (JsPath \ "name").read[String] and
-//      (JsPath \ "username").read[String] and
-//      (JsPath \ "email").read[String] and
-//      (JsPath \ "password").read[String] and
-//      (JsPath \ "gender").read[Gender]).tupled
-   
-  
+ 
   def login = Action(parse.json).async { implicit request: Request[JsValue] =>
     Logger.info("Logging in")
     val result = request.body

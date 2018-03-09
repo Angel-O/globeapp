@@ -29,8 +29,13 @@ object MainShell extends BulmaCssClasses {
 
     val rightNavbarItems =
       Seq(
-        <NavbarItem item={<SimpleButton isPrimary={true} icon={ <Icon id="inbox"/> } label="messages"/>}/>,
-        <NavbarItem item={<SimpleButton isInfo={true} icon={ <Icon id="mobile"/> } label="catalog" onClick={navigateToCatalog}/>}/>,
+        <NavbarItem 
+          item={<SimpleButton isPrimary={true} 
+          icon={ <Icon id="inbox"/> } label="messages"/>}/>,
+        <NavbarItem 
+          item={<SimpleButton isInfo={true} 
+          icon={ <Icon id="mobile"/> } 
+          label="catalog" onClick={navigateToCatalog}/>}/>,
         renderAccountMenuItem(loggedIn, username, login, logout).bind
       )
 
@@ -69,17 +74,17 @@ object MainShell extends BulmaCssClasses {
                                  username: String,
                                  login: () => Unit,
                                  logout: () => Unit) = {
-    val loginButton =
-      <SimpleButton label="log in" icon={ <Icon id="user"/> } isWarning={true} onClick={login}/>
-    val logoutButton =
-      <Button label="log out" onClick={logout}/>
-
     if (loggedIn)
       <NavbarItem 
             item={username} 
             isRightDropdown={true} 
             isHoverable={true}
-            dropdownItems={Seq("Polls", "Favourite apps", "Stats", <hr/>, logoutButton)} />
-    else <NavbarItem item={loginButton}/>
+            dropdownItems={Seq(
+                <a href={s"#$ROOT_PATH$PollsPageURI"}>Polls</a>, 
+                <a href={s"#$ROOT_PATH"}>Favourite apps</a>, 
+							  <a href={s"#$ROOT_PATH"}>Stats</a>, <hr/>, 
+                <Button label="log out" onClick={logout}/>)} />
+    else <NavbarItem item={
+          <SimpleButton label="log in" icon={ <Icon id="user"/> } isWarning={true} onClick={login}/>}/>
   }
 }
