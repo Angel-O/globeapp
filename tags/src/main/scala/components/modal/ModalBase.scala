@@ -1,6 +1,6 @@
 package components.modal
 
-import components.Components.Implicits.{CustomTags2, _}
+import components.core.Implicits._
 import org.scalajs.dom.raw.{
   Event,
   HTMLElement,
@@ -12,6 +12,9 @@ Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLHRElement
 import org.scalajs.dom.raw.HTMLElement
+import components.core.ComponentBuilder
+import components.core.Size
+import components.core.Color
 
 trait ModalBase extends ComponentBuilder with Size with Color {
   var label: String = _ //affects the trigger button

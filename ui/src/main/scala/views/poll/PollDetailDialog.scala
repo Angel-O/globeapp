@@ -1,11 +1,10 @@
 package views.poll
 
-import components.Components.Implicits.{
-  CustomTags2,
-  ComponentBuilder,
-  toBindingSeq,
-  Color
-}
+import components.core.Implicits._
+import components.core.ComponentBuilder
+import components.core.Color
+import components.core.Helpers._
+import components.Components.{Layout, Modal}
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import apimodels.poll.Poll
 import utils.nameOf._

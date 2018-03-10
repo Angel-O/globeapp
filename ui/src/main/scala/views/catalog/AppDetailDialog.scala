@@ -1,11 +1,11 @@
 package views.catalog
 
-import components.Components.Implicits.{
-  CustomTags2,
-  ComponentBuilder,
-  toBindingSeq,
-  Color
-}
+import components.core.ComponentBuilder
+import components.core.Color
+import components.Components.Layout
+import components.Components.Modal
+import components.core.Implicits._
+import components.core.Helpers._
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import apimodels.mobileapp.MobileApp
 import utils.nameOf._
@@ -31,7 +31,7 @@ case class AppDetailDialogBuilder() extends ComponentBuilder with Color {
         <div>
             <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
               <div>
-                <h1> Name: { app.name } </h1>
+                <h1>Name: { app.name } </h1>
                 <h2> Developed by: { app.company } </h2>
                 <h2> Genre: { app.genre } </h2>
                 <h2> Price: { s"£ ${priceFormatter(app.price)}" } </h2>

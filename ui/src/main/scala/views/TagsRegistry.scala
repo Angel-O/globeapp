@@ -1,11 +1,12 @@
 package views
 
 import com.thoughtworks.binding.dom
-import components.Components.Implicits.ComponentBuilder
 import scala.language.dynamics
 import scala.collection.mutable
 //import views.TagsRegistry.CustomTags
 import hoc.form.RegistrationFormBuilder
+import components.core.ComponentBuilder
+
 //import components.Components.MyComponentBuilder
 
 object TagsRegistry {

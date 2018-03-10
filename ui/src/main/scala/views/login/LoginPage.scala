@@ -1,6 +1,7 @@
 package views.login
 
-import components.Components.Implicits._
+import components.core.Implicits._
+import components.Components.Modal
 import com.thoughtworks.binding.dom
 import router.RoutingView
 import hoc.form.LoginForm

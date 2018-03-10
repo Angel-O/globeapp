@@ -1,6 +1,6 @@
 package components.button
 
-import components.Components.Implicits._
+import components.core.Implicits._
 import org.scalajs.dom.raw.{Event, HTMLElement, HTMLButtonElement}
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding

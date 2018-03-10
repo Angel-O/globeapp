@@ -1,6 +1,6 @@
 package components.modal
 
-import components.Components.Implicits.{CustomTags2, _}
+import components.core.Implicits._
 import org.scalajs.dom.raw.{
   Event,
   HTMLElement,

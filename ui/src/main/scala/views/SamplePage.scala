@@ -1,6 +1,7 @@
 package views
 
-import components.Components.Implicits.CustomTags2
+import components.Components.{Modal, Tab, Button}
+import components.core.Implicits._
 import router.RoutingView
 import com.thoughtworks.binding.dom
 import navigation.Navigators._

@@ -10,8 +10,8 @@ import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.Binding.Var
 import com.thoughtworks.binding.dom
 
-import components.Components.Implicits.ComponentBuilder
-import components.Components.Implicits.log
+import components.core.ComponentBuilder
+import components.core.Implicits._
 
 case class Router private(baseURL: String) extends ComponentBuilder {
    

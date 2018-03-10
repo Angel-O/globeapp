@@ -1,6 +1,6 @@
 package components.layout
 
-import components.Components.Implicits._
+import components.core.Implicits._
 import org.scalajs.dom.raw.{
   Event,
   HTMLElement,
@@ -8,6 +8,9 @@ import org.scalajs.dom.raw.{
   HTMLAnchorElement
 }
 import com.thoughtworks.binding.dom
+import components.core.ComponentBuilder
+import components.core.Color
+import components.core.Size
 
 case class BannerBuilder() extends ComponentBuilder with Color with Size {
   def render = this

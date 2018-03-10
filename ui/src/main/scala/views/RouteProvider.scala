@@ -2,7 +2,9 @@ package views
 
 import router.RoutingView
 import com.thoughtworks.binding.dom
-import components.Components.Implicits.{toBindingSeq, CustomTags2, _}
+import components.core.Implicits._
+import components.core.Helpers._
+import components.Components.Router
 import navigation.URIs._
 import router.DynamicRoute._
 import register._
@@ -10,6 +12,7 @@ import login._
 import home._
 import catalog._
 import poll._
+import mobileapp._
 
 object RouteProvider {
 
@@ -25,7 +28,8 @@ object RouteProvider {
       LoginPageURI.tail.toPath -> LoginPage.view _,
       SamplePageURI.tail.toPath -> SamplePage.view _,
       CatalogPageURI.tail.toPath -> CatalogPage.view _,
-      PollsPageURI.tail.toPath -> PollsPage.view _
+      PollsPageURI.tail.toPath -> PollsPage.view _,
+      MobileAppDetailPageURI -> MobileAppPage.view _
       //UserPostURI -> UserEditPage.view _
     )
 

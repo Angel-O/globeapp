@@ -1,6 +1,6 @@
 package components.input
 
-import components.Components.Implicits.{CustomTags2, _}
+import components.core.Implicits._
 import org.scalajs.dom.raw.{
   Event,
   HTMLElement,
@@ -11,6 +11,7 @@ import org.scalajs.dom.raw.{
 import com.thoughtworks.binding.{dom, Binding},
 Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
+import components.core.ComponentBuilder
 
 case class CheckboxInputBuilder() extends ComponentBuilder with InputBase {
   def render = this

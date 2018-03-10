@@ -1,6 +1,8 @@
 package components.table
 
-import components.Components.Implicits._
+import components.core.Implicits._
+import components.core.ComponentBuilder
+import components.core.Helpers._
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLInputElement }
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding
@@ -9,10 +11,13 @@ import com.thoughtworks.binding.Binding.BindingSeq
 import com.thoughtworks.binding.Binding.Vars
 import org.scalajs.dom.raw.Node
 import com.thoughtworks.binding.Binding.Constants
+import components.core.Click
+import components.Components.Table
 
 case class TableDataBuilder() extends ComponentBuilder {
   def render = this
   var content: Binding[Any] = _
+  
   @dom def build = <td>{ content.bind.toString() }</td>.asInstanceOf[HTMLElement]
 }
 

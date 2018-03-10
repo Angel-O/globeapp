@@ -1,11 +1,10 @@
 package components.button
 
-import components.Components.Implicits._
-import org.scalajs.dom.raw.{Event, HTMLElement, HTMLButtonElement}
-import com.thoughtworks.binding.dom
-import com.thoughtworks.binding.Binding
-import com.thoughtworks.binding.Binding.Var
-import com.thoughtworks.binding.Binding.Vars
+import org.scalajs.dom.raw.Event
+
+import components.core.Color
+import components.core.ComponentBuilder
+import components.core.Size
 
 protected abstract class ButtonBaseBuilder
     extends ComponentBuilder
