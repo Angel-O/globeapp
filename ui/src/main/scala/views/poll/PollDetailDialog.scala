@@ -17,6 +17,7 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
   var targetPoll: Option[Poll] = None
   var dialogIsOpen: Boolean = _
   var handleClose: () => Unit = _
+  var appName: String = _
 
   @dom
   def build = {
@@ -38,6 +39,7 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
             isMedium={true} style={"padding: 1em"} content={ 
               <div>
                 <h1> Name: { poll.title } </h1>
+                <h2> App: { appName } </h2>
                 <p> { results } </p>
               </div>}/>
           </div>

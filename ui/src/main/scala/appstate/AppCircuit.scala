@@ -30,7 +30,7 @@ case object PersistentState{
 // Global state tree
 case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls)
 
-object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
+object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with GlobalSelector[AppModel] with HelpConnect[AppModel] {
 
   def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls())
 
@@ -42,9 +42,8 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
   val mobileAppSelector = zoomTo(x => x.mobileApps.apps)
   val pollSelector = zoomTo(x => x.polls.polls)
   
-  val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
-
-
+  implicit val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
+  
   // Using foldHandlers rather than composeHandlers to
   // allow all handlers to process the actions without stopping
   // soon as the the action has been handled
@@ -56,6 +55,23 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] {
     new MobileAppsHandler(mobileAppSelector),
     new PollHandler(pollSelector)
   )
+  
+  val circuit = this
+}
+
+trait GlobalSelector[M]{
+  val globalSelector: ModelRW[M, M]
+}
+
+trait HelpConnect[M <: AnyRef] {
+  implicit val circuit: Circuit[M] with GlobalSelector[M]
+  def multiConnect(connector: => Unit)(cursors: ModelR[M, _]*) = 
+    cursors.foreach(cursor => circuit.subscribe(cursor)(_ => connector))
+    
+  def connect[T](connector: => Unit)(implicit cursor: ModelR[M, T] = circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) = 
+    circuit.subscribe(cursor)(_ => connector)
+    
+  def dispatch(action: Action) = circuit.apply(action)
 }
 
 class LoggingHandler[M](modelRW: ModelRW[M, AppModel])
@@ -150,3 +166,26 @@ trait SilentConnect[M <: AnyRef,T] extends GenericConnect[M,T]{
   val circuit = null //TODO needs to be able to dispatch..this can't be null
   override def connect() = () => Unit
 }
+
+
+
+
+//////// TODO improve this: the goal is to allow to connect to multiple selectors 
+
+abstract class ReadWriteConnectBase[M <: AnyRef, T] {
+  val cursor: ModelR[M, T]
+  val circuit: Circuit[M] with ModelLens[M]
+}
+
+trait ReadConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
+  protected def model = cursor.value
+  protected def initialModel = circuit.initialModel
+}
+
+trait WriteConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
+
+  def connect(connector: => Unit) = circuit.subscribe(cursor)(_ => connector)
+}
+
+trait RWConnect[M <: AnyRef, T] extends ReadConnect[M, T] with WriteConnect[M, T]
+

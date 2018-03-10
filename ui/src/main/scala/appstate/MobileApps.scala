@@ -11,6 +11,7 @@ import navigation.URIs._
 // import diode.data.PotState._
 // import diode.data.{Ready, Pending}
 import apimodels.mobileapp.MobileApp
+import scala.concurrent.Promise
 
 case class MobileApps(apps: Seq[MobileApp])
 case object MobileApps {
@@ -20,11 +21,13 @@ case object MobileApps {
 // Primary Actions
 case object FetchAllMobileApps extends Action
 case object FetchFavoriteMobileApps extends Action // no need for id parameter, using jwt Token for identification...
+case class FetchMobileApp(mobileAppId: String) extends Action
 case class AddMobileAppToFavorites(mobileAppId: String) extends Action
 case class RemoveMobileAppFromFavorites(mobileAppId: String) extends Action
 
 // Derived Actions
 case class MobileAppsFetched(apps: Seq[MobileApp]) extends Action
+case class MobileAppFetched(app: MobileApp) extends Action
 case class MobileAppAddedToFavorites(mobileAppId: String) extends Action //TODO do I need an id here ??
 case class MobileAppRemovedFromFavorites(mobileAppId: String) extends Action //TODO do I need an id here ??
 
@@ -37,9 +40,11 @@ class MobileAppsHandler[M](modelRW: ModelRW[M, Seq[MobileApp]])
     case FetchFavoriteMobileApps                    => ???
     case AddMobileAppToFavorites                    => ???
     case RemoveMobileAppFromFavorites               => ???
+    case FetchMobileApp(id: String)                 => effectOnly(fetchMobileAppEffect(id))
     case MobileAppsFetched(apps)                    => updated(apps)
     case MobileAppAddedToFavorites(mobileAppId)     => ???
     case MobileAppRemovedFromFavorites(mobileAppId) => ???
+    case MobileAppFetched(app)                      => updated(Seq(app)) //THIS IS NOT RIGHT
   }
 }
 
@@ -54,17 +59,43 @@ trait MobileAppsEffects extends Push {
 
   //TODO implement real api calls
   import mock.MobileAppApi._
+  
+  import scalajs.js
 
   def fetchMobileAppsEffect() =
     Effect(Future { 1 }.map(_ => MobileAppsFetched(getAll)))
+    
+  def fetchMobileAppEffect(id: String) = {
+    Effect(delay(10000).map(app => MobileAppFetched(app)))
+  }
+  
+  //TEST
+  def delay(milliseconds: Int): Future[MobileApp] = {
+    val p = Promise[MobileApp]()
+    js.timers.setTimeout(milliseconds) {
+      p.success((getById))
+    }
+    p.future
+  }
 }
 
 // Selector
 trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 
   def getAllApps() = model
+  def getAppById(id: String) = getAllApps.find(_.id == id)
 
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit
   connect()
+}
+
+object MobileAppsSelector extends ReadConnect[AppModel, Seq[MobileApp]]{
+  def getAllApps() = model
+  def getAppById(id: String) = getAllApps.find(_.id == id)
+  
+  val cursor = AppCircuit.mobileAppSelector
+  val circuit = AppCircuit
+  
+  //def onMobileAppUpdate(connector: => Unit) = circuit.subscribe(cursor)(_ => connector)
 }

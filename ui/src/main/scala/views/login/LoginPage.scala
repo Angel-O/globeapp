@@ -4,14 +4,15 @@ import components.Components.Implicits._
 import com.thoughtworks.binding.dom
 import router.RoutingView
 import hoc.form.LoginForm
-import appstate.{Login, AppCircuit, Connect}
+import appstate.{Login, Connect}
+import appstate.AppCircuit._
 import org.scalajs.dom.raw.Event
 import navigation.Navigators._
 
 //TODO extract custom styling
 //TODO make routing view a trait
 object LoginPage {
-  def view() = new RoutingView() with Connect {
+  def view() = new RoutingView() {
 
     @dom
     override def element = {

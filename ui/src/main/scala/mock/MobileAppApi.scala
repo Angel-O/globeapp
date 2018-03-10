@@ -1,6 +1,9 @@
 package mock
 
 import apimodels.mobileapp.MobileApp
+import scala.concurrent.Future
+import scala.concurrent.Promise
+import scalajs.js
 
 object MobileAppApi {
   def getAll = {
@@ -28,5 +31,8 @@ object MobileAppApi {
         "Life style",
         5.99,
         "Google Store"))
+  }
+  def getById = {
+    MobileApp("1", "Snap", "Snap TM", "Life style", 0.99, "App Store")
   }
 }
