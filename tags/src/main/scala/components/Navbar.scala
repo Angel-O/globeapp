@@ -1,11 +1,15 @@
 package components
 
-import Components.Implicits.{ CustomTags2, _ }
+import components.core.Implicits._
+import components.Components.CustomTags2
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{dom, Binding}, Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
 import components.dropdown.DropdownBuilder
 import org.scalajs.dom.raw.HTMLHRElement
+import components.core.ComponentBuilder
+import components.core.Helpers._
+import components.core.DummyBuilder
 
 case class NavbarBuilder() extends ComponentBuilder {
   def render = this

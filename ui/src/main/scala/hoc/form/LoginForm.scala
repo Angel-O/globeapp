@@ -1,6 +1,8 @@
 package hoc.form
 
-import components.Components.Implicits.{CustomTags2, ComponentBuilder}
+import components.core.Implicits._
+import components.core.ComponentBuilder
+import components.Components.CustomTags2
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import appstate.AuthSelector
 import common.FormValidators.validateRequiredField

@@ -1,9 +1,11 @@
 package components
-import Components.Implicits._
+
+import components.core.Implicits._
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLInputElement }
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding
 import com.thoughtworks.binding.Binding.Var
+import components.core.ComponentBuilder
 
 case class InputBuilder() extends ComponentBuilder {
       def render = this

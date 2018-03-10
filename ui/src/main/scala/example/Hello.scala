@@ -11,7 +11,8 @@ import componentsTrial.Button
 import components.button.{ ButtonRaw => Btn }
 import components.{InputRaw => Ipt}
 import hoc._
-import components.Components.Implicits.{CustomTags2, _}
+import components.Components.CustomTags2
+import components.core.Implicits._
 import components.dropdown.MenuItemBuilder
 import org.scalajs.dom.raw.HTMLInputElement
 import org.scalajs.dom.raw.MutationObserver
@@ -44,6 +45,7 @@ import macros.RegisterTag
 //import components.Components.Implicits.MyComponentBuilder
 
 import views.Tags._
+import org.scalajs.dom.raw.NodeList
 
 object Hello  {
      
@@ -145,6 +147,11 @@ object Hello  {
 			
 			table
     }
+    
+    def getAll(selector: String): NodeList = {
+      document.querySelectorAll(selector)
+    }
+
     
     @dom def renderDropdown(log: String) = {
       
@@ -492,7 +499,9 @@ object Hello  {
 //    
 //    observer.observe(document.body, contentObserverParams)
     
-    dom.render(document.body, render.asInstanceOf[Binding[Node]])   
+    dom.render(document.body, render.asInstanceOf[Binding[Node]])
+
+    
     
     // attach global events here...after dom has been rendered...
     val drops = getAll("div").asInstanceOf[NodeListOf[HTMLElement]]

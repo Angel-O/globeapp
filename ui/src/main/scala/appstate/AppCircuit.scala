@@ -15,7 +15,7 @@ import utils.log
 import scalajs.js
 import upickle.default.{ReadWriter => RW, macroRW}
   
-import components.Components.Implicits.ComponentBuilder
+import components.core.ComponentBuilder
 
 
 // Represents the portion of the state that will be serialized

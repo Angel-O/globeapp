@@ -2,7 +2,9 @@ package views
 
 import router.RoutingView
 import com.thoughtworks.binding.dom
-import components.Components.Implicits.{toBindingSeq, CustomTags2, _}
+import components.core.Implicits._
+import components.core.Helpers._
+import components.Components.CustomTags2
 import navigation.URIs._
 import router.DynamicRoute._
 import register._

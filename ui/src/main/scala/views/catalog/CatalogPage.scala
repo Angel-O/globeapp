@@ -1,12 +1,15 @@
 package views.catalog
 
-import components.Components.Implicits.{CustomTags2, toHtml, toBindingSeq}
+import components.core.Implicits._
+import components.core.Helpers._
+import components.Components.CustomTags2
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView
 import appstate.{Connect, Login}
 import appstate.{MobileAppsSelector, FetchAllMobileApps}
 import apimodels.mobileapp.MobileApp
+import views.catalog._
 
 object CatalogPage {
 

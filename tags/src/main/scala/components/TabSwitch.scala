@@ -1,6 +1,6 @@
 package components
 
-import Components.Implicits.{ CustomTags2, _ }
+import components.core.Implicits._
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLButtonElement }
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding.BindingSeq
@@ -16,6 +16,11 @@ import org.scalajs.dom.raw.CustomEvent
 import scalajs.js.Dynamic.{ global => g, newInstance => jsnew, literal => lit }
 import org.scalajs.dom.raw.HTMLAnchorElement
 import org.scalajs.dom.raw.HTMLDivElement
+import components.core.ComponentBuilder
+import components.core.ClickableToggleWithSiblings
+import components.core.Size
+import components.core.Helpers._
+import components.Components.CustomTags2
 
 case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithSiblings with Size{
   def render = this

@@ -1,7 +1,8 @@
 package views.home
 
 import navigation.URIs._
-import components.Components.Implicits._
+import components.core.Implicits._
+import components.Components.CustomTags2
 import router.RoutingView
 
 import org.scalajs.dom.raw.HTMLElement

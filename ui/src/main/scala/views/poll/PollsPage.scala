@@ -3,7 +3,9 @@ package views.poll
 import router.RoutingView
 import appstate.{PollSelector, MobileAppsSelector}
 import com.thoughtworks.binding.{Binding, dom}, Binding.Var
-import components.Components.Implicits.{CustomTags2, toBindingSeq}
+import components.core.Implicits._
+import components.core.Helpers._
+import components.Components.CustomTags2
 import apimodels.poll.Poll
 import appstate.{FetchPolls, FetchMobileApp}
 import org.scalajs.dom.raw.Event

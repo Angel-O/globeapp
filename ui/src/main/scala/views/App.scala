@@ -2,8 +2,8 @@ package views
 
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import org.scalajs.dom.{document, Node}
-import components.Components.Implicits.CustomTags2
-import components.Components.Implicits._
+import components.core.Implicits._
+import components.Components.CustomTags2
 import navigation.URIs._
 import config._
 import appstate.{AuthSelector, VerifyToken, Logout, Connect, FetchAllMobileApps}

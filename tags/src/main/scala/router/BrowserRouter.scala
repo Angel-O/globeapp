@@ -1,9 +1,9 @@
 package router
 
 import com.thoughtworks.binding.Binding.BindingSeq
-import components.Components.Implicits.ComponentBuilder
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding.Constants
+import components.core.ComponentBuilder
 
 case class BrowserRouterBuilder() extends ComponentBuilder {
   def render = this

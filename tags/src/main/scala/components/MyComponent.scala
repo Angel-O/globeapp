@@ -1,8 +1,9 @@
 package components
 
-import components.Components.Implicits.ComponentBuilder
+import components.core.Implicits._
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.dom
+import components.core.ComponentBuilder
 
 case class MyComponentBuilder() extends ComponentBuilder {
   def render = this

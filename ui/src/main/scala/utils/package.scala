@@ -1,7 +1,10 @@
 import org.scalajs.dom.console
 import com.github.dwickern.macros.NameOf._
-import components.Components.Implicits.{ComponentBuilder, toHtml, toBindingSeq}
+import components.core.ComponentBuilder
+import components.core.Implicits._
+import components.core.Helpers._
 import com.thoughtworks.binding.{dom, Binding}, Binding.F
+import components.core.ComponentBuilder
 
 //import com.github.ghik.silencer.silent
 

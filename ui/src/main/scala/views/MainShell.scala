@@ -1,7 +1,9 @@
 package views
 
 import navigation.URIs._
-import components.Components.Implicits._
+import components.core.Implicits._
+import components.core.BulmaCssClasses
+import components.Components.CustomTags2
 import components.NavbarItemBuilder
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.{dom, Binding},

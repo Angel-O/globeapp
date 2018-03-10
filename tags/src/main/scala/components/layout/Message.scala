@@ -1,6 +1,9 @@
 package components.layout
 
-import components.Components.Implicits._
+import components.core.Implicits._
+import components.core.ComponentBuilder
+import components.core.Color
+import components.core.Size
 import org.scalajs.dom.raw.{
   Event,
   HTMLElement,

@@ -1,11 +1,10 @@
 package views.catalog
 
-import components.Components.Implicits.{
-  CustomTags2,
-  ComponentBuilder,
-  toBindingSeq,
-  Color
-}
+import components.core.ComponentBuilder
+import components.core.Color
+import components.Components.CustomTags2
+import components.core.Implicits._
+import components.core.Helpers._
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import apimodels.mobileapp.MobileApp
 import utils.nameOf._

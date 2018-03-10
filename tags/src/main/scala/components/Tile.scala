@@ -4,12 +4,13 @@ import org.scalajs.dom.raw.HTMLElement
 
 import com.thoughtworks.binding.dom
 
-import Components.Implicits.ComponentBuilder
-import Components.Implicits.autoBinding
-import Components.Implicits.toBindingSeq
-import Components.Implicits.toComponentBuilder
-import components.Components.Implicits.{Color, Click}
+import components.core.Implicits._
+
 import org.scalajs.dom.raw.Event
+import components.core.ComponentBuilder
+import components.core.Color
+import components.core.Click
+import components.core.Helpers._
 
 case class TileBuilder() extends ComponentBuilder with Color with Click{
   def render = this

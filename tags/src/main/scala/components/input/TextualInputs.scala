@@ -1,6 +1,7 @@
 package components.input
 
-import components.Components.Implicits.{ CustomTags2, _ }
+import components.core.Implicits._
+import components.core.ComponentBuilder
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{ dom, Binding }, Binding.{ Var, Vars, Constants, BindingSeq }
 import org.scalajs.dom.document
@@ -17,6 +18,7 @@ import org.scalajs.dom.raw.MutationObserver
 import org.scalajs.dom.raw.MutationRecord
 import org.scalajs.dom.raw.Node
 import org.scalajs.dom.raw.HTMLTextAreaElement
+import components.core.Color
 
 case class TextInputBuilder() extends { val inputType = TextInput } with TextualInput {
   

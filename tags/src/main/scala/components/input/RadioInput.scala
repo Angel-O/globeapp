@@ -1,6 +1,8 @@
 package components.input
 
-import components.Components.Implicits.{CustomTags2, _}
+import components.core.Implicits._
+import components.core.ComponentBuilder
+import components.core.Helpers._
 import org.scalajs.dom.raw.{
   Event,
   HTMLElement,
