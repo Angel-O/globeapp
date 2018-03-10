@@ -3,6 +3,29 @@ package components
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding._, Binding._
+import scala.language.implicitConversions
+import org.scalajs.dom.raw.Node
+import org.scalajs.dom.raw.DOMList
+import org.scalajs.dom.raw.NodeList
+import org.scalajs.dom.raw.NodeListOf
+import org.scalajs.dom.raw.Event
+import scala.xml.Elem
+import scala.xml.UnprefixedAttribute
+import components.button._
+import components.table._
+import components.dropdown._
+import components.modal._
+import components.input._
+import components.icon._
+import components.layout._
+import components.tab._
+import components.navbar._
+import components.core._
+import components._
+import router.BrowserRouterBuilder
+import router.RouteBuilder
+
+
 //import com.thoughtworks.binding.Binding
 //import com.thoughtworks.binding.Binding.Var
 //import com.thoughtworks.binding.Binding.Vars
@@ -11,31 +34,6 @@ import com.thoughtworks.binding._, Binding._
 //import org.scalajs.dom.html.Div
 //import scala.xml.{Elem, MetaData, NamespaceBinding, Node => XmlNode, UnprefixedAttribute, NodeSeq, TopScope}
 //import xml._
-
-import scala.language.implicitConversions
-import org.scalajs.dom.raw.Node
-import org.scalajs.dom.raw.DOMList
-import org.scalajs.dom.raw.NodeList
-import org.scalajs.dom.raw.NodeListOf
-import org.scalajs.dom.raw.Event
-import components.button.{ SimpleButtonBuilder, ButtonBuilder, ButtonBuilderRaw }
-import components.table._
-import components.dropdown._
-import components.modal._
-import components.input._
-import components.icon._
-import components.layout._
-import components._
-
-import scala.xml.Elem
-import scala.xml.UnprefixedAttribute
-
-import router.BrowserRouterBuilder
-import router.RouteBuilder
-import components.core.DummyBuilder
-import components.core.ComponentBuilder
-import components.core.GenricComponentBuilder
-
 //import scala.reflect.api.TypeTags
 //import scala.reflect.runtime.universe._
 object Components {

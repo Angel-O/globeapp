@@ -1,26 +1,19 @@
-package components
+package components.tab
 
 import components.core.Implicits._
-import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLButtonElement }
-import com.thoughtworks.binding.dom
-import com.thoughtworks.binding.Binding.BindingSeq
-import org.scalajs.dom.raw.NodeListOf
+import components.core.Helpers._
+import org.scalajs.dom.raw.{ Event, HTMLElement}
 import com.thoughtworks.binding.Binding.Var
-import com.thoughtworks.binding.Binding
-import org.scalajs.dom.document
-import com.thoughtworks.binding.Binding.Constants
-import com.thoughtworks.binding.Binding.Vars
-import scala.scalajs.js.WrappedArray
+import com.thoughtworks.binding.dom
 import org.scalajs.dom.raw.CustomEvent
-
 import scalajs.js.Dynamic.{ global => g, newInstance => jsnew, literal => lit }
-import org.scalajs.dom.raw.HTMLAnchorElement
-import org.scalajs.dom.raw.HTMLDivElement
 import components.core.ComponentBuilder
 import components.core.ClickableToggleWithSiblings
 import components.core.Size
-import components.core.Helpers._
 import components.Components.Tab
+import org.scalajs.dom.document
+import org.scalajs.dom.raw.HTMLAnchorElement
+import com.thoughtworks.binding.Binding
 
 case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithSiblings with Size{
   def render = this
