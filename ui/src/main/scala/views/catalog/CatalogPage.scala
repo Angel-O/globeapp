@@ -4,6 +4,7 @@ import components.core.Implicits._
 import components.core.Helpers._
 import components.Components.Input
 import components.Components.Table
+import components.Components.Router
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView
@@ -11,14 +12,16 @@ import appstate.{Connect, Login}
 import appstate.{MobileAppsSelector, FetchAllMobileApps}
 import apimodels.mobileapp.MobileApp
 import views.catalog._
+import appstate.AppCircuit._
+import appstate.MobileAppsSelector._
 
 object CatalogPage {
 
-  def view() = new RoutingView() with MobileAppsSelector {
+  def view() = new RoutingView() {//{with MobileAppsSelector {
 
     dispatch(FetchAllMobileApps) // fetching on first load
 
-    val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
+    lazy val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
     val appDialogIsOpen = Var(false)
     val selectedApp = Var[Option[MobileApp]](None)
 
@@ -95,12 +98,23 @@ object CatalogPage {
     def generateRows(mobileApps: Seq[MobileApp]) = {
       toBindingSeq(mobileApps)
         .map(app => <TableRow 
-            cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} 
+           cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} 
             onClick={handleRowClick _}/>)
         .all
         .bind
+      
+        // Note: the following won't work becuse the Table expects TableRows not html elements
+        // therefore we cannot wrap a row into a div and force the evaluation of the custom
+        // component
+//       for(app <- toBindingSeq(mobileApps)) yield {
+//         println(app.name)
+//         <TableRow 
+//            cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} 
+//            onClick={handleRowClick _}/>
+//       }
     }
 
-    def connectWith() = apps.value = getAllApps()
+    //def connectWith() = apps.value = getAllApps()
+    connect(apps.value = getAllApps())(mobileAppSelector)
   }
 }

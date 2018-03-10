@@ -2,7 +2,7 @@ package hoc.form
 
 import components.core.Implicits._
 import components.core.ComponentBuilder
-import components.Components.{Input}
+import components.Components.Input
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import appstate.AuthSelector
 import common.FormValidators.validateRequiredField
