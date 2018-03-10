@@ -2,7 +2,7 @@ package hoc.form
 
 import components.core.Implicits._
 import components.core.ComponentBuilder
-import components.Components.CustomTags2
+import components.Components.Input
 import com.thoughtworks.binding.{ dom, Binding }, Binding.Var
 import common._, FormElements._, FormValidators._
 import appstate.AuthSelector

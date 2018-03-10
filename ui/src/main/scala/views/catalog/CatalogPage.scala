@@ -2,7 +2,8 @@ package views.catalog
 
 import components.core.Implicits._
 import components.core.Helpers._
-import components.Components.CustomTags2
+import components.Components.Input
+import components.Components.Table
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView

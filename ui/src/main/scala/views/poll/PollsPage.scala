@@ -5,7 +5,7 @@ import appstate.{PollSelector, MobileAppsSelector}
 import com.thoughtworks.binding.{Binding, dom}, Binding.Var
 import components.core.Implicits._
 import components.core.Helpers._
-import components.Components.CustomTags2
+import components.Components.Card
 import apimodels.poll.Poll
 import appstate.{FetchPolls, FetchMobileApp}
 import org.scalajs.dom.raw.Event

@@ -4,7 +4,7 @@ import components.core.Implicits._
 import components.core.ComponentBuilder
 import components.core.Color
 import components.core.Helpers._
-import components.Components.CustomTags2
+import components.Components.{Layout, Modal}
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import apimodels.poll.Poll
 import utils.nameOf._

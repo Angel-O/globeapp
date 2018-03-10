@@ -20,7 +20,7 @@ import components.core.ComponentBuilder
 import components.core.ClickableToggleWithSiblings
 import components.core.Size
 import components.core.Helpers._
-import components.Components.CustomTags2
+import components.Components.Tab
 
 case class TabSwitchBuilder() extends ComponentBuilder with ClickableToggleWithSiblings with Size{
   def render = this

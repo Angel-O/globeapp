@@ -12,7 +12,7 @@ import com.thoughtworks.binding.Binding.Vars
 import org.scalajs.dom.raw.Node
 import com.thoughtworks.binding.Binding.Constants
 import components.core.Click
-import components.Components.CustomTags2
+import components.Components.Table
 
 case class TableDataBuilder() extends ComponentBuilder {
   def render = this

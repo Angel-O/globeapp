@@ -2,20 +2,20 @@ package views.home
 
 import navigation.URIs._
 import components.core.Implicits._
-import components.Components.CustomTags2
+import components.Components.{Layout, Button}
 import router.RoutingView
 
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.dom
 
 object HomePage {
-  
+
   import navigation.Navigators._
-  def view() = new RoutingView() { 
-    
-    //TODO split into subtiles and create HomePage subpackage 
-    @dom override def element = 
-          <div>
+  def view() = new RoutingView() {
+
+    //TODO split into subtiles and create HomePage subpackage
+    @dom override def element =
+      <div>
 						<Tile isAncestor={true} 
 							children={Seq(
 							  <Tile isVertical={true} width={8}

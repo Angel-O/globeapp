@@ -4,7 +4,7 @@ import router.RoutingView
 import com.thoughtworks.binding.dom
 import components.core.Implicits._
 import components.core.Helpers._
-import components.Components.CustomTags2
+import components.Components.Router
 import navigation.URIs._
 import router.DynamicRoute._
 import register._

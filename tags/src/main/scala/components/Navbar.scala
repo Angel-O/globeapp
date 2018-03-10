@@ -1,7 +1,7 @@
 package components
 
 import components.core.Implicits._
-import components.Components.CustomTags2
+import components.Components.Navbar
 import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLImageElement, HTMLButtonElement }
 import com.thoughtworks.binding.{dom, Binding}, Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document

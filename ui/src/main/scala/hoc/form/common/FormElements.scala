@@ -3,7 +3,8 @@ package hoc.form.common
 import com.thoughtworks.binding.dom
 import components.core.Implicits._
 import components.core.ComponentBuilder
-import components.Components.CustomTags2
+import components.Components.Button
+import components.Components.Input
 
 object FormElements {
   def renderSubmitButton(label: String,

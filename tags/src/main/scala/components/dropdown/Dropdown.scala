@@ -6,7 +6,7 @@ import org.scalajs.dom.raw.{ Event, HTMLElement, HTMLButtonElement }
 import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding.BindingSeq
 import components.core.ComponentBuilder
-import components.Components.CustomTags2
+import components.Components.Dropdown
 
 case class DropdownBuilder() extends ComponentBuilder{
   def render = this

@@ -18,11 +18,11 @@ import org.scalajs.dom.raw.DOMList
 import org.scalajs.dom.raw.NodeList
 import org.scalajs.dom.raw.NodeListOf
 import org.scalajs.dom.raw.Event
-import components.button.{SimpleButtonBuilder, ButtonBuilder, ButtonBuilderRaw}
+import components.button.{ SimpleButtonBuilder, ButtonBuilder, ButtonBuilderRaw }
 import components.table._
 import components.dropdown._
 import components.modal._
-import components.input._ 
+import components.input._
 import components.icon._
 import components.layout._
 import components._
@@ -39,65 +39,95 @@ import components.core.GenricComponentBuilder
 //import scala.reflect.api.TypeTags
 //import scala.reflect.runtime.universe._
 object Components {
-    
+
   import scala.language.dynamics
   import scala.collection.mutable
   implicit final class CustomTags2(x: dom.Runtime.TagsAndTags2.type) extends Dynamic {
-      
-      type BuilderFunction = Function[Seq[Any], ComponentBuilder]
-      
-      private val fields = mutable.Map.empty[String, BuilderFunction].withDefault {key => throw new NoSuchFieldError(key)}
 
-      def selectDynamic(key: String) = fields(key)
+    type BuilderFunction = Function[Seq[Any], ComponentBuilder]
 
-      def updateDynamic(key: String)(value: BuilderFunction) = fields(key) = value
+    private val fields = mutable.Map.empty[String, BuilderFunction].withDefault { key => throw new NoSuchFieldError(key) }
 
-      def applyDynamic(key: String)(args: BuilderFunction*) = fields(key)
-      
-      def RegisterTag(builder: BuilderFunction, tagName: String) = this.tagName = builder
-      
-      // base components
-      def Banner() = new BannerBuilder()
-      def Button() = new ButtonBuilder()
-      def ButtonRaw() = new ButtonBuilderRaw()
-      def Card() = new CardBuilder()
-      def CardImage() = new CardImageBuilder()
-      def CheckboxInput() = new CheckboxInputBuilder()
-      def Dummy() = DummyBuilder
-      def Dropdown() = new DropdownBuilder()
-      def EmailInput() = new EmailInputBuilder()
-      def FieldValidation() = new FieldValidationBuilder()
-      def Icon() = new IconBuilder()
-      def Input() = new InputBuilder()
-      def InputRaw() = new InputBuilderRaw()
-      def MenuItem() = new MenuItemBuilder()
-      def Message() = new MessageBuilder()
-      def MyComponent() = new MyComponentBuilder() // TEST
-      def ModalCard() = new ModalCardBuilder()
-      def Navbar() = new NavbarBuilder()
-      def NavbarItem() = new NavbarItemBuilder()
-      def NavbarLogo() = new NavbarLogoBuilder()
-      def PasswordInput = new PasswordInputBuilder()
-      def RadioInput = new RadioInputBuilder()
-      def SelectInput = new SelectInputBuilder()
-      def SimpleButton() = new SimpleButtonBuilder()
-      def SimpleModal() = new SimpleModalBuilder()
-      def Table() = new TableBuilder()
-      def TableData() = new TableDataBuilder()
-      def TableHeader() = new TableHeaderBuilder()
-      def TableFooter() = new TableFooterBuilder()
-      def TableRow() = new TableRowBuilder()
-      def TabSwitch() = new TabSwitchBuilder()
-      def TabContent() = new TabContentBuilder()
-      def TextareaInput() = new TextareaInputBuilder()
-      def TextInput() = new TextInputBuilder()  
-      def Tile() = new TileBuilder()
-           
-      // util
-      def Wrapper(x: HTMLElement) = new GenricComponentBuilder(x)
-      
-      // routing
-      def BrowserRouter() = new BrowserRouterBuilder()
-      def Route() = new RouteBuilder()
-    }
+    def selectDynamic(key: String) = fields(key)
+
+    def updateDynamic(key: String)(value: BuilderFunction) = fields(key) = value
+
+    def applyDynamic(key: String)(args: BuilderFunction*) = fields(key)
+
+    def RegisterTag(builder: BuilderFunction, tagName: String) = this.tagName = builder
+  }
+
+  implicit final class Button(x: dom.Runtime.TagsAndTags2.type) {
+    def Button() = new ButtonBuilder()
+    def ButtonRaw() = new ButtonBuilderRaw()
+    def SimpleButton() = new SimpleButtonBuilder()
+  }
+
+  implicit final class Card(x: dom.Runtime.TagsAndTags2.type) {
+    def Card() = new CardBuilder()
+    def CardImage() = new CardImageBuilder()
+  }
+
+  implicit final class Dropdown(x: dom.Runtime.TagsAndTags2.type) {
+    def Dropdown() = new DropdownBuilder()
+    def MenuItem() = new MenuItemBuilder()
+  }
+
+  implicit final class Input(x: dom.Runtime.TagsAndTags2.type) {
+    def CheckboxInput() = new CheckboxInputBuilder()
+    def EmailInput() = new EmailInputBuilder()
+    def FieldValidation() = new FieldValidationBuilder()
+    def Input() = new InputBuilder()
+    def InputRaw() = new InputBuilderRaw()
+    def PasswordInput = new PasswordInputBuilder()
+    def RadioInput = new RadioInputBuilder()
+    def SelectInput = new SelectInputBuilder()
+    def TextareaInput() = new TextareaInputBuilder()
+    def TextInput() = new TextInputBuilder()
+  }
+
+  implicit final class Layout(x: dom.Runtime.TagsAndTags2.type) {
+    def Banner() = new BannerBuilder()
+    def Message() = new MessageBuilder()
+    def Tile() = new TileBuilder()
+  }
+
+  implicit final class Modal(x: dom.Runtime.TagsAndTags2.type) {
+    def ModalCard() = new ModalCardBuilder()
+    def SimpleModal() = new SimpleModalBuilder()
+  }
+
+  implicit final class Router(x: dom.Runtime.TagsAndTags2.type) {
+    def BrowserRouter() = new BrowserRouterBuilder()
+    def Route() = new RouteBuilder()
+  }
+
+  implicit final class Misc(x: dom.Runtime.TagsAndTags2.type) {
+    def Icon() = new IconBuilder()
+    def MyComponent() = new MyComponentBuilder()
+  }
+
+  implicit final class Navbar(x: dom.Runtime.TagsAndTags2.type) {
+    def Navbar() = new NavbarBuilder()
+    def NavbarItem() = new NavbarItemBuilder()
+    def NavbarLogo() = new NavbarLogoBuilder()
+  }
+
+  implicit final class Tab(x: dom.Runtime.TagsAndTags2.type) {
+    def TabContent() = new TabContentBuilder()
+    def TabSwitch() = new TabSwitchBuilder()
+  }
+
+  implicit final class Table(x: dom.Runtime.TagsAndTags2.type) {
+    def Table() = new TableBuilder()
+    def TableData() = new TableDataBuilder()
+    def TableHeader() = new TableHeaderBuilder()
+    def TableFooter() = new TableFooterBuilder()
+    def TableRow() = new TableRowBuilder()
+  }
+
+  implicit final class Util(x: dom.Runtime.TagsAndTags2.type) {
+    def Dummy() = DummyBuilder
+    def Wrapper(x: HTMLElement) = new GenricComponentBuilder(x)
+  }
 }
