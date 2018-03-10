@@ -14,6 +14,7 @@ import apimodels.mobileapp.MobileApp
 import views.catalog._
 import appstate.AppCircuit._
 import appstate.MobileAppsSelector._
+import org.scalajs.dom.raw.Event
 
 object CatalogPage {
 
@@ -98,7 +99,7 @@ object CatalogPage {
     def generateRows(mobileApps: Seq[MobileApp]) = {
       toBindingSeq(mobileApps)
         .map(app => <TableRow 
-           cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} 
+           cells={Seq(<span onclick={(_:Event) => navigateToMobileAppDetail(app.id)}>app.name</span>, app.company, app.genre, formatPrice(app.price), app.store)} 
             onClick={handleRowClick _}/>)
         .all
         .bind

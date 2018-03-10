@@ -12,6 +12,7 @@ import login._
 import home._
 import catalog._
 import poll._
+import mobileapp._
 
 object RouteProvider {
 
@@ -27,7 +28,8 @@ object RouteProvider {
       LoginPageURI.tail.toPath -> LoginPage.view _,
       SamplePageURI.tail.toPath -> SamplePage.view _,
       CatalogPageURI.tail.toPath -> CatalogPage.view _,
-      PollsPageURI.tail.toPath -> PollsPage.view _
+      PollsPageURI.tail.toPath -> PollsPage.view _,
+      MobileAppDetailPageURI -> MobileAppPage.view _
       //UserPostURI -> UserEditPage.view _
     )
 

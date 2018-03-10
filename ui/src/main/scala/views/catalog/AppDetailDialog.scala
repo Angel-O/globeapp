@@ -31,7 +31,7 @@ case class AppDetailDialogBuilder() extends ComponentBuilder with Color {
         <div>
             <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
               <div>
-                <h1> Name: { app.name } </h1>
+                <h1>Name: { app.name } </h1>
                 <h2> Developed by: { app.company } </h2>
                 <h2> Genre: { app.genre } </h2>
                 <h2> Price: { s"£ ${priceFormatter(app.price)}" } </h2>

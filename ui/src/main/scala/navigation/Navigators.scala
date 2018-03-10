@@ -12,6 +12,8 @@ object Navigators {
     navigateTo(SamplePageURI)
   def navigateToUserEdit()(implicit bh: BrowserHistory) =
     navigateTo(UserEditPageURI)
+  def navigateToMobileAppDetail(appId: String)(implicit bh: BrowserHistory) =
+    navigateTo(s"$CatalogPageURI/$appId")
 
   def navigateTo(path: String)(implicit bh: BrowserHistory) =
     bh.navigateTo(path)
