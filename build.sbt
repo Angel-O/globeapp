@@ -40,6 +40,10 @@ lazy val appServer = (project in file("app-server"))
     .dependsOn(sharedJVM, securityServer)
     .disablePlugins(WorkbenchPlugin)
 
+lazy val pollServer = (project in file("poll-server"))
+    .dependsOn(sharedJVM, securityServer)
+    .disablePlugins(WorkbenchPlugin)
+
 //TODO turn this into a library
 lazy val securityServer = (project in file("security-server"))
     .dependsOn(sharedJVM)
@@ -49,12 +53,18 @@ lazy val tags = (project in file("tags"))
     .settings(commonSettings)
 
 lazy val shared = (project in file("shared"))
-    .settings(commonSettings)
+    .settings(
+        commonSettings,
+        libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
+        libraryDependencies += "io.github.cquiroz" %% "scala-java-time" % "2.0.0-M13",
+        libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.9")
 
 lazy val cross = (crossProject.crossType(CrossType.Full) in file("."))
     .settings(
         commonSettings,
         libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
+        libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M13",
+        libraryDependencies += "com.typesafe.play" %%% "play-json" % "2.6.9",
         EclipseKeys.useProjectId := true
     )
     .jsConfigure(_.enablePlugins(ScalaJSPlugin))

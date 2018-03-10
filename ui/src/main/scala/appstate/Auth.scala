@@ -100,10 +100,12 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
   import upickle.default._
-  import apimodels.{LoginDetails, RegistrationDetails}
+  import apimodels.user.{LoginDetails, RegistrationDetails}
   import utils.api._, utils.jwt._, utils.persist._
   import diode.{Effect, NoAction}
   import config._
+  //import play.api.libs.json.Json._
+
   
   def loginEffect(username: String, password: String) = {
     Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(LoginDetails(username, password)))

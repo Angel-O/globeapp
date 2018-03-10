@@ -6,7 +6,7 @@ import navigation.Navigators._
 import router.RoutingView
 import appstate.{Connect, Login}
 import appstate.{MobileAppsSelector, FetchAllMobileApps}
-import apimodels.MobileApp
+import apimodels.mobileapp.MobileApp
 
 object CatalogPage {
 

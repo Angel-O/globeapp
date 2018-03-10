@@ -2,7 +2,7 @@ package appstate
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import upickle.default._
-import apimodels.User
+import apimodels.user.User
 import diode.{Effect, NoAction}
 import diode.data.{Ready, Failed, Pot}
 import utils.api._, utils.log

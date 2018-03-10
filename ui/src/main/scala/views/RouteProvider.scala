@@ -9,6 +9,7 @@ import register._
 import login._
 import home._
 import catalog._
+import poll._
 
 object RouteProvider {
 
@@ -23,7 +24,8 @@ object RouteProvider {
       RegisterPageURI.tail.toPath -> RegistrationPage.view _,
       LoginPageURI.tail.toPath -> LoginPage.view _,
       SamplePageURI.tail.toPath -> SamplePage.view _,
-      CatalogPageURI.tail.toPath -> CatalogPage.view _//,
+      CatalogPageURI.tail.toPath -> CatalogPage.view _,
+      PollsPageURI.tail.toPath -> PollsPage.view _
       //UserPostURI -> UserEditPage.view _
     )
 

@@ -1,7 +1,7 @@
 package appstate
 
 import diode.Action
-import apimodels.User
+import apimodels.user.User
 import diode.data.Pot
 import diode.data.Empty
 import diode.data.PotAction

@@ -5,7 +5,7 @@ import javax.inject.Inject
 import scala.concurrent.Future
 import reactivemongo.play.json.collection.JSONCollection
 import scala.concurrent.ExecutionContext
-import apimodels.{User => ApiUser}
+import apimodels.user.{User => ApiUser}
 import play.api.libs.json.Json
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.api.ReadPreference

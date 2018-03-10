@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.Inject
 
-import apimodels.User
+import apimodels.user.User
 //import pdi.jwt.JwtUpickle._ 
 import pdi.jwt.JwtSession._
 import play.api.http.FileMimeTypes
