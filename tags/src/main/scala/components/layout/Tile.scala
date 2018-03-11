@@ -58,7 +58,7 @@ case class TileBuilder() extends ComponentBuilder with Color with Click{
     if (className.contains(CHILD)) contextualTokens += 1
         
     if (contextualTokens > 1){
-      throw new IllegalArgumentException(s"Tiles can be either ancestor, parent or child")
+      throw new IllegalArgumentException(s"Tiles can be either ancestor, parent or child ($className)")
     }
     
     //TODO allow for articles, not just divs...
