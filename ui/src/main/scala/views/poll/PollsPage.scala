@@ -24,22 +24,22 @@ object PollsPage {
     @dom
     override def element = {
       <div>
-      { for(poll <- toBindingSeq(polls.bind)) yield {
+      { for (poll <- toBindingSeq(polls.bind)) yield {
         <div onclick={ (_: Event) => openDialog(poll) }>
-          	<Card title={ poll.title } subTitle={ poll.createdBy } content={
-      		    <div>
-          	    { poll.content }
-          	  </div>
-      		  }/>
-        </div> }}
+          <Card title={ poll.title } subTitle={ poll.createdBy } content={
+            <div>
+              { poll.content }
+            </div>
+          }/>
+        </div>}}
       { val target = targetPoll.bind
         val app = appName.bind
         <div>
-            <PollDetailDialog 
-              dialogIsOpen={ dialogIsOpen } 
-              targetPoll={ target } 
-              appName={ app } 
-              handleClose={ closeDialog _ }/>
+          <PollDetailDialog 
+            dialogIsOpen={ dialogIsOpen } 
+            targetPoll={ target } 
+            appName={ app } 
+            handleClose={ closeDialog _ }/>
         </div> }
       </div>
     }
