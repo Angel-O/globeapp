@@ -16,7 +16,6 @@ import play.api.libs.json.JsObject
 import reactivemongo.api.Cursor
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocumentReader
-//import models.MobileApp
 import apimodels.mobileapp.MobileApp
 import play.api.Logger
 
@@ -50,5 +49,10 @@ class MobileAppRepository @Inject() (implicit ec: ExecutionContext, reactiveMong
   def deleteApp(id: String): Future[Option[MobileApp]] = {
     val selector = obj("_id" -> id)
     entityCollection.flatMap(_.findAndRemove(selector).map(_.result[MobileApp]))
+  }
+  
+  def validateUniqueApp(name: String, company: String, store: String): Future[Option[MobileApp]] = {
+    val query = obj("name" -> name, "company" -> company, "store" -> store)
+    entityCollection.flatMap(_.find(query).one[MobileApp])
   }
 }
