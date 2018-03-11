@@ -6,6 +6,7 @@ import components.Components.Input
 import components.Components.Table
 import components.Components.Router
 import components.Components.Layout
+import components.Components.Util
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView
@@ -77,7 +78,7 @@ object CatalogPage {
                           </div>}/>
                       </div> ).all.bind // get the underlying sequence (0 or 1 element)
                       .find(_ => true) // calling head would cause an exception (find returns a safe option)
-                      .getOrElse(<div></div>) } // return a dummy div if the target app is not selected
+                      .getOrElse(<Dummy/>.build.bind) } // return a dummy div if the target app is not selected
                     )
                 }/>
                 
