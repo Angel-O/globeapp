@@ -12,41 +12,44 @@ import reactivemongo.api.Cursor
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.play.json.collection.JSONCollection
 import reactivemongo.play.json._
+import play.api.libs.json.JsObject
+
+object SearchCriteria{
+  def uniqueApp(name: String, company: String, store: String) = 
+    obj("name" -> name, "company" -> company, "store" -> store)
+    
+  def id(id: String) = obj("_id" -> id)
+  
+  def any = obj()
+}
 
 class MobileAppRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi) {
 
   def entityCollection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection("mobile-apps"))
 
-  def getAll: Future[Seq[MobileApp]] = {
-    val query = obj()
-    entityCollection.flatMap(_.find(query)
-      .cursor[MobileApp](ReadPreference.primary)
-      .collect(-1, Cursor.FailOnError[Seq[MobileApp]]()))
-  }
+  def getAll: Future[Seq[MobileApp]] = findManyBy(SearchCriteria.any)
 
   def addApp(app: MobileApp): Future[WriteResult] = {
     entityCollection.flatMap(_.insert(app))
   }
 
-  def getApp(id: String): Future[Option[MobileApp]] = {
-    val query = obj("_id" -> id)
-    entityCollection.flatMap(_.find(query).one[MobileApp])
-  }
-
   def updateApp(id: String, updated: MobileApp): Future[Option[MobileApp]] = {
-    val selector = obj("_id" -> id)
     entityCollection
-      .flatMap(_.findAndUpdate(selector, updated, fetchNewObject = true)
+      .flatMap(_.findAndUpdate(SearchCriteria.id(id), updated, fetchNewObject = true)
         .map(_.result[MobileApp]))
   }
 
   def deleteApp(id: String): Future[Option[MobileApp]] = {
-    val selector = obj("_id" -> id)
-    entityCollection.flatMap(_.findAndRemove(selector).map(_.result[MobileApp]))
+    entityCollection.flatMap(_.findAndRemove(SearchCriteria.id(id)).map(_.result[MobileApp]))
   }
   
-  def validateUniqueApp(name: String, company: String, store: String): Future[Option[MobileApp]] = {
-    val query = obj("name" -> name, "company" -> company, "store" -> store)
-    entityCollection.flatMap(_.find(query).one[MobileApp])
+  def findOneBy(criteria: JsObject) = {
+    entityCollection.flatMap(_.find(criteria).one[MobileApp])
+  }
+  
+  def findManyBy(criteria: JsObject): Future[Seq[MobileApp]] = {
+    entityCollection.flatMap(_.find(criteria)
+      .cursor[MobileApp](ReadPreference.primary)
+      .collect(-1, Cursor.FailOnError[Seq[MobileApp]]()))
   }
 }

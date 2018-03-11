@@ -9,6 +9,7 @@ import javax.inject.Inject
 import play.api.Logger
 import reactivemongo.bson.BSONObjectID
 import repos.MobileAppRepository
+import repos.SearchCriteria
 import upickle.default.write
 
 class MobileAppController @Inject() (
@@ -26,7 +27,7 @@ class MobileAppController @Inject() (
     parseId(id)
       .flatMap(validId =>
         repository
-          .getApp(validId)
+          .findOneBy(SearchCriteria.id(validId))
           .map({
             case Some(mobileApp) => Ok(write(mobileApp))
             case None            => NotFound
@@ -42,7 +43,7 @@ class MobileAppController @Inject() (
     req.body.validate[MobileAppUploadModel]
       .map(uploadModel => {
         repository
-          .validateUniqueApp(uploadModel.name, uploadModel.company, uploadModel.store)
+          .findOneBy(SearchCriteria.uniqueApp(uploadModel.name, uploadModel.company, uploadModel.store))
           .flatMap({
             case Some(_) =>
               Future(BadRequest(
