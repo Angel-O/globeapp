@@ -14,8 +14,8 @@ import appstate.MobileAppsSelector._
 import appstate.AppCircuit._
 
 object PollsPage {
-  def view() = new RoutingView() {//with PollSelector with MobileAppsSelector{
-    
+  def view() = new RoutingView() { //with PollSelector with MobileAppsSelector{
+
     val polls = Var[Seq[Poll]](Seq.empty)
     val targetPoll = Var[Option[Poll]](None)
     var dialogIsOpen = false
@@ -38,7 +38,7 @@ object PollsPage {
           <PollDetailDialog 
 					dialogIsOpen={ dialogIsOpen } 
 					targetPoll={ target } 
-					appName={app}
+					appName={ app }
 					handleClose={ closeDialog _ }/>
 				</div>}
       </div>
@@ -55,19 +55,19 @@ object PollsPage {
       targetPoll.value = None
       appName.value = ""
     }
-    
+
     def getAppName() = {
       val targetPollAppId = targetPoll.value.map(_.mobileAppId).getOrElse("")
       getAppById(targetPollAppId).map(_.name).getOrElse("")
     }
-    
+
     def update() = {
       appName.value = getAppName()
       polls.value = getPolls()
     }
-    
-    connect(polls.value = getPolls())//(pollSelector)
-    connect(appName.value = getAppName())//(mobileAppSelector)
+
+    connect(polls.value = getPolls()) //(pollSelector)
+    connect(appName.value = getAppName()) //(mobileAppSelector)
     //multiConnect(update)(pollSelector, mobileAppSelector)
     dispatch(FetchPolls)
   }

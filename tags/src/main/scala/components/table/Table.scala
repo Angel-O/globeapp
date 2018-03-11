@@ -14,11 +14,20 @@ import com.thoughtworks.binding.Binding.Constants
 import components.core.Click
 import components.Components.Table
 
-case class TableDataBuilder() extends ComponentBuilder {
+
+trait TableElementRenderer{
+  @dom def renderElement(element: Any, isHeadElement: Boolean = false) = element match {
+    case el: HTMLElement => if (isHeadElement) <th> {el} </th> else <td> {el} </td>
+      case s: String => if (isHeadElement) <th> {s} </th> else <td> {s} </td>
+      case cb: ComponentBuilder => if (isHeadElement) <th> {cb.build.bind} </th> else <td> { cb.build.bind } </td>
+      case _ => if (isHeadElement) <th> {element.toString} </th> else <td>{ element.toString }</td>
+  }
+}
+case class TableDataBuilder() extends ComponentBuilder with TableElementRenderer{
   def render = this
   var content: Binding[Any] = _
   
-  @dom def build = <td>{ content.bind.toString() }</td>.asInstanceOf[HTMLElement]
+  @dom def build = renderElement(content.bind).bind
 }
 
 case class TableHeaderBuilder() extends ComponentBuilder {
@@ -55,7 +64,7 @@ case class TableFooterBuilder() extends ComponentBuilder {
   }
 }
 
-case class TableRowBuilder() extends ComponentBuilder with Click{
+case class TableRowBuilder() extends ComponentBuilder with TableElementRenderer with Click{
   def render = this
 
   var cells: Seq[Any] = _
@@ -76,8 +85,9 @@ case class TableRowBuilder() extends ComponentBuilder with Click{
 
     val tail = toBindingSeq(this.cells.tail)
     val head = this.cells.head
+    val headElement = renderElement(head.bind, isHeadElement = true).bind
     val row = <tr>
-                <th>{ head.toString }</th>
+                { headElement }
                 { tail.map(x => <TableData content={ x }/>).flatMap(_.bind) }
               </tr>.asInstanceOf[HTMLElement]
     

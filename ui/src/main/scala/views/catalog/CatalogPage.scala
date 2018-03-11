@@ -99,8 +99,13 @@ object CatalogPage {
     def generateRows(mobileApps: Seq[MobileApp]) = {
       toBindingSeq(mobileApps)
         .map(app => <TableRow 
-           cells={Seq(<span onclick={(_:Event) => navigateToMobileAppDetail(app.id)}>app.name</span>, app.company, app.genre, formatPrice(app.price), app.store)} 
-            onClick={handleRowClick _}/>)
+           cells={Seq(
+             <span onclick={(_:Event) => navigateToMobileAppDetail(app._id)}>{ app.name }</span>, 
+              app.company, 
+              app.genre, 
+              formatPrice(app.price), 
+              app.store)} 
+              onClick={handleRowClick _}/>)
         .all
         .bind
       
