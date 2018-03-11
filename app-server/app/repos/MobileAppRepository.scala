@@ -32,12 +32,9 @@ class MobileAppRepository @Inject() (implicit ec: ExecutionContext, reactiveMong
   }
 
   def addApp(app: MobileApp): Future[WriteResult] = {
-    Future.fromTry(BSONObjectID.parse(app._id))
-      .flatMap(_ => entityCollection.flatMap(_.insert(app)))
-      .recover({ case ex => Logger.error(ex.getMessage); throw ex })
+    entityCollection.flatMap(_.insert(app))
   }
 
-  //TODO shall I parse the id??
   def getApp(id: String): Future[Option[MobileApp]] = {
     val query = obj("_id" -> id)
     entityCollection.flatMap(_.find(query).one[MobileApp])
