@@ -41,8 +41,12 @@ object CatalogPage {
 
       <div>
         <h1>Apps catalog</h1>
-          <TextInput placeHolder="Search"  
-            onChange={handleSearchBoxChange _}/>
+          <Box sizes={Seq(`2/3`)} contents={
+            Seq(<div>
+                <TextInput placeHolder="Search"  
+                  onChange={handleSearchBoxChange _}/>
+                </div>)
+          }/>
           { val tableRows = generateRows(apps.bind).bind
             tableRows.isEmpty match {
               case true => 
