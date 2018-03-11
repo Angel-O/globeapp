@@ -86,6 +86,7 @@ object Components {
 
   implicit final class Layout(x: dom.Runtime.TagsAndTags2.type) {
     def Banner() = new BannerBuilder()
+    def Box() = new BoxBuilder()
     def Message() = new MessageBuilder()
     def Tile() = new TileBuilder()
   }

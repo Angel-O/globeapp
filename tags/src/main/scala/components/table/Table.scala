@@ -69,11 +69,21 @@ case class TableRowBuilder() extends ComponentBuilder with TableElementRenderer 
 
   var cells: Seq[Any] = _
   var onClick: Int => Unit = _ 
+  var onHover: Int => Unit = _
+  var onLeave: Int => Unit = _
   var index: Int = _
   var enableRowHighlight: Boolean = false
   
   private def handleClick = (e: Event) => { 
     Option(onClick).foreach( handler => handler(index))
+  }
+
+  private def handleHover = (e: Event) => { 
+    Option(onHover).foreach( handler => handler(index))
+  }
+
+  private def handleLeave = (e: Event) => { 
+    Option(onLeave).foreach( handler => handler(index))
   }
 
   private def highlightRow = (e: Event) => {
@@ -95,8 +105,11 @@ case class TableRowBuilder() extends ComponentBuilder with TableElementRenderer 
 
     //TODO move logic to click trait using option
     row.addEventListener("click", handleClick)
+    row.addEventListener("mouseover", handleHover)
+    row.addEventListener("mouseleave", handleLeave)
     
     setPointerStyle(onClick, row)
+    setPointerStyle(onHover, row)
 
     row
   }
@@ -113,6 +126,11 @@ case class TableBuilder() extends ComponentBuilder {
   var isFullWidth: Boolean = false
   var isHoverable: Boolean = false
   var enableRowHighlight: Boolean = false
+  var onMouseLeave: () => Unit = _
+
+  private def handleLeave = (e: Event) => { 
+    Option(onMouseLeave).foreach( handler => handler.apply())
+  }
   
   // using lazy val rather than val...
   private lazy val className = getClassName(
@@ -127,13 +145,18 @@ case class TableBuilder() extends ComponentBuilder {
     
     val rowsAndIndices = toBindingSeq(rows.zipWithIndex)
     
-    <table class={className}>
-      { unwrapBuilder(header) }
-      <tbody>
-        { rowsAndIndices.flatMap(rowAndIndex => getIndexedRowAndAddProperties(rowAndIndex).bind) }
-      </tbody>
-      { unwrapBuilder(footer) }
-    </table>.asInstanceOf[HTMLElement]
+    val table = 
+      <table class={className}>
+        { unwrapBuilder(header) }
+        <tbody>
+          { rowsAndIndices.flatMap(rowAndIndex => getIndexedRowAndAddProperties(rowAndIndex).bind) }
+        </tbody>
+        { unwrapBuilder(footer) }
+      </table>
+
+    table.addEventListener("mouseleave", handleLeave)
+
+    table
   }
 
   @dom def getIndexedRowAndAddProperties(rowAndIndex: (TableRowBuilder, Int)) = {

@@ -61,6 +61,8 @@ trait BulmaCssClasses {
   val CARD_CONTENT = "card-content"
   val CENTERED = "is-centered"
   val CHILD = "is-child"
+  val COLUMN = "column"
+  val COLUMNS = "columns"
   val CONTAINER = "container"
   val CONTENT = "content"
   val CONTROL = "control"
@@ -109,6 +111,9 @@ trait BulmaCssClasses {
   val TOGGLED = "is-toggle"
   val TRANSPARENT = "is-transparent"
   val VERTICAL = "is-vertical"
+  val `3/4` = "is-three-quarters"
+  val `1/2` = "is-half"
+  val `2/3` = "is-two-thirds"
 
   // Note making this private would make compilation with fastOPTJS fail
   // (maybe related to https://github.com/sbt/sbt/issues/2490 ???)

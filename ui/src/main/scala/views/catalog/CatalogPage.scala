@@ -5,6 +5,7 @@ import components.core.Helpers._
 import components.Components.Input
 import components.Components.Table
 import components.Components.Router
+import components.Components.Layout
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView
@@ -46,16 +47,42 @@ object CatalogPage {
               case true => 
               <span>No apps to show</span>
               case false => 
+              val targetApp = selectedApp.bind
               val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
               <div>
-                <Table isBordered={true} 
-                  isStriped={true}
-                  isFullWidth={true} 
-                  isHoverable={true}
-                  header={<TableHeader cells={headers}/>}
-                  rows={tableRows}
-                  footer={<TableFooter cells={headers}/>}/>
+                <Box sizes={Seq(`2/3`)} contents={
+                  Seq(
+                    <div>
+                        <Table isBordered={true} 
+                          isStriped={true}
+                          isFullWidth={true} 
+                          isHoverable={true}
+                          header={<TableHeader cells={headers}/>}
+                          rows={tableRows}
+                          onMouseLeave={handleMouseLeave _}
+                          footer={<TableFooter cells={headers}/>}/>
+                    </div>, 
+                    { toBindingSeq(targetApp).map( app =>             
+                      <div style={"position: sticky; top: 0"}> <!-- nice css trick -->
+                        <Message header={"App details"} isPrimary={true} 
+                          isMedium={true} style={"padding: 1em"} content={ 
+                          <div>
+                            <h1> Name: { app.name } </h1>
+                            <h2> Developed by: { app.company } </h2>
+                            <h2> Genre: { app.genre } </h2>
+                            <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
+                            <h2> Store: { app.store } </h2>
+                            <h3> Description: Coming soon </h3>
+                            <h3> Rating: Coming soon </h3>
+                          </div>}/>
+                      </div> ).all.bind // get the underlying sequence (0 or 1 element)
+                      .find(_ => true) // calling head would cause an exception (find returns a safe option)
+                      .getOrElse(<div></div>) } // return a dummy div if the target app is not selected
+                    )
+                }/>
+                
                 { //val targetApp = selectedApp.bind
+                  //TODO display company info instead....
                   val dialogIsOpen = appDialogIsOpen.bind
                   <div>
                     <AppDetailDialog targetApp={selectedApp.bind} 
@@ -78,7 +105,15 @@ object CatalogPage {
       //TODO probably this needs Vars...they go hand in hand:
       //there is no need for intermediated updates...same below...
       selectedApp.value = Some(apps.value(rowIndex))
-      appDialogIsOpen.value = true
+      //appDialogIsOpen.value = true
+    }
+
+    def handleRowHover(rowIndex: Int) = {
+      selectedApp.value = Some(apps.value(rowIndex))
+    }
+
+    def handleMouseLeave() = {
+      selectedApp.value = None
     }
 
     def handleClose() = {
@@ -100,12 +135,13 @@ object CatalogPage {
       toBindingSeq(mobileApps)
         .map(app => <TableRow 
            cells={Seq(
-             <span onclick={(_:Event) => navigateToMobileAppDetail(app._id)}>{ app.name }</span>, 
+             <span style={"text-decoration: underline"}>{ app.name }</span>, 
               app.company, 
               app.genre, 
               formatPrice(app.price), 
               app.store)} 
-              onClick={handleRowClick _}/>)
+              onHover={handleRowHover _}
+              onClick={_:Int => navigateToMobileAppDetail(app._id)}/>)
         .all
         .bind
       
