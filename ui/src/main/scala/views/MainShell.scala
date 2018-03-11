@@ -20,7 +20,8 @@ object MainShell extends BulmaCssClasses {
              username: String,
              login: () => Unit,
              logout: () => Unit,
-             navigateToCatalog: () => Unit) = {
+             navigateToCatalog: () => Unit,
+             navigateToPolls: () => Unit) = {
 
     val logo =
       <NavbarLogo href={s"#$ROOT_PATH"} image={
@@ -33,6 +34,10 @@ object MainShell extends BulmaCssClasses {
         <NavbarItem 
           item={<SimpleButton isPrimary={true} 
           icon={ <Icon id="inbox"/> } label="messages"/>}/>,
+        <NavbarItem 
+          item={<SimpleButton isSuccess={true} 
+          icon={ <Icon id="comments"/> } 
+          label="polls" onClick={navigateToPolls}/>}/>,
         <NavbarItem 
           item={<SimpleButton isInfo={true} 
           icon={ <Icon id="mobile"/> } 
@@ -81,9 +86,11 @@ object MainShell extends BulmaCssClasses {
             isRightDropdown={true} 
             isHoverable={true}
             dropdownItems={Seq(
-                <a href={s"#$ROOT_PATH$PollsPageURI"}>Polls</a>, 
+                <a href={s"#$ROOT_PATH"}>Your reviews</a>, 
                 <a href={s"#$ROOT_PATH"}>Favourite apps</a>, 
-							  <a href={s"#$ROOT_PATH"}>Stats</a>, <hr/>, 
+							  <a href={s"#$ROOT_PATH"}>Stats</a>, 
+                <a href={s"#$ROOT_PATH"}>Contact us</a>, <hr/>, 
+                <a href={s"#$ROOT_PATH"}>Manage account</a>,
                 <Button label="log out" onClick={logout}/>)} />
     else <NavbarItem item={
           <SimpleButton label="log in" icon={ <Icon id="user"/> } isWarning={true} onClick={login}/>}/>
