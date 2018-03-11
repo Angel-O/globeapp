@@ -5,8 +5,9 @@ import javax.inject.Inject
 import scala.concurrent.Future
 import reactivemongo.play.json.collection.JSONCollection
 import scala.concurrent.ExecutionContext
+import play.api.libs.json.Json._
 import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
+import reactivemongo.bson.{ BSONDocument, BSONObjectID }
 import reactivemongo.api.ReadPreference
 import reactivemongo.play.json._
 
@@ -15,39 +16,42 @@ import play.api.libs.json.JsObject
 import reactivemongo.api.Cursor
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocumentReader
-import models.MobileApp
+//import models.MobileApp
+import apimodels.mobileapp.MobileApp
+import play.api.Logger
 
+class MobileAppRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi) {
 
-class MobileAppRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi){
-  
   def entityCollection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection("mobile-apps"))
-  
+
   def getAll: Future[Seq[MobileApp]] = {
-    val query = Json.obj()
+    val query = obj()
     entityCollection.flatMap(_.find(query)
-        .cursor[MobileApp](ReadPreference.primary)
-        .collect(-1, Cursor.FailOnError[Seq[MobileApp]]()))
+      .cursor[MobileApp](ReadPreference.primary)
+      .collect(-1, Cursor.FailOnError[Seq[MobileApp]]()))
   }
-  
+
   def addApp(app: MobileApp): Future[WriteResult] = {
-    entityCollection.flatMap(_.insert(app))
+    Future.fromTry(BSONObjectID.parse(app._id))
+      .flatMap(_ => entityCollection.flatMap(_.insert(app)))
+      .recover({ case ex => Logger.error(ex.getMessage); throw ex })
   }
-  
-  def getApp(id: BSONObjectID): Future[Option[MobileApp]] = {
-    val query = BSONDocument("_id" -> id)
+
+  //TODO shall I parse the id??
+  def getApp(id: String): Future[Option[MobileApp]] = {
+    val query = obj("_id" -> id)
     entityCollection.flatMap(_.find(query).one[MobileApp])
   }
 
-  def updateApp(id: BSONObjectID, updated: MobileApp): Future[Option[MobileApp]] = {
-    val selector = BSONDocument("_id" -> id)
-    val updateModifier = BSONDocument(
-      "$set" -> BSONDocument(
-        "name" -> updated.name)) //TODO add all fields...
-    entityCollection.flatMap(_.findAndUpdate(selector, updateModifier, fetchNewObject = true).map(_.result[MobileApp]))
+  def updateApp(id: String, updated: MobileApp): Future[Option[MobileApp]] = {
+    val selector = obj("_id" -> id)
+    entityCollection
+      .flatMap(_.findAndUpdate(selector, updated, fetchNewObject = true)
+        .map(_.result[MobileApp]))
   }
 
-  def deleteApp(id: BSONObjectID): Future[Option[MobileApp]] = {
-    val selector = BSONDocument("_id" -> id)
+  def deleteApp(id: String): Future[Option[MobileApp]] = {
+    val selector = obj("_id" -> id)
     entityCollection.flatMap(_.findAndRemove(selector).map(_.result[MobileApp]))
   }
 }

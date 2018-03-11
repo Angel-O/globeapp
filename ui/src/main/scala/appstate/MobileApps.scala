@@ -56,34 +56,38 @@ trait MobileAppsEffects extends Push {
   import utils.api._, utils.jwt._, utils.persist._
   import diode.{Effect, NoAction}
   import config._
-
-  //TODO implement real api calls
-  import mock.MobileAppApi._
   
-  import scalajs.js
+  def fetchMobileAppsEffect() = {
+    Effect(
+      Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
+        .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
+  }
 
-  def fetchMobileAppsEffect() =
-    Effect(Future { 1 }.map(_ => MobileAppsFetched(getAll)))
-    
   def fetchMobileAppEffect(id: String) = {
-    Effect(delay(10000).map(app => MobileAppFetched(app)))
+    Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id").map(xhr => MobileAppFetched(read[MobileApp](xhr.responseText))))
   }
+
+  //import mock.MobileAppApi._
+  // def fetchMobileAppEffectTEST(id: String) = {
+  //   Effect(delay(10000).map(app => MobileAppFetched(app)))
+  // }
   
-  //TEST
-  def delay(milliseconds: Int): Future[MobileApp] = {
-    val p = Promise[MobileApp]()
-    js.timers.setTimeout(milliseconds) {
-      p.success((getById))
-    }
-    p.future
-  }
+  // //TEST
+  // def delay(milliseconds: Int): Future[MobileApp] = {
+  //   import scalajs.js
+  //   val p = Promise[MobileApp]()
+  //   js.timers.setTimeout(milliseconds) {
+  //     p.success((getById))
+  //   }
+  //   p.future
+  // }
 }
 
 // Selector
 trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 
   def getAllApps() = model
-  def getAppById(id: String) = getAllApps.find(_.id == id)
+  def getAppById(id: String) = getAllApps.find(_._id == id)
 
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit
@@ -92,7 +96,7 @@ trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 
 object MobileAppsSelector extends ReadConnect[AppModel, Seq[MobileApp]]{
   def getAllApps() = model
-  def getAppById(id: String) = getAllApps.find(_.id == id)
+  def getAppById(id: String) = getAllApps.find(_._id == id)
   
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit

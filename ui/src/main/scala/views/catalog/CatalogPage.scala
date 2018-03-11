@@ -38,7 +38,7 @@ object CatalogPage {
       // the text changes
 
       <div>
-			  <h1>Apps catalog</h1>
+        <h1>Apps catalog</h1>
           <TextInput placeHolder="Search"  
             onChange={handleSearchBoxChange _}/>
           { val tableRows = generateRows(apps.bind).bind
@@ -99,8 +99,13 @@ object CatalogPage {
     def generateRows(mobileApps: Seq[MobileApp]) = {
       toBindingSeq(mobileApps)
         .map(app => <TableRow 
-           cells={Seq(<span onclick={(_:Event) => navigateToMobileAppDetail(app.id)}>app.name</span>, app.company, app.genre, formatPrice(app.price), app.store)} 
-            onClick={handleRowClick _}/>)
+           cells={Seq(
+             <span onclick={(_:Event) => navigateToMobileAppDetail(app._id)}>{ app.name }</span>, 
+              app.company, 
+              app.genre, 
+              formatPrice(app.price), 
+              app.store)} 
+              onClick={handleRowClick _}/>)
         .all
         .bind
       
@@ -109,8 +114,8 @@ object CatalogPage {
         // component
 //       for(app <- toBindingSeq(mobileApps)) yield {
 //         println(app.name)
-//         <TableRow 
-//            cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)} 
+//         <TableRow
+//            cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)}
 //            onClick={handleRowClick _}/>
 //       }
     }
