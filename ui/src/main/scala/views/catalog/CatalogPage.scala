@@ -27,6 +27,7 @@ object CatalogPage {
     lazy val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
     val appDialogIsOpen = Var(false)
     val selectedApp = Var[Option[MobileApp]](None)
+    //val tableSize = Var(`2/3`) //TODO make it nicer...
 
     @dom
     override def element = {
@@ -39,63 +40,62 @@ object CatalogPage {
       // rows otherwise a page refresh would be triggered each time
       // the text changes
 
+      //val size = tableSize.bind
       <div>
         <h1>Apps catalog</h1>
-          <Box sizes={Seq(`2/3`)} contents={
-            Seq(<div>
-                <TextInput placeHolder="Search"  
-                  onChange={handleSearchBoxChange _}/>
-                </div>)
-          }/>
-          { val tableRows = generateRows(apps.bind).bind
-            tableRows.isEmpty match {
-              case true => 
-              <span>No apps to show</span>
-              case false => 
-              val targetApp = selectedApp.bind
-              val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
-              <div>
-                <Box sizes={Seq(`2/3`)} contents={
-                  Seq(
+        <Box sizes={Seq(`2/3`)} contents={Seq(
+          <div>
+            <TextInput placeHolder="Search"  
+                onChange={handleSearchBoxChange _}/>
+          </div>
+        )}/>
+        { val tableRows = generateRows(apps.bind).bind
+          tableRows.isEmpty match {
+            case true => 
+            <span>No apps to show</span>
+            case false => 
+            val targetApp = selectedApp.bind
+            val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
+            <div>
+              <Box sizes={Seq(`2/3`)} contents={Seq(
+                <div>
+                    <Table isBordered={true} 
+                      isStriped={true}
+                      isFullWidth={true} 
+                      isHoverable={true}
+                      header={<TableHeader cells={headers}/>}
+                      rows={tableRows}
+                      onMouseEnter={handleMouseEnter _}
+                      onMouseLeave={handleMouseLeave _}
+                      footer={<TableFooter cells={headers}/>}/>
+                </div>, 
+              { toBindingSeq(targetApp).map( app =>             
+                <div style={"position: sticky; top: 0"}> <!-- nice css trick -->
+                  <Message header={"App details"} isPrimary={true} 
+                    isMedium={true} style={"padding: 1em"} content={ 
                     <div>
-                        <Table isBordered={true} 
-                          isStriped={true}
-                          isFullWidth={true} 
-                          isHoverable={true}
-                          header={<TableHeader cells={headers}/>}
-                          rows={tableRows}
-                          onMouseLeave={handleMouseLeave _}
-                          footer={<TableFooter cells={headers}/>}/>
-                    </div>, 
-                    { toBindingSeq(targetApp).map( app =>             
-                      <div style={"position: sticky; top: 0"}> <!-- nice css trick -->
-                        <Message header={"App details"} isPrimary={true} 
-                          isMedium={true} style={"padding: 1em"} content={ 
-                          <div>
-                            <h1> Name: { app.name } </h1>
-                            <h2> Developed by: { app.company } </h2>
-                            <h2> Genre: { app.genre } </h2>
-                            <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
-                            <h2> Store: { app.store } </h2>
-                            <h3> Description: Coming soon </h3>
-                            <h3> Rating: Coming soon </h3>
-                          </div>}/>
-                      </div> ).all.bind // get the underlying sequence (0 or 1 element)
-                      .find(_ => true) // calling head would cause an exception (find returns a safe option)
-                      .getOrElse(<Dummy/>.build.bind) } // return a dummy div if the target app is not selected
-                    )
-                }/>
-                
-                { //val targetApp = selectedApp.bind
-                  //TODO display company info instead....
-                  val dialogIsOpen = appDialogIsOpen.bind
-                  <div>
-                    <AppDetailDialog targetApp={selectedApp.bind} 
-                      dialogIsOpen={dialogIsOpen}
-                      handleClose={handleClose _}
-                      priceFormatter={formatPrice _}/> 
-                  </div>}     
-              </div> } 
+                      <h1> Name: { app.name } </h1>
+                      <h2> Developed by: { app.company } </h2>
+                      <h2> Genre: { app.genre } </h2>
+                      <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
+                      <h2> Store: { app.store } </h2>
+                      <h3> Description: Coming soon </h3>
+                      <h3> Rating: Coming soon </h3>
+                    </div>}/>
+                </div> ).all.bind // get the underlying sequence (0 or 1 element)
+                .find(_ => true) // calling head would cause an exception (find returns a safe option)
+                .getOrElse(<Dummy/>.build.bind) } // return a dummy div if the target app is not selected
+              )}/>    
+              { //val targetApp = selectedApp.bind
+                //TODO display company info instead....
+                val dialogIsOpen = appDialogIsOpen.bind
+                <div>
+                  <AppDetailDialog targetApp={selectedApp.bind} 
+                    dialogIsOpen={dialogIsOpen}
+                    handleClose={handleClose _}
+                    priceFormatter={formatPrice _}/> 
+                </div>}     
+            </div> } 
           }
       </div>
     }
@@ -119,6 +119,11 @@ object CatalogPage {
 
     def handleMouseLeave() = {
       selectedApp.value = None
+      //tableSize.value = `3/4`
+    }
+
+    def handleMouseEnter() = {
+      //tableSize.value = `2/3`
     }
 
     def handleClose() = {

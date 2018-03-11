@@ -127,9 +127,14 @@ case class TableBuilder() extends ComponentBuilder {
   var isHoverable: Boolean = false
   var enableRowHighlight: Boolean = false
   var onMouseLeave: () => Unit = _
+  var onMouseEnter: () => Unit = _
 
   private def handleLeave = (e: Event) => { 
     Option(onMouseLeave).foreach( handler => handler.apply())
+  }
+
+  private def handleEnter = (e: Event) => { 
+    Option(onMouseEnter).foreach( handler => handler.apply())
   }
   
   // using lazy val rather than val...
@@ -155,6 +160,7 @@ case class TableBuilder() extends ComponentBuilder {
       </table>
 
     table.addEventListener("mouseleave", handleLeave)
+    table.addEventListener("mouseenter", handleEnter)
 
     table
   }
