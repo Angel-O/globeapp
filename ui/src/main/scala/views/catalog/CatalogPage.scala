@@ -38,7 +38,7 @@ object CatalogPage {
       // the text changes
 
       <div>
-			  <h1>Apps catalog</h1>
+    			<h1>Apps catalog</h1>
           <TextInput placeHolder="Search"  
             onChange={handleSearchBoxChange _}/>
           { val tableRows = generateRows(apps.bind).bind

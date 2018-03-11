@@ -44,6 +44,27 @@ object PollsPage {
       </div>
     }
 
+    // LOOKS nicer bit it's less efficient: it forces the whole component to be remounted
+    // @dom def generateView(polls: Seq[Poll], targetPoll: Poll, targetAppName: String) = {
+    //   <div>
+    //   { for(poll <- toBindingSeq(polls)) yield {
+    //     <div onclick={ (_: Event) => openDialog(poll) }>
+    //       	<Card title={ poll.title } subTitle={ poll.createdBy } content={
+    //   		    <div>
+    //       	    { poll.content }
+    //       	  </div>
+    //   		  }/>
+    //     </div> }}
+    //     <div>
+    //       <PollDetailDialog
+    // 			dialogIsOpen={ dialogIsOpen }
+    // 			targetPoll={ targetPoll }
+    // 			appName={ targetAppName }
+    // 			handleClose={ closeDialog _ }/>
+    // 		</div>
+    //   </div>
+    // }
+
     def openDialog(poll: Poll) = {
       dialogIsOpen = true
       targetPoll.value = Some(poll)
