@@ -1,23 +1,17 @@
 package repos
 
-import play.modules.reactivemongo.ReactiveMongoApi
-import javax.inject.Inject
-import scala.concurrent.Future
-import reactivemongo.play.json.collection.JSONCollection
 import scala.concurrent.ExecutionContext
-import play.api.libs.json.Json._
-import play.api.libs.json.Json
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.api.ReadPreference
-import reactivemongo.play.json._
+import scala.concurrent.Future
 
-import upickle.default._
-import play.api.libs.json.JsObject
+import apimodels.mobileapp.MobileApp
+import javax.inject.Inject
+import play.api.libs.json.Json.obj
+import play.modules.reactivemongo.ReactiveMongoApi
+import reactivemongo.api.ReadPreference
 import reactivemongo.api.Cursor
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.BSONDocumentReader
-import apimodels.mobileapp.MobileApp
-import play.api.Logger
+import reactivemongo.play.json.collection.JSONCollection
+import reactivemongo.play.json._
 
 class MobileAppRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi) {
 
