@@ -35,12 +35,12 @@ object PollsPage {
       { val target = targetPoll.bind
         val app = appName.bind
         <div>
-          <PollDetailDialog 
-					dialogIsOpen={ dialogIsOpen } 
-					targetPoll={ target } 
-					appName={ app }
-					handleClose={ closeDialog _ }/>
-				</div>}
+            <PollDetailDialog 
+              dialogIsOpen={ dialogIsOpen } 
+              targetPoll={ target } 
+              appName={ app } 
+              handleClose={ closeDialog _ }/>
+        </div> }
       </div>
     }
 
