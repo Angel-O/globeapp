@@ -2,7 +2,7 @@ package views.home
 
 import navigation.URIs._
 import components.core.Implicits._
-import components.Components.{Layout, Button}
+import components.Components.{Layout, Button, Input, Misc}
 import router.RoutingView
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
@@ -23,24 +23,36 @@ object MobileAppPage {
     @dom override def element = {
 
       val appName = app.bind.map(_.name).getOrElse("")
+      val appDescription = app.bind.map(_.genre).getOrElse("")
       val reviews = <div>Reviews: { appName }</div>
-      val description = <div>Description</div>
-      val actions = <div>Actions</div>;
+      val description = <div>Description: { appDescription }</div>
+      val createReview =
+        <div class={"notification"}> <TextareaInput label={ "Create a review" } /></div>
+      val actions =
+        <div>
+          <SimpleButton icon={<Icon id="star"/>} label={"favorite"}/>
+          <SimpleButton icon={<Icon id="clipboard"/>} label={"create poll"}/>
+        </div>;
 
       <div>
         <Tile isAncestor={true} children={Seq(
-          <Tile width={5} children={Seq(
-            <Tile isParent={true} isVertical={true} children={Seq(
-              <Tile isPrimary={true} content={
-                <div> {appName}</div>
-              }/>,
-              <Tile isInfo={true} content={description}/>,
-              <Tile isWarning={true} content={actions}/>
+          <Tile isVertical={true} children={Seq(
+            <Tile isParent={true} children={Seq(
+              <Tile isPrimary={true} content={<div>{appName}</div>}/>
+            )}/>,
+            <Tile children={Seq(
+              <Tile width={5} children={Seq(
+                <Tile isParent={true} isVertical={true} children={Seq(
+                  <Tile isInfo={true} content={description}/>,
+                  <Tile content={actions}/>,
+                  <Tile content={createReview}/>
+                )}/>
+              )}/>,
+              <Tile isParent={ true } children={Seq(
+                <Tile isInfo={true} content={ reviews }/>
+              )}/>
             )}/>
-          )}/>,
-          <Tile isParent={ true } children={Seq(
-            <Tile isDanger={ true } content={ reviews }/>)
-          }/>
+          )}/>
         )}/>
       </div>
     }
