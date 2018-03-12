@@ -127,7 +127,8 @@ trait BulmaCssClasses {
     conditionsAndTokens.map(x => x match {
       case Left(ct) => getClassToken(ct._1, ct._2)
       case Right(t) => getClassToken(true, t)
-    }).reduceLeft(_ ++ _).mkString(" ")
+    }).reduceLeft(_ ++ _).filter(!_.isEmpty).mkString(" ") 
+    //TODO invetstigate why applying the filer before reduce doesn't work: check tile classes
   }
 }
 

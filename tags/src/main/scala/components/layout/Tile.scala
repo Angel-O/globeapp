@@ -22,55 +22,51 @@ case class TileBuilder() extends ComponentBuilder with Color with Click{
    
   private var isChild: Boolean = _ //NO NEED TO Set it from outside!!
   
-  private val handleOnClick = (e: Event) => Option(onClick).foreach(handler => handler())
-  private val handleOnHover = (e: Event) => Option(onHover).foreach(handler => handler())
+  private lazy val onClickOption = Option(onClick)
+  private lazy val onHoverOption = Option(onHover)
   
   lazy val hasWidth = width > 0
   lazy val className = getClassName(
-        (true, TILE), 
+        TILE, COLOR_CLASS, 
+        (!COLOR_CLASS.isEmpty, NOTIFICATION), 
         (isAncestor, ANCESTOR),
         (isParent, PARENT),
         (isChild, CHILD),
         (isVertical, VERTICAL), 
-        
-        // TODO allow only one notification modifier or set priority...this logic could be handled in the 
-        // Color trait...
-        (isPrimary, getClassName((true, NOTIFICATION), (true, PRIMARY))),
-        (isWarning, getClassName((true, NOTIFICATION), (true, WARNING))),
-        (isInfo, getClassName((true, NOTIFICATION), (true, INFO))),
-        (isSuccess, getClassName((true, NOTIFICATION), (true, SUCCESS))),
-        (isDanger, getClassName((true, NOTIFICATION), (true, DANGER))),
         (hasWidth, s"$IS_$width"))
   
   @dom private def element = {
+
+    // tiles can have 1 contextual token at most
+    val contextualTokens =
+      Seq(isAncestor, isParent, isChild).foldLeft(0)((totalTokens, token) =>
+        if (token) totalTokens + 1 else totalTokens)
+
+    if (contextualTokens > 1) {
+      throw new IllegalArgumentException(
+        "Tiles can be either ancestor, parent, child or have no contextual tokens associated to them. " +
+        s"Found multuple tokens: ($className)")
+    }
+
     // a tile will either have a content or sub-tiles (aka children).
     // If the content is to be rendered rather than the children tiles
     // it needs to be turned into a component builder, then wrapped into a Seq.
-    // This will allow the tileCOntent type to be Seq[ContentBuilder], that can be
+    // This will allow the tileContent type to be Seq[ContentBuilder], that can be
     // can be easily rendered with a flatMap atfer being wrapped into a bindingSeq
     var tileContent = if (content == null) children else Seq(toComponentBuilder(content))
     
-    val childrenTiles = toBindingSeq(tileContent) 
-    
-    var contextualTokens = 0
-    if (className.contains(ANCESTOR)) contextualTokens += 1
-    if (className.contains(PARENT)) contextualTokens += 1
-    if (className.contains(CHILD)) contextualTokens += 1
-        
-    if (contextualTokens > 1){
-      throw new IllegalArgumentException(s"Tiles can be either ancestor, parent or child ($className)")
-    }
-    
+    val childrenTiles = toBindingSeq(tileContent)
+
     //TODO allow for articles, not just divs...
     val elem = 
       <div class={className}>
         { childrenTiles.flatMap(_.bind) }
     	</div>.asInstanceOf[HTMLElement]
     
-    //TODO map over option to avoid attachins event handlers that do nothing
-    //and move this logic to click Trait
-    elem.addEventListener("click", handleOnClick)
-    elem.addEventListener("mouseenter", handleOnHover) 
+    //TODO map over option to avoid attaching event handlers that do nothing (DONE)
+    //and move this logic to click Trait (TO BE DONE)
+    onClickOption.map(handler => elem.addEventListener("click", (e: Event) => handler()))
+    onHoverOption.map(handler => elem.addEventListener("mouseenter", (e: Event) => handler())) 
     
     setPointerStyle(onClick, elem)
     
@@ -83,11 +79,10 @@ case class TileBuilder() extends ComponentBuilder with Color with Click{
       throw new IllegalArgumentException("Only children tiles can have content")
     }
     
-    if(!isAncestor){
-      if(isParent){
-        children.foreach(x => x.isChild = true)
-      }      
+    if(!isAncestor && isParent){ 
+      children.foreach(_.isChild = true)   
     }
+
     element.bind
   }
 }
