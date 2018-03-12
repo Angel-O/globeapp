@@ -86,8 +86,8 @@ trait MobileAppsEffects extends Push {
 // Selector
 trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 
-  def getAllApps() = MobileAppsSelector.getAllApps()
-  def getAppById(id: String) = MobileAppsSelector.getAppById(id)
+  def getAllApps() = MobileAppsSelector.getMobileApps()
+  def getAppById(id: String) = MobileAppsSelector.getMobileAppById(id)
 
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit
@@ -95,8 +95,8 @@ trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 }
 
 object MobileAppsSelector extends ReadConnect[AppModel, Seq[MobileApp]]{
-  def getAllApps() = model.sortBy(_.name)
-  def getAppById(id: String) = getAllApps.find(_._id == id)
+  def getMobileApps() = model.sortBy(_.name)
+  def getMobileAppById(id: String) = getMobileApps.find(_._id == id)
   
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit

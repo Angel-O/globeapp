@@ -101,7 +101,7 @@ object CatalogPage {
     }
 
     def handleSearchBoxChange(text: String) = {
-      apps.value = getAllApps() // reset before filtering to avoid filtering over progressively decreasing data
+      apps.value = getMobileApps() // reset before filtering to avoid filtering over progressively decreasing data
       apps.value =
         apps.value.filter(app => searchMatchAcrossAllFields(text, app))
     }
@@ -167,6 +167,6 @@ object CatalogPage {
     }
 
     //def connectWith() = apps.value = getAllApps()
-    connect(apps.value = getAllApps())(mobileAppSelector)
+    connect(apps.value = getMobileApps())(mobileAppSelector)
   }
 }

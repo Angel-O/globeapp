@@ -79,7 +79,7 @@ object PollsPage {
 
     def getAppName() = {
       val targetPollAppId = targetPoll.value.map(_.mobileAppId).getOrElse("")
-      getAppById(targetPollAppId).map(_.name).getOrElse("")
+      getMobileAppById(targetPollAppId).map(_.name).getOrElse("")
     }
 
     def update() = {

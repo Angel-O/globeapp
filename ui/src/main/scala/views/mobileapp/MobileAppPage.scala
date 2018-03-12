@@ -16,7 +16,7 @@ object MobileAppPage {
   def view() = new RoutingView() {
 
     lazy val appId = routeParams(0)
-    lazy val app = Var[Option[MobileApp]](getAppById(appId))
+    lazy val app = Var[Option[MobileApp]](getMobileAppById(appId))
 
     //TODO use pot data, feetch app by Id and store it in state
     // if fetching fails redirect to 404 or show error msg
@@ -60,6 +60,6 @@ object MobileAppPage {
       pageSkeleton
     }
 
-    connect(app.value = getAppById(appId))(mobileAppSelector)
+    connect(app.value = getMobileAppById(appId))(mobileAppSelector)
   }
 }
