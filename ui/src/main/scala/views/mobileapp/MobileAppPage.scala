@@ -32,29 +32,32 @@ object MobileAppPage {
         <div>
           <SimpleButton icon={<Icon id="star"/>} label={"favorite"}/>
           <SimpleButton icon={<Icon id="clipboard"/>} label={"create poll"}/>
-        </div>;
+        </div>
 
-      <div>
-        <Tile isAncestor={true} children={Seq(
-          <Tile isVertical={true} children={Seq(
-            <Tile isParent={true} children={Seq(
-              <Tile isPrimary={true} content={<div>{appName}</div>}/>
-            )}/>,
-            <Tile children={Seq(
-              <Tile width={5} children={Seq(
-                <Tile isParent={true} isVertical={true} children={Seq(
-                  <Tile isInfo={true} content={description}/>,
-                  <Tile content={actions}/>,
-                  <Tile content={createReview}/>
-                )}/>
+      val pageSkeleton =
+        <div>
+          <Tile isAncestor={true} children={Seq(
+            <Tile isVertical={true} children={Seq(
+              <Tile isParent={true} children={Seq(
+                <Tile isPrimary={true} content={<div>{appName}</div>}/>
               )}/>,
-              <Tile isParent={ true } children={Seq(
-                <Tile isInfo={true} content={ reviews }/>
+              <Tile children={Seq(
+                <Tile width={5} children={Seq(
+                  <Tile isParent={true} isVertical={true} children={Seq(
+                    <Tile isInfo={true} content={description}/>,
+                    <Tile content={actions}/>,
+                    <Tile content={createReview}/>
+                  )}/>
+                )}/>,
+                <Tile isParent={ true } children={Seq(
+                  <Tile isInfo={true} content={ reviews }/>
+                )}/>
               )}/>
             )}/>
           )}/>
-        )}/>
-      </div>
+        </div>
+
+      pageSkeleton
     }
 
     connect(app.value = getAppById(appId))(mobileAppSelector)
