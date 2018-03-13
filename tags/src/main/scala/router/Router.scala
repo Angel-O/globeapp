@@ -83,9 +83,7 @@ case class Router private(baseURL: String) extends ComponentBuilder {
   }
   
   def navigateTo(path: String) = { 
-    val newLocation = getRoute(path) 
     document.location.hash = path
-    activePage.value = newLocation
   }
   
   def addRoute(route: RouteBuilder) = routes = routes :+ route
@@ -112,7 +110,8 @@ case class Router private(baseURL: String) extends ComponentBuilder {
       //document.location.hash = Router.NotFound.path.toLiteral
       println("BUG,BUG") //TODO this doesn't seem to be called..investigate
       e.stopImmediatePropagation()
-    }    
+    } 
+    
     activePage.value = route
   }
   

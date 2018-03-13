@@ -22,7 +22,7 @@ case object Reviews {
 
 // Primary actions
 case class FetchReviews(mobileAppId: String) extends Action
-case class FetchReview(reviewId: String) extends Action
+//case class FetchReview(reviewId: String) extends Action
 case class CreateReview(userId: String, content: String, mobileAppId: String)
     extends Action
 
@@ -30,14 +30,11 @@ case class CreateReview(userId: String, content: String, mobileAppId: String)
 case class ReviewsFetched(reviews: Seq[Review]) extends Action
 
 // Action handler
-class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
-    extends ActionHandler(modelRW)
-    with ReviewEffects {
+class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]]) extends ActionHandler(modelRW) with ReviewEffects {
   override def handle = {
-    case FetchReviews(mobileAppId) =>
-      effectOnly(fetchReviewsEffect(mobileAppId))
-    case ReviewsFetched(reviews)                    => updated(reviews)
-    case CreateReview(userId, content, mobileAppId) => ???
+    case FetchReviews(mobileAppId) => effectOnly(fetchReviewsEffect(mobileAppId))
+    case ReviewsFetched(reviews) => updated(reviews)
+    //case CreateReview(userId, content, mobileAppId) => ???
   }
 }
 
@@ -46,15 +43,17 @@ trait ReviewEffects extends Push {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
   import upickle.default._
-  import utils.api._, utils.jwt._, utils.persist._
+  import utils.api._
   import diode.{Effect, NoAction}
   import config._
 
   //TODO implement real api calls
   import mock.ReviewApi._
 
-  def fetchReviewsEffect(mobileAppId: String) =
-    Effect(Future { 1 }.map(_ => ReviewsFetched(getAll)))
+  def fetchReviewsEffect(mobileAppId: String) = {
+    Effect(Future { 1 }.map(_ => ReviewsFetched(getAll))) 
+  }
+  
 }
 
 // Selector

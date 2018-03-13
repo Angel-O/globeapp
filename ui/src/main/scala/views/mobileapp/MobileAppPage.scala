@@ -2,6 +2,7 @@ package views.home
 
 import navigation.URIs._
 import components.core.Implicits._
+import components.core.Helpers._
 import components.Components.{Layout, Button, Input, Misc}
 import router.RoutingView
 import org.scalajs.dom.raw.HTMLElement
@@ -9,22 +10,31 @@ import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import appstate.AppCircuit._
 import appstate.MobileAppsSelector._
+import appstate.ReviewsSelector._
 import apimodels.mobileapp.MobileApp
+import appstate.FetchReviews
+import apimodels.review.Review
+import appstate.ReviewsFetched
 
 object MobileAppPage {
-
+  
   def view() = new RoutingView() {
 
     lazy val appId = routeParams(0)
     lazy val app = Var[Option[MobileApp]](getMobileAppById(appId))
+    val reviews = Var[Seq[Review]](Seq.empty)
 
     //TODO use pot data, feetch app by Id and store it in state
     // if fetching fails redirect to 404 or show error msg
     @dom override def element = {
+      
+      // dispatching here because appId is a lazy val
+      // this avoids evaluating its value too early
+      dispatch(FetchReviews(appId)) 
 
       val appName = app.bind.map(_.name).getOrElse("")
       val appDescription = app.bind.map(_.genre).getOrElse("")
-      val reviews = <div>Reviews: { appName }</div>
+      val reviewArea = <div>Reviews: { toBindingSeq(reviews.bind).map(x => <div>{x.content}</div>).all.bind }</div>
       val description = <div>Description: { appDescription }</div>
       val createReview =
         <div class={"notification"}> <TextareaInput label={ "Create a review" } /></div>
@@ -50,7 +60,7 @@ object MobileAppPage {
                   )}/>
                 )}/>,
                 <Tile isParent={ true } children={Seq(
-                  <Tile isInfo={true} content={ reviews }/>
+                  <Tile isInfo={true} content={ reviewArea }/>
                 )}/>
               )}/>
             )}/>
@@ -61,5 +71,6 @@ object MobileAppPage {
     }
 
     connect(app.value = getMobileAppById(appId))(mobileAppSelector)
+    connect(reviews.value = getReviews())(reviewSelector)
   }
 }

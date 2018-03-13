@@ -21,7 +21,8 @@ object MainShell extends BulmaCssClasses {
              login: () => Unit,
              logout: () => Unit,
              navigateToCatalog: () => Unit,
-             navigateToPolls: () => Unit) = {
+             navigateToPolls: () => Unit,
+             navigate: () => Unit) = {
 
     val logo =
       <NavbarLogo href={s"#$ROOT_PATH"} image={
@@ -42,6 +43,10 @@ object MainShell extends BulmaCssClasses {
           item={<SimpleButton isInfo={true} 
           icon={ <Icon id="mobile"/> } 
           label="catalog" onClick={navigateToCatalog}/>}/>,
+         <NavbarItem 
+          item={<SimpleButton isInfo={true} 
+          icon={ <Icon id="user"/> } 
+          label="test" onClick={navigate}/>}/>,
         renderAccountMenuItem(loggedIn, username, login, logout).bind
       )
 
