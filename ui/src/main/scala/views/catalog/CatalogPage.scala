@@ -53,7 +53,7 @@ object CatalogPage {
                 }/>).all.bind} 
                 footer={<TableFooter cells={headers}/>
               }/>
-            </div>, { toBindingSeq(targetApp).map( app =>  // mapping over the option           
+            </div>, { toBindingSeq(targetApp).map( app =>  // mapping over the binding option           
             <div style={"position: sticky; top: 0"}> <!-- nice css trick -->
               <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
                 <div>
