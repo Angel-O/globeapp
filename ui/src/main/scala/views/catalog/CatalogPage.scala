@@ -20,83 +20,61 @@ import org.scalajs.dom.raw.Event
 
 object CatalogPage {
 
-  def view() = new RoutingView() {//{with MobileAppsSelector {
+  val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
+  
+  def view() = new RoutingView() {
 
-    dispatch(FetchAllMobileApps) // fetching on first load
-
-    lazy val apps: Var[Seq[MobileApp]] = Var(Seq.empty) //TODO how to use Vars??
+    val apps = Var[Seq[MobileApp]](Seq.empty) //TODO how to use Vars??
     val appDialogIsOpen = Var(false)
     val selectedApp = Var[Option[MobileApp]](None)
-    //val tableSize = Var(`2/3`) //TODO make it nicer...
 
     @dom
     override def element = {
 
-      //NOTE 1: calling value rather than bind on apps would cause the
-      //fetching apps on first load to fail.
-      //Note 2: bind the rows before passing them to the table
-      //val tableRows = generateRows(apps.bind).bind
-      //Note 3: search box need to come before binding the apps and the
-      // rows otherwise a page refresh would be triggered each time
-      // the text changes
-
-      //val size = tableSize.bind
       <div>
         <h1>Apps catalog</h1>
         <Box sizes={Seq(`2/3`)} contents={Seq(
-          <div>
-            <TextInput placeHolder="Search"  
-                onChange={handleSearchBoxChange _}/>
-          </div>
-        )}/>
-        { val tableRows = generateRows(apps.bind).bind
-          tableRows.isEmpty match {
-            case true => 
-            <span>No apps to show</span>
-            case false => 
-            val targetApp = selectedApp.bind
-            val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
+          <div> <TextInput placeHolder="Search" onChange={handleSearchBoxChange _}/> </div>
+        )}/> { if(apps.bind.isEmpty) <span>No apps to show</span> else { val targetApp = selectedApp.bind
+        <div>
+          <Box sizes={Seq(`2/3`)} contents={Seq(
             <div>
-              <Box sizes={Seq(`2/3`)} contents={Seq(
+              <Table isBordered={true} isStriped={true} 
+                isFullWidth={true} isHoverable={true} 
+                onMouseLeave={handleMouseLeave _}
+                header={<TableHeader cells={headers}/>}
+                rows={toBindingSeq(apps.value).map(app => 
+                <TableRow onHover={handleRowHover _} onClick={_:Int => navigateToMobileAppDetail(app._id)} cells={Seq(
+                  <span style={"text-decoration: underline"}>{ app.name }</span>, 
+                  app.company, 
+                  app.genre, 
+                  formatPrice(app.price), 
+                  app.store) 
+                }/>).all.bind} 
+                footer={<TableFooter cells={headers}/>
+              }/>
+            </div>, { toBindingSeq(targetApp).map( app =>  // mapping over the option           
+            <div style={"position: sticky; top: 0"}> <!-- nice css trick -->
+              <Message header={"App details"} isPrimary={true} isMedium={true} style={"padding: 1em"} content={ 
                 <div>
-                    <Table isBordered={true} 
-                      isStriped={true}
-                      isFullWidth={true} 
-                      isHoverable={true}
-                      header={<TableHeader cells={headers}/>}
-                      rows={tableRows}
-                      onMouseEnter={handleMouseEnter _}
-                      onMouseLeave={handleMouseLeave _}
-                      footer={<TableFooter cells={headers}/>}/>
-                </div>, 
-              { toBindingSeq(targetApp).map( app =>             
-                <div style={"position: sticky; top: 0"}> <!-- nice css trick -->
-                  <Message header={"App details"} isPrimary={true} 
-                    isMedium={true} style={"padding: 1em"} content={ 
-                    <div>
-                      <h1> Name: { app.name } </h1>
-                      <h2> Developed by: { app.company } </h2>
-                      <h2> Genre: { app.genre } </h2>
-                      <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
-                      <h2> Store: { app.store } </h2>
-                      <h3> Description: Coming soon </h3>
-                      <h3> Rating: Coming soon </h3>
-                    </div>}/>
-                </div> ).all.bind // get the underlying sequence (0 or 1 element)
-                .find(_ => true) // calling head would cause an exception (find returns a safe option)
-                .getOrElse(<Dummy/>.build.bind) } // return a dummy div if the target app is not selected
-              )}/>    
-              { //val targetApp = selectedApp.bind
-                //TODO display company info instead....
-                val dialogIsOpen = appDialogIsOpen.bind
-                <div>
-                  <AppDetailDialog targetApp={selectedApp.bind} 
-                    dialogIsOpen={dialogIsOpen}
-                    handleClose={handleClose _}
-                    priceFormatter={formatPrice _}/> 
-                </div>}     
-            </div> } 
-          }
+                  <h1> Name: { app.name } </h1>
+                  <h2> Developed by: { app.company } </h2>
+                  <h2> Genre: { app.genre } </h2>
+                  <h2> Price: { s"£ ${formatPrice(app.price)}" } </h2>
+                  <h2> Store: { app.store } </h2>
+                  <h3> Description: Coming soon </h3>
+                  <h3> Rating: Coming soon </h3>
+                </div>
+              }/> 
+            </div> ).all.bind.headOption.getOrElse(<Dummy/>.build.bind) } // explained below
+          )}/> 
+        </div>}} { val dialogIsOpen = appDialogIsOpen.bind //TODO display company info instead....
+        <div>
+          <AppDetailDialog targetApp={selectedApp.bind} 
+            dialogIsOpen={dialogIsOpen}
+            handleClose={handleClose _}
+            priceFormatter={formatPrice _}/> 
+        </div>}     
       </div>
     }
 
@@ -107,10 +85,7 @@ object CatalogPage {
     }
 
     def handleRowClick(rowIndex: Int) = {
-      //TODO probably this needs Vars...they go hand in hand:
-      //there is no need for intermediated updates...same below...
       selectedApp.value = Some(apps.value(rowIndex))
-      //appDialogIsOpen.value = true
     }
 
     def handleRowHover(rowIndex: Int) = {
@@ -119,11 +94,6 @@ object CatalogPage {
 
     def handleMouseLeave() = {
       selectedApp.value = None
-      //tableSize.value = `3/4`
-    }
-
-    def handleMouseEnter() = {
-      //tableSize.value = `2/3`
     }
 
     def handleClose() = {
@@ -140,33 +110,13 @@ object CatalogPage {
 
     def formatPrice(price: Double) = if (price > 0) price.toString else "FREE"
 
-    @dom
-    def generateRows(mobileApps: Seq[MobileApp]) = {
-      toBindingSeq(mobileApps)
-        .map(app => <TableRow 
-           cells={Seq(
-             <span style={"text-decoration: underline"}>{ app.name }</span>, 
-              app.company, 
-              app.genre, 
-              formatPrice(app.price), 
-              app.store)} 
-              onHover={handleRowHover _}
-              onClick={_:Int => navigateToMobileAppDetail(app._id)}/>)
-        .all
-        .bind
-      
-        // Note: the following won't work becuse the Table expects TableRows not html elements
-        // therefore we cannot wrap a row into a div and force the evaluation of the custom
-        // component
-//       for(app <- toBindingSeq(mobileApps)) yield {
-//         println(app.name)
-//         <TableRow
-//            cells={Seq(app.name, app.company, app.genre, formatPrice(app.price), app.store)}
-//            onClick={handleRowClick _}/>
-//       }
-    }
-
-    //def connectWith() = apps.value = getAllApps()
-    connect(apps.value = getMobileApps())(mobileAppSelector)
+    dispatch(FetchAllMobileApps) // fetching on first load
+    connect(apps.value = getMobileApps())(mobileAppSelector) //TODO investigate: this is called each time the view is rendered
   }
 }
+
+// Explanation: (.all.bind.headOption.getOrElse(<Dummy/>.build.bind))
+
+// all.bind ===> get the underlying sequence (0 or 1 element, since it's an Option), 
+// headOption ===> calling head would cause an exception (headOption returns a safe option), 
+// getOrElse(<Dummy/>.build.bind) ===> return a dummy div if the target app is not selected
