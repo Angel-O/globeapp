@@ -3,9 +3,9 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.mobileapp.MobileApp
 import apimodels.mobileapp.MobileAppUploadModel
 import javax.inject.Inject
+import models.MobileApp
 import play.api.Logger
 import reactivemongo.bson.BSONObjectID
 import repos.MobileAppRepository
@@ -19,7 +19,7 @@ class MobileAppController @Inject() (
 
   def getAll = Action.async {
     Logger.info("Fetching mobile apps")
-    repository.getAll.map(all => Ok(write(all)))
+    repository.getAll.map(all => Ok(write(all.map(_.toApi))))
   }
 
   def getApp(id: String) = Action.async {
@@ -29,7 +29,7 @@ class MobileAppController @Inject() (
         repository
           .findOneBy(SearchCriteria.id(validId))
           .map({
-            case Some(mobileApp) => Ok(write(mobileApp))
+            case Some(mobileApp) => Ok(write(mobileApp.toApi))
             case None            => NotFound
           }))
       .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
@@ -68,7 +68,7 @@ class MobileAppController @Inject() (
         repository
           .deleteApp(validId)
           .map({
-            case Some(mobileApp) => Ok(write(mobileApp))
+            case Some(mobileApp) => Ok(write(mobileApp.toApi))
             case None            => NotFound
           }))
       .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
@@ -83,7 +83,7 @@ class MobileAppController @Inject() (
             repository
               .updateApp(validId, createMobileApp(uploadModel, Some(validId)))
               .map({
-                case Some(mobileApp) => Ok(write(mobileApp))
+                case Some(mobileApp) => Ok(write(mobileApp.toApi))
                 case None            => NotFound
               }))
           .recover({ case ex => Logger.error(ex.getMessage); BadRequest }))
@@ -101,6 +101,7 @@ class MobileAppController @Inject() (
       uploadModel.company,
       uploadModel.genre,
       uploadModel.price,
-      uploadModel.store)
+      uploadModel.store,
+      uploadModel.keywords)
   }
 }

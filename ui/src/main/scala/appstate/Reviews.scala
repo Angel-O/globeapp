@@ -30,9 +30,12 @@ case class CreateReview(userId: String, content: String, mobileAppId: String)
 case class ReviewsFetched(reviews: Seq[Review]) extends Action
 
 // Action handler
-class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]]) extends ActionHandler(modelRW) with ReviewEffects {
+class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
+    extends ActionHandler(modelRW)
+    with ReviewEffects {
   override def handle = {
-    case FetchReviews(mobileAppId) => effectOnly(fetchReviewsEffect(mobileAppId))
+    case FetchReviews(mobileAppId) =>
+      effectOnly(fetchReviewsEffect(mobileAppId))
     case ReviewsFetched(reviews) => updated(reviews)
     //case CreateReview(userId, content, mobileAppId) => ???
   }
@@ -50,10 +53,10 @@ trait ReviewEffects extends Push {
   //TODO implement real api calls
   import mock.ReviewApi._
 
-  def fetchReviewsEffect(mobileAppId: String) = {
-    Effect(Future { 1 }.map(_ => ReviewsFetched(getAll))) 
+  def fetchReviewsEffect(reviewId: String) = {
+    Effect(Future { 1 }.map(_ => ReviewsFetched(getAll)))
   }
-  
+
 }
 
 // Selector

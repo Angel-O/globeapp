@@ -3,7 +3,8 @@ package repos
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import apimodels.mobileapp.MobileApp
+import apimodels.mobileapp.{MobileApp => ApiMobileApp}
+import models.MobileApp
 import javax.inject.Inject
 import play.api.libs.json.Json.obj
 import play.modules.reactivemongo.ReactiveMongoApi
