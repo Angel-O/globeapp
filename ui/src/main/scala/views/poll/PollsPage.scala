@@ -62,7 +62,7 @@ object PollsPage {
       polls.value = getPolls()
     }
 
-    // multi connect required now since auto unsubscribe haas been implemented
+    // multi connect required now since auto unsubscribe has been implemented
     multiConnect(update)(pollSelector, mobileAppSelector)
     dispatch(FetchPolls)
   }

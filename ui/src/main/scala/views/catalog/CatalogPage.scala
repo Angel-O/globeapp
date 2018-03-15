@@ -35,7 +35,7 @@ object CatalogPage {
         <h1>Apps catalog</h1>
         <Box sizes={Seq(`2/3`)} contents={Seq(
           <div> <TextInput placeHolder="Search" onChange={handleSearchBoxChange _}/> </div>
-        )}/> { if(apps.bind.isEmpty) <span>No apps to show</span> else { val targetApp = selectedApp.bind
+        )}/> { val noApps = apps.bind.isEmpty; if(noApps) <span>No apps to show </span> else { val targetApp = selectedApp.bind
         <div>
           <Box sizes={Seq(`2/3`)} contents={Seq(
             <div>
@@ -80,8 +80,7 @@ object CatalogPage {
 
     def handleSearchBoxChange(text: String) = {
       apps.value = getMobileApps() // reset before filtering to avoid filtering over progressively decreasing data
-      apps.value =
-        apps.value.filter(app => searchMatchAcrossAllFields(text, app))
+      apps.value = apps.value.filter(app => searchMatchAcrossAllFields(text, app))
     }
 
     def handleRowClick(rowIndex: Int) = {
