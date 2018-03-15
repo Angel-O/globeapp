@@ -67,11 +67,24 @@ trait GlobalSelector[M]{
 
 trait HelpConnect[M <: AnyRef] {
   implicit val circuit: Circuit[M] with GlobalSelector[M]
-  def multiConnect(connector: => Unit)(cursors: ModelR[M, _]*) = 
-    cursors.foreach(cursor => circuit.subscribe(cursor)(_ => connector))
+  private var unsubscribe: Option[() => Unit] = None
+  private var multiUnsubscribe: Seq[() => Unit] = Seq.empty 
+  
+  def multiConnect(connector: => Unit)(cursors: ModelR[M, _]*) = {
+    // similar approach used for individual connects (unsubscribe first
+    // then re-subscribe), applied to all cursors
+    multiUnsubscribe.foreach(_.apply())
+    multiUnsubscribe = Seq.empty
+    cursors.foreach(cursor => multiUnsubscribe = multiUnsubscribe :+ circuit.subscribe(cursor)(_ => connector))
+  }
     
-  def connect[T](connector: => Unit)(implicit cursor: ModelR[M, T] = circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) = 
-    circuit.subscribe(cursor)(_ => connector)
+  // connect can be called from a routing view, each time the view is rendered: it's inefficient
+  // therefore it is a good thing to unsubscribe first, then resubscribe
+  def connect[T](connector: => Unit)(implicit cursor: ModelR[M, T] = circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) = {   
+      unsubscribe.map(handler => handler()) 
+      unsubscribe = Some(circuit.subscribe(cursor)(_ => connector))
+  }
+    
     
   def dispatch(action: Action) = circuit.apply(action)
 }
