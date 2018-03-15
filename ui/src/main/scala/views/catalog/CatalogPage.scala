@@ -21,6 +21,7 @@ import org.scalajs.dom.raw.Event
 object CatalogPage {
 
   val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
+  case class State(selectedApp: Var[Option[MobileApp]], apps: Var[Seq[MobileApp]])
   
   def view() = new RoutingView() {
 
@@ -35,7 +36,7 @@ object CatalogPage {
         <h1>Apps catalog</h1>
         <Box sizes={Seq(`2/3`)} contents={Seq(
           <div> <TextInput placeHolder="Search" onChange={handleSearchBoxChange _}/> </div>
-        )}/> { val noApps = apps.bind.isEmpty; if(noApps) <span>No apps to show </span> else { val targetApp = selectedApp.bind
+        )}/> { val noApps = apps.bind.isEmpty; if(noApps) <span>No apps to show </span> else { val targetApp = selectedApp.bind //needs to be bound befor the box...
         <div>
           <Box sizes={Seq(`2/3`)} contents={Seq(
             <div>
