@@ -101,7 +101,7 @@ case class TextareaInputBuilder() extends { val inputType = TextareaInput } with
   //TODO text area needs no icons
   @dom override def build = {
     
-    val fieldClassName = getClassName((true, FIELD))
+    val fieldClassName = getClassName(FIELD,(isHorizontal, HORIZONTAL)) //TODO horizontal does nothing at the moment
 
     val inputElement = <textarea class={ inputType.name } placeholder={ placeHolder }/>.asInstanceOf[HTMLTextAreaElement]
     inputElement.bind.disabled = isDisabled

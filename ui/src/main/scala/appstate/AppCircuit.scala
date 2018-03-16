@@ -71,11 +71,12 @@ trait HelpConnect[M <: AnyRef] {
   private var multiUnsubscribe: Seq[() => Unit] = Seq.empty 
   
   def multiConnect(connector: => Unit)(cursors: ModelR[M, _]*) = {
+    val defaultCursors = if (cursors.isEmpty) Seq(circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) else cursors
     // similar approach used for individual connects (unsubscribe first
     // then re-subscribe), applied to all cursors
     multiUnsubscribe.foreach(_.apply())
     multiUnsubscribe = Seq.empty
-    cursors.foreach(cursor => multiUnsubscribe = multiUnsubscribe :+ circuit.subscribe(cursor)(_ => connector))
+    defaultCursors.foreach(cursor => multiUnsubscribe = multiUnsubscribe :+ circuit.subscribe(cursor)(_ => connector))
   }
     
   // connect can be called from a routing view, each time the view is rendered: it's inefficient
@@ -97,7 +98,7 @@ class LoggingHandler[M](modelRW: ModelRW[M, AppModel])
   override def handle = {
     case a: Action => {
       if (a != NoAction) {
-        log.warn("ACTION", a.toString)
+        log.warn("ACTION", a.asInstanceOf[js.Any])
         log.warn("STATE-BEFORE", value.asInstanceOf[js.Any])
       }
       noChange

@@ -1,6 +1,8 @@
 
 package hoc
 
+import com.thoughtworks.binding.dom
+
 package object form {
   import macros.RegisterTag.register
   
@@ -9,4 +11,7 @@ package object form {
   
   @register
   val LoginForm = "LoginForm"
+  
+  @register
+  val CreateReviewForm = "CreateReviewForm"
 }

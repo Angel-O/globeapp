@@ -71,6 +71,7 @@ trait BulmaCssClasses {
   val EXPANDED = "is-expanded"
   val HAS_ICONS_LEFT = "has-icons-left"
   val HELP = "help"
+  val HORIZONTAL = "is-horizontal"
   val FIELD = "field"
   val FIXED_BOTTOM = "is-fixed-bottom"
   val FIXED_TOP = "is-fixed-top"

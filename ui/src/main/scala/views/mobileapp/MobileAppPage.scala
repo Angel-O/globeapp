@@ -1,4 +1,4 @@
-package views.home
+package views.mobileapp
 
 import navigation.URIs._
 import components.core.Implicits._
@@ -15,6 +15,7 @@ import apimodels.mobileapp.MobileApp
 import appstate.FetchReviews
 import apimodels.review.Review
 import appstate.ReviewsFetched
+import hoc.form.CreateReviewForm
 
 object MobileAppPage {
   
@@ -37,10 +38,10 @@ object MobileAppPage {
       val reviewArea = <div>Reviews: { toBindingSeq(reviews.bind).map(x => <div>{x.content}</div>).all.bind }</div>
       val description = <div>Description: { appDescription }</div>
       val createReview =
-        <div class={"notification"}> <TextareaInput label={ "Create a review" } /></div>
+        <div> <CreateReviewForm onSubmit={() => println("hello")}/> </div>
       val actions =
         <div>
-          <SimpleButton icon={<Icon id="star"/>} label={"favorite"}/>
+          <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
           <SimpleButton icon={<Icon id="clipboard"/>} label={"create poll"}/>
         </div>
 
