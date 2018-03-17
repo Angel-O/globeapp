@@ -51,7 +51,7 @@ trait ReviewEffects extends Push {
   import config._
 
   import play.api.libs.json.Json._
-  import apimodels.review.ReviewFormats._
+ 
   //TODO implement real api calls
   import mock.ReviewApi._
 

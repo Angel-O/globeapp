@@ -45,7 +45,7 @@ object CatalogPage {
                 onMouseLeave={handleMouseLeave _}
                 header={<TableHeader cells={headers}/>}
                 rows={toBindingSeq(apps.value).map(app => 
-                <TableRow onHover={handleRowHover _} onClick={_:Int => navigateToMobileAppDetail(app._id)} cells={Seq(
+                <TableRow onHover={handleRowHover _} onClick={_:Int => navigateToMobileAppDetail(app._id.get)} cells={Seq(
                   <span style={"text-decoration: underline"}>{ app.name }</span>, 
                   app.company, 
                   app.genre, 

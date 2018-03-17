@@ -3,8 +3,7 @@ package repos
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-import apimodels.mobileapp.{MobileApp => ApiMobileApp}
-import models.MobileApp
+import apimodels.mobileapp.MobileApp
 import javax.inject.Inject
 import play.api.libs.json.Json.obj
 import play.modules.reactivemongo.ReactiveMongoApi
@@ -30,8 +29,8 @@ class MobileAppRepository @Inject() (implicit ec: ExecutionContext, reactiveMong
 
   def getAll: Future[Seq[MobileApp]] = findManyBy(SearchCriteria.any)
 
-  def addApp(app: MobileApp): Future[WriteResult] = {
-    entityCollection.flatMap(_.insert(app))
+  def addApp(app: MobileApp): Future[String] = {
+    entityCollection.flatMap(_.insert(app).map(_ => app._id.get))
   }
 
   def updateApp(id: String, updated: MobileApp): Future[Option[MobileApp]] = {

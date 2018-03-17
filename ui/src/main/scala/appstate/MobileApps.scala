@@ -57,15 +57,30 @@ trait MobileAppsEffects extends Push {
   import diode.{Effect, NoAction}
   import config._
   
+  import play.api.libs.json.Json._
+  import play.api.libs.json._
+  
+  
+  def fetchMobileAppEffect(id: String) = {
+    Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id")
+        .map(xhr => MobileAppFetched(parse(xhr.responseText).validate[MobileApp].get)))
+  }
+  
   def fetchMobileAppsEffect() = {
     Effect(
       Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
-        .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
+        .map(xhr => MobileAppsFetched(parse(xhr.responseText).validate[Seq[MobileApp]].get)))
   }
+  
+//  def fetchMobileAppsEffect() = {
+//    Effect(
+//      Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
+//        .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
+//  }
 
-  def fetchMobileAppEffect(id: String) = {
-    Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id").map(xhr => MobileAppFetched(read[MobileApp](xhr.responseText))))
-  }
+//  def fetchMobileAppEffect(id: String) = {
+//    Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id").map(xhr => MobileAppFetched(read[MobileApp](xhr.responseText))))
+//  }
 
   //import mock.MobileAppApi._
   // def fetchMobileAppEffectTEST(id: String) = {
