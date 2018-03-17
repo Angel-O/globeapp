@@ -50,11 +50,19 @@ trait ReviewEffects extends Push {
   import diode.{Effect, NoAction}
   import config._
 
+  import play.api.libs.json.Json._
+  import apimodels.review.ReviewFormats._
   //TODO implement real api calls
   import mock.ReviewApi._
 
   def fetchReviewsEffect(reviewId: String) = {
     Effect(Future { 1 }.map(_ => ReviewsFetched(getAll)))
+  }
+  
+  def testEffect(review:Review) = {
+    Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = stringify(toJson(review)))
+        .map(xhr => MatchingUsernamesCount(xhr.responseText.toInt))
+        .recover({ case _ => VerifyUsernameAlreadyTakenFailed }))
   }
 
 }
