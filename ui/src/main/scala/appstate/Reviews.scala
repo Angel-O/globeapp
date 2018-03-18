@@ -63,7 +63,6 @@ trait ReviewEffects extends Push {
         .map(xhr => MatchingUsernamesCount(xhr.responseText.toInt))
         .recover({ case _ => VerifyUsernameAlreadyTakenFailed }))
   }
-
 }
 
 // Selector

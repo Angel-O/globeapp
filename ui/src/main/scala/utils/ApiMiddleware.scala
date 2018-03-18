@@ -14,20 +14,23 @@ import play.api.libs.json.JsValue
 
 object ApiMiddleware {
 
-  implicit def write[T](model: T)(implicit writes: Writes[T]) = {
-    stringify(toJson(model))
+  implicit def write[T](model: T)(implicit serializer: Writes[T]) = {
+    // equivalent to stringify(toJson(model))
+    stringify(serializer.writes(model))
   }
 
-  implicit def read[T](json: JsValue)(implicit reads: Reads[T]) = {
-    reads.reads(parse(json)).get //TODO make it safe if needed
+  implicit def read[T](json: JsValue)(implicit deserializer: Reads[T]) = {
+    // equivalent to reads.reads(parse(json)).get
+    deserializer.reads(parse(json)).get //TODO make it safe if needed
   }
 
-  implicit def toJsonString(resonseText: String) = {
-    parse(resonseText)
+  implicit def toJsonValue(responseText: String) = {
+    parse(responseText)
   }
   
   private def token: String =
     window.sessionStorage.getItem(AUTHORIZATION_HEADER_NAME)
+    
   val headers: Map[String, String] = Map.empty
 
   def getErrorCode(t: Throwable) = t match {
@@ -61,7 +64,7 @@ object ApiMiddleware {
   }
 
   def Delete(url: String,
-             payload: Ajax.InputData,
+             payload: Ajax.InputData = null,
              contentHeader: (String, String) = JSON_CONTENT_HEADER) = {
     Ajax.delete(
       url = url,
