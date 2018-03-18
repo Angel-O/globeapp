@@ -99,12 +99,10 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
 trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extending Push: it causes compliation around imports...
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import upickle.default._
   import apimodels.user.{LoginDetails, RegistrationDetails}
   import utils.api._, utils.jwt._, utils.persist._
   import diode.{Effect, NoAction}
   import config._
-  //import play.api.libs.json.Json._
 
   
   def loginEffect(username: String, password: String) = {

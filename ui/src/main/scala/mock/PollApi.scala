@@ -7,7 +7,7 @@ object PollApi {
   def getAll = {
     Seq(
       Poll(
-        "1",
+        Some("1"),
         "More points",
         "We want to know bla...bla...bla",
         "1",
@@ -16,7 +16,7 @@ object PollApi {
         "open",
         Seq(PollOption("option1", Seq("me")))),
       Poll(
-        "2",
+        Some("2"),
         "Ability to filter contacts",
         "We want to know bla...bla...bla",
         "2",
@@ -25,7 +25,7 @@ object PollApi {
         "open",
         Seq(PollOption("option1", Seq("me")))),
       Poll(
-        "3",
+        Some("3"),
         "Track by name or by id?",
         "We want to know bla...bla...bla",
         "3",
@@ -34,7 +34,7 @@ object PollApi {
         "open",
         Seq(PollOption("option1", Seq("me", "bla")))),
       Poll(
-        "4",
+        Some("4"),
         "Free coins",
         "We want to know bla...bla...bla",
         "4",
@@ -43,7 +43,7 @@ object PollApi {
         "closed",
         Seq(PollOption("option1", Seq("me", "they")))),
       Poll(
-        "5",
+        Some("5"),
         "Zero return",
         "We want to know bla...bla...bla",
         "5",

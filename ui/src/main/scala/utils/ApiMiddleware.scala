@@ -6,8 +6,26 @@ import org.scalajs.dom.raw.XMLHttpRequest
 import org.scalajs.dom.ext.AjaxException
 import appstate.{AppModel, AppCircuit, Connect}
 import config._
+import scala.language.implicitConversions 
+import play.api.libs.json.Json._
+import play.api.libs.json.Writes
+import play.api.libs.json.Reads
+import play.api.libs.json.JsValue
 
 object ApiMiddleware {
+
+  implicit def write[T](model: T)(implicit writes: Writes[T]) = {
+    stringify(toJson(model))
+  }
+
+  implicit def read[T](json: JsValue)(implicit reads: Reads[T]) = {
+    reads.reads(parse(json)).get //TODO make it safe if needed
+  }
+
+  implicit def toJsonString(resonseText: String) = {
+    parse(resonseText)
+  }
+  
   private def token: String =
     window.sessionStorage.getItem(AUTHORIZATION_HEADER_NAME)
   val headers: Map[String, String] = Map.empty

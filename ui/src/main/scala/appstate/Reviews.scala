@@ -45,7 +45,6 @@ class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
 trait ReviewEffects extends Push {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import upickle.default._
   import utils.api._
   import diode.{Effect, NoAction}
   import config._
@@ -60,7 +59,7 @@ trait ReviewEffects extends Push {
   }
   
   def testEffect(review:Review) = {
-    Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = stringify(toJson(review)))
+    Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
         .map(xhr => MatchingUsernamesCount(xhr.responseText.toInt))
         .recover({ case _ => VerifyUsernameAlreadyTakenFailed }))
   }
