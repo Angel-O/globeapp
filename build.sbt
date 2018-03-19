@@ -33,15 +33,15 @@ lazy val root = (project in file("."))
         })
 
 lazy val authenticationServer = (project in file("authentication-server"))
-    .dependsOn(sharedJVM, securityServer)
+    .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
 lazy val appServer = (project in file("app-server"))
-    .dependsOn(sharedJVM, securityServer)
+    .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
 lazy val pollServer = (project in file("poll-server"))
-    .dependsOn(sharedJVM, securityServer)
+    .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
 //TODO turn this into a library
@@ -50,6 +50,10 @@ lazy val securityServer = (project in file("security-server"))
     .disablePlugins(WorkbenchPlugin)
 
 lazy val tags = (project in file("tags"))
+    .settings(commonSettings)
+
+lazy val common = (project in file("common"))
+    .dependsOn(sharedJVM)
     .settings(commonSettings)
 
 lazy val shared = (project in file("shared"))
