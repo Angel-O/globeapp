@@ -11,7 +11,7 @@ import navigation.Navigators._
 import appstate.AppCircuit._
 import appstate.MobileAppsSelector._
 import appstate.ReviewsSelector._
-import apimodels.mobileapp.MobileApp
+import apimodels.mobile.MobileApp
 import appstate.FetchReviews
 import apimodels.review.Review
 import appstate.ReviewsFetched

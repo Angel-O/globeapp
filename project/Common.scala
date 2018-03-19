@@ -10,6 +10,7 @@ object CommonServer{
         
         Seq(
         jwtPlay,
+        nameOf,
         scalaTestPlus % Test)
     }
     

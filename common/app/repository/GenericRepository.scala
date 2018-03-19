@@ -1,7 +1,6 @@
 package repository
 
 import play.modules.reactivemongo.ReactiveMongoApi
-import javax.inject.Inject
 import scala.concurrent.Future
 import reactivemongo.play.json.collection.JSONCollection
 import scala.concurrent.ExecutionContext
@@ -18,14 +17,16 @@ import play.api.libs.json.Reads
 import play.api.libs.json.OWrites
 import play.api.libs.json.OFormat
 import apimodels.common.Entity
+import com.github.dwickern.macros.NameOf._
 
 trait SearchCriteria {
-  def byId(id: String) = obj("_id" -> id)
+  def byId(_id: String) = obj(nameOf(_id) -> _id)
   def any = obj()
 }
 
-abstract class GenericRepository[T <: Entity] @Inject() (collectionName: String)(implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi) extends SearchCriteria {
+abstract class GenericRepository[T <: Entity](collectionName: String, ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi) extends SearchCriteria {
 
+  private implicit val executionContext = ec
   def entityCollection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection(collectionName))
 
   def getAll(implicit read: Reads[T]): Future[Seq[T]] = {

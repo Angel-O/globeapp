@@ -12,7 +12,7 @@ import navigation.Navigators._
 import router.RoutingView
 import appstate.{Connect, Login}
 import appstate.{MobileAppsSelector, FetchAllMobileApps}
-import apimodels.mobileapp.MobileApp
+import apimodels.mobile.MobileApp
 import views.catalog._
 import appstate.AppCircuit._
 import appstate.MobileAppsSelector._

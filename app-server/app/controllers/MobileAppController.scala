@@ -3,14 +3,14 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.mobileapp.MobileApp
+import apimodels.mobile.MobileApp
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json._
 import play.api.libs.json.Json._
 import reactivemongo.bson.BSONObjectID
 import repos.MobileAppRepository
-import repos.SearchCriteria
+import utils.Bson._
 
 class MobileAppController @Inject() (
   scc:        SecuredControllerComponents,
@@ -27,11 +27,11 @@ class MobileAppController @Inject() (
     parseId(id)
       .flatMap(validId =>
         repository
-          .findOneBy(SearchCriteria.id(validId))
+          .getById(validId))
           .map({
             case Some(mobileApp) => Ok(toJson(mobileApp))
             case None            => NotFound
-          }))
+          })
       .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
   }
 
@@ -40,7 +40,7 @@ class MobileAppController @Inject() (
     req.body.validate[MobileApp]
       .map(uploadModel => {
         repository
-          .findOneBy(SearchCriteria.uniqueApp(uploadModel.name, uploadModel.company, uploadModel.store))
+          .getByKey(uploadModel.name, uploadModel.company, uploadModel.store)
           .flatMap({
             case Some(_) =>
               Future(BadRequest(
@@ -49,8 +49,8 @@ class MobileAppController @Inject() (
             case None => {
               val app = uploadModel.copy(_id = newId)
               repository
-                .addApp(app)
-                .map(id => Created(id))
+                .addOne(app)
+                .map(id => Created(id.get))
                 .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
             }
           })
@@ -63,7 +63,7 @@ class MobileAppController @Inject() (
     parseId(id)
       .flatMap(validId =>
         repository
-          .deleteApp(validId)
+          .deleteOne(validId)
           .map({
             case Some(mobileApp) => Ok(toJson(mobileApp))
             case None            => NotFound
@@ -78,7 +78,7 @@ class MobileAppController @Inject() (
         parseId(id)
           .flatMap(validId =>
             repository
-              .updateApp(validId, uploadModel)
+              .updateOne(validId, uploadModel)
               .map({
                 case Some(mobileApp) => Ok(toJson(mobileApp))
                 case None            => NotFound
@@ -86,10 +86,4 @@ class MobileAppController @Inject() (
           .recover({ case ex => Logger.error(ex.getMessage); BadRequest }))
       .getOrElse({ Logger.error("Invalid payload"); Future(BadRequest) })
   }
-
-  private def parseId(id: String) = {
-    Future.fromTry(BSONObjectID.parse(id).map(_.stringify))
-  }
-  
-  private def newId = Some(BSONObjectID.generate.stringify)
 }

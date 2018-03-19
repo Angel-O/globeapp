@@ -1,17 +1,17 @@
 package controllers
-import javax.inject.Inject
-import play.api.mvc._
-import scala.concurrent.Future
-import play.api.libs.json._
-import play.api.libs.functional.syntax._
-import apimodels.user.User
-import pdi.jwt.JwtSession._
 import scala.concurrent.ExecutionContext.Implicits.global
-import repos.UserRepository
+import scala.concurrent.Future
+
+import apimodels.user.User
+import javax.inject.Inject
+import pdi.jwt.JwtSession._
 import play.api.Logger
-import play.api.libs.json.Json._
-import reactivemongo.bson.BSONObjectID
-import pdi.jwt.JwtSession
+import play.api.libs.json.JsError
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json.toJson
+import play.api.mvc.Request
+import repos.UserRepository
+import utils.Bson.newId
 
 class AuthenticationController @Inject() (repository: UserRepository, scc: SecuredControllerComponents)
   extends SecuredController(scc) {
@@ -112,10 +112,4 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
       case None       => NotFound
     })
   }
-
-  private def parseId(id: String) = {
-    Future.fromTry(BSONObjectID.parse(id).map(_.stringify))
-  }
-
-  private def newId = Some(BSONObjectID.generate.stringify)
 }

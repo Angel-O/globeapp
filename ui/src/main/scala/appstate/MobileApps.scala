@@ -10,7 +10,7 @@ import navigation.URIs._
 // import diode.data.Pot
 // import diode.data.PotState._
 // import diode.data.{Ready, Pending}
-import apimodels.mobileapp.MobileApp
+import apimodels.mobile.MobileApp
 import scala.concurrent.Promise
 
 case class MobileApps(apps: Seq[MobileApp])

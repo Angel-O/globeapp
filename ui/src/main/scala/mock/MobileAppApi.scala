@@ -1,6 +1,6 @@
 package mock
 
-import apimodels.mobileapp.MobileApp
+import apimodels.mobile.MobileApp
 import scala.concurrent.Future
 import scala.concurrent.Promise
 import scalajs.js
