@@ -21,7 +21,7 @@ import org.scalajs.dom.raw.Event
 object CatalogPage {
 
   val headers = Seq("Name", "Company", "Genre", "£ Price", "Store")
-  case class State(selectedApp: Var[Option[MobileApp]], apps: Var[Seq[MobileApp]])
+  //case class State(selectedApp: Var[Option[MobileApp]], apps: Var[Seq[MobileApp]])
   
   def view() = new RoutingView() {
 

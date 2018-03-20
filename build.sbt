@@ -44,6 +44,10 @@ lazy val pollServer = (project in file("poll-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
+lazy val reviewServer = (project in file("review-server"))
+    .dependsOn(sharedJVM, securityServer, common)
+    .disablePlugins(WorkbenchPlugin)
+
 //TODO turn this into a library
 lazy val securityServer = (project in file("security-server"))
     .dependsOn(sharedJVM)
