@@ -60,7 +60,7 @@ class ReviewController @Inject() (
               val app = uploadModel.copy(_id = newId, dateCreated = newDate)
               repository
                 .addOne(app)
-                .map(id => Created(id.get))
+                .map(id => Created(id))
                 .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
             }
           })

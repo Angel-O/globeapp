@@ -49,7 +49,7 @@ class MobileAppController @Inject() (
               val app = uploadModel.copy(_id = newId)
               repository
                 .addOne(app)
-                .map(id => Created(id.get))
+                .map(id => Created(id))
                 .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
             }
           })

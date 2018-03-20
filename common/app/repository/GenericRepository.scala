@@ -35,8 +35,8 @@ abstract class GenericRepository[T <: Entity](collectionName: String, ec: Execut
       .collect(-1, Cursor.FailOnError[Seq[T]]()))
   }
 
-  def addOne(item: T)(implicit writes: OWrites[T]): Future[Option[String]] = {
-    entityCollection.flatMap(_.insert(item).map(_ => item._id))
+  def addOne(item: T)(implicit writes: OWrites[T]): Future[String] = {
+    entityCollection.flatMap(_.insert(item).map(_ => item._id.get))
   }
 
   def getById(id: String)(implicit read: Reads[T]): Future[Option[T]] = {
