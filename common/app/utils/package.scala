@@ -1,5 +1,6 @@
 import scala.concurrent.Future
 import reactivemongo.bson.BSONObjectID
+import java.time._
 
 package object utils {
 
@@ -9,5 +10,9 @@ package object utils {
     }
 
     def newId = Some(BSONObjectID.generate.stringify)
+  }
+  
+  object Date {
+    def newDate = Some(LocalDate.now())
   }
 }

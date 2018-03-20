@@ -10,6 +10,7 @@ import play.api.libs.json._
 import play.api.libs.json.Json._
 import repos.ReviewRepository
 import utils.Bson._
+import utils.Date._
 
 class ReviewController @Inject() (
   scc:        SecuredControllerComponents,
@@ -56,7 +57,7 @@ class ReviewController @Inject() (
                 s"User with id ${uploadModel.userId} have already created review for " +
                   s"app with id ${uploadModel.mobileAppId}"))
             case None => {
-              val app = uploadModel.copy(_id = newId)
+              val app = uploadModel.copy(_id = newId, dateCreated = newDate)
               repository
                 .addOne(app)
                 .map(id => Created(id.get))
