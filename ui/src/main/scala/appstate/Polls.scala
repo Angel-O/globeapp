@@ -64,7 +64,7 @@ trait PollEffects extends Push{
 // Selector
 object PollSelector extends ReadConnect[AppModel, Seq[Poll]]{
   def getPolls() = model
-  def getPollById(id: String) = getPolls.find(_.id == id)
+  def getPollById(id: String) = getPolls.find(_._id == Some(id))
   def getPollsPartecipated(userId: String) = getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
   
   val cursor = AppCircuit.pollSelector
@@ -75,7 +75,7 @@ object PollSelector extends ReadConnect[AppModel, Seq[Poll]]{
 
 trait PollSelector extends GenericConnect[AppModel, Seq[Poll]]{
   def getPolls() = model
-  def getPollById(id: String) = getPolls.find(_.id == id)
+  def getPollById(id: String) = getPolls.find(_._id == Some(id))
   def getPollsPartecipated(userId: String) = getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
 
   val cursor = AppCircuit.pollSelector

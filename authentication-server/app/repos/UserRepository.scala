@@ -1,54 +1,26 @@
 package repos
 
-import play.modules.reactivemongo.ReactiveMongoApi
-import javax.inject.Inject
-import scala.concurrent.Future
-import reactivemongo.play.json.collection.JSONCollection
 import scala.concurrent.ExecutionContext
-import apimodels.user.{User => ApiUser}
-import play.api.libs.json.Json
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
-import reactivemongo.api.ReadPreference
-import reactivemongo.play.json._
+import scala.concurrent.Future
 
-import upickle.default._
-import play.api.libs.json.JsObject
-import reactivemongo.api.Cursor
-import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.BSONDocumentReader
-import models.{RegisteredUser => User}
+import com.github.dwickern.macros.NameOf.nameOf
 
+import apimodels.user.User
+import javax.inject.Inject
+import play.api.libs.json.Json.obj
+import play.modules.reactivemongo.ReactiveMongoApi
+import repository.GenericRepository
+import repository.SearchCriteria
 
-class UserRepository @Inject() (implicit ec: ExecutionContext, reactiveMongoApi: ReactiveMongoApi){
-  
-  def entityCollection: Future[JSONCollection] = reactiveMongoApi.database.map(_.collection("registered-users"))
-  
-  def getAll: Future[Seq[User]] = {
-    val query = Json.obj()
-    entityCollection.flatMap(_.find(query)
-        .cursor[User](ReadPreference.primary)
-        .collect(-1, Cursor.FailOnError[Seq[User]]()))
-  }
-  
-  def addUser(user: User): Future[WriteResult] = {
-    entityCollection.flatMap(_.insert(user))
-  }
-  
-  def getUser(id: BSONObjectID): Future[Option[User]] = {
-    val query = BSONDocument("_id" -> id)
-    entityCollection.flatMap(_.find(query).one[User])
-  }
+trait UserSearchCriteria extends SearchCriteria {
+  def byEmail(email: String) = obj(nameOf(email) -> email)
+}
 
-  def updateUser(id: BSONObjectID, updated: User): Future[Option[User]] = {
-    val selector = BSONDocument("_id" -> id)
-    val updateModifier = BSONDocument(
-      "$set" -> BSONDocument(
-        "name" -> updated.name)) //TODO add all fields...
-    entityCollection.flatMap(_.findAndUpdate(selector, updateModifier, fetchNewObject = true).map(_.result[User]))
-  }
+class UserRepository @Inject()(implicit ec: ExecutionContext,
+                               reactiveMongoApi: ReactiveMongoApi)
+    extends GenericRepository[User]("users", ec, reactiveMongoApi)
+    with UserSearchCriteria {
 
-  def deleteUser(id: BSONObjectID): Future[Option[User]] = {
-    val selector = BSONDocument("_id" -> id)
-    entityCollection.flatMap(_.findAndRemove(selector).map(_.result[User]))
-  }
+  def getByEmail(email: String): Future[Option[User]] =
+    findOneBy(byEmail(email))
 }

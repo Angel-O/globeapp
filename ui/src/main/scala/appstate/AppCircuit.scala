@@ -28,11 +28,11 @@ case object PersistentState{
 }
 
 // Global state tree
-case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls)
+case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls, reviews: Reviews)
 
 object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with GlobalSelector[AppModel] with HelpConnect[AppModel] {
 
-  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls())
+  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls(), Reviews())
 
   def currentModel = zoom(identity).value
 
@@ -41,6 +41,7 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
   val authSelector = zoomTo(x => x.auth.params)
   val mobileAppSelector = zoomTo(x => x.mobileApps.apps)
   val pollSelector = zoomTo(x => x.polls.polls)
+  val reviewSelector = zoomTo(x => x.reviews.reviews)
   
   implicit val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
   
@@ -53,7 +54,8 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
     new CarHandler(carSelector),
     new AuthHandler(authSelector),
     new MobileAppsHandler(mobileAppSelector),
-    new PollHandler(pollSelector)
+    new PollHandler(pollSelector),
+    new ReviewHandler(reviewSelector)
   )
   
   val circuit = this
@@ -65,11 +67,25 @@ trait GlobalSelector[M]{
 
 trait HelpConnect[M <: AnyRef] {
   implicit val circuit: Circuit[M] with GlobalSelector[M]
-  def multiConnect(connector: => Unit)(cursors: ModelR[M, _]*) = 
-    cursors.foreach(cursor => circuit.subscribe(cursor)(_ => connector))
+  private var unsubscribe: Option[() => Unit] = None
+  private var multiUnsubscribe: Seq[() => Unit] = Seq.empty 
+  
+  def multiConnect(connector: => Unit)(cursors: ModelR[M, _]*) = {
+    val defaultCursors = if (cursors.isEmpty) Seq(circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) else cursors
+    // similar approach used for individual connects (unsubscribe first
+    // then re-subscribe), applied to all cursors
+    multiUnsubscribe.foreach(_.apply())
+    multiUnsubscribe = Seq.empty
+    defaultCursors.foreach(cursor => multiUnsubscribe = multiUnsubscribe :+ circuit.subscribe(cursor)(_ => connector))
+  }
     
-  def connect[T](connector: => Unit)(implicit cursor: ModelR[M, T] = circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) = 
-    circuit.subscribe(cursor)(_ => connector)
+  // connect can be called from a routing view, each time the view is rendered: it's inefficient
+  // therefore it is a good thing to unsubscribe first, then resubscribe
+  def connect[T](connector: => Unit)(implicit cursor: ModelR[M, T] = circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) = {   
+    unsubscribe.map(handler => handler()) 
+    unsubscribe = Some(circuit.subscribe(cursor)(_ => connector))
+  }
+    
     
   def dispatch(action: Action) = circuit.apply(action)
 }
@@ -82,7 +98,7 @@ class LoggingHandler[M](modelRW: ModelRW[M, AppModel])
   override def handle = {
     case a: Action => {
       if (a != NoAction) {
-        log.warn("ACTION", a.toString)
+        log.warn("ACTION", a.asInstanceOf[js.Any])
         log.warn("STATE-BEFORE", value.asInstanceOf[js.Any])
       }
       noChange

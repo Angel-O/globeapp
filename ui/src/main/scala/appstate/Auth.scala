@@ -99,22 +99,22 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
 trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extending Push: it causes compliation around imports...
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import upickle.default._
-  import apimodels.user.{LoginDetails, RegistrationDetails}
+  import apimodels.user.User
   import utils.api._, utils.jwt._, utils.persist._
   import diode.{Effect, NoAction}
   import config._
-  //import play.api.libs.json.Json._
 
   
   def loginEffect(username: String, password: String) = {
-    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(LoginDetails(username, password)))
+    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(User(username = username, password = Some(password))))
         .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username))
         .recover({ case ex => LoginFailed(getErrorCode(ex)) }))
   }
   def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
-    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(RegistrationDetails(name, username, email, password, gender)))
-        .map(xhr => UserRegistered(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username)))
+    Effect(Post(
+        url = s"$AUTH_SERVER_ROOT/auth/api/register", 
+        payload = write(User(name = Some(name), username = username, email = Some(email), password = Some(password), gender = Some(gender))))
+      .map(xhr => UserRegistered(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username)))
   }
   def logoutEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
@@ -155,7 +155,7 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
 trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
 
   import utils.persist._
-  def getToken() = model.jwt.getOrElse("OOO")
+  def getToken() = model.jwt.getOrElse("UNSET")
   def getErrorCode() = model.errorCode
   def getUsername() = model.username.getOrElse(retrieve().username)
   def getLoggedIn() = model.loggedIn.getOrElse(false)

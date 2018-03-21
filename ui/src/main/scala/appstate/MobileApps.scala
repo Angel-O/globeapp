@@ -10,7 +10,7 @@ import navigation.URIs._
 // import diode.data.Pot
 // import diode.data.PotState._
 // import diode.data.{Ready, Pending}
-import apimodels.mobileapp.MobileApp
+import apimodels.mobile.MobileApp
 import scala.concurrent.Promise
 
 case class MobileApps(apps: Seq[MobileApp])
@@ -57,15 +57,30 @@ trait MobileAppsEffects extends Push {
   import diode.{Effect, NoAction}
   import config._
   
+  import play.api.libs.json.Json._
+  import play.api.libs.json._
+  
+  
+  def fetchMobileAppEffect(id: String) = {
+    Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id")
+        .map(xhr => MobileAppFetched(parse(xhr.responseText).validate[MobileApp].get)))
+  }
+  
   def fetchMobileAppsEffect() = {
     Effect(
       Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
-        .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
+        .map(xhr => MobileAppsFetched(parse(xhr.responseText).validate[Seq[MobileApp]].get)))
   }
+  
+//  def fetchMobileAppsEffect() = {
+//    Effect(
+//      Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
+//        .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
+//  }
 
-  def fetchMobileAppEffect(id: String) = {
-    Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id").map(xhr => MobileAppFetched(read[MobileApp](xhr.responseText))))
-  }
+//  def fetchMobileAppEffect(id: String) = {
+//    Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id").map(xhr => MobileAppFetched(read[MobileApp](xhr.responseText))))
+//  }
 
   //import mock.MobileAppApi._
   // def fetchMobileAppEffectTEST(id: String) = {
@@ -86,8 +101,8 @@ trait MobileAppsEffects extends Push {
 // Selector
 trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 
-  def getAllApps() = MobileAppsSelector.getAllApps()
-  def getAppById(id: String) = MobileAppsSelector.getAppById(id)
+  def getAllApps() = MobileAppsSelector.getMobileApps()
+  def getAppById(id: String) = MobileAppsSelector.getMobileAppById(id)
 
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit
@@ -95,8 +110,8 @@ trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 }
 
 object MobileAppsSelector extends ReadConnect[AppModel, Seq[MobileApp]]{
-  def getAllApps() = model.sortBy(_.name)
-  def getAppById(id: String) = getAllApps.find(_._id == id)
+  def getMobileApps() = model.sortBy(_.name)
+  def getMobileAppById(id: String) = getMobileApps.find(_._id == Some(id))
   
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit

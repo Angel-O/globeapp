@@ -32,7 +32,8 @@ object App extends AuthSelector with Push {
           navigateToLogin _,
           doLogout _,
           navigateToCatalog _,
-          navigateToPolls _)
+          navigateToPolls _,
+          navigate _)
         .bind
     }
 
@@ -50,6 +51,7 @@ object App extends AuthSelector with Push {
   def navigateToLogin() = push(LoginPageURI)
   def navigateToCatalog() = push(CatalogPageURI)
   def navigateToPolls() = push(PollsPageURI)
+  def navigate() = push(s"$CatalogPageURI/55")
 
   def connectWith = {
     loggedIn.value = getLoggedIn()

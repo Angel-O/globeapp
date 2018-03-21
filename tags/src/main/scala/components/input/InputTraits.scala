@@ -21,6 +21,7 @@ trait InputBase {
   var label: String = _
   var labelStyle: String = _
   var isDisabled: Boolean = false
+  var isHorizontal: Boolean = false
   @dom lazy val labelElement =
     <label class="label" style={labelStyle}>{ label }</label>
 }

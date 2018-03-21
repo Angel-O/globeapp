@@ -3,14 +3,13 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.mobileapp.MobileApp
-import apimodels.mobileapp.MobileAppUploadModel
+import apimodels.mobile.MobileApp
 import javax.inject.Inject
 import play.api.Logger
-import reactivemongo.bson.BSONObjectID
+import play.api.libs.json._
+import play.api.libs.json.Json._
 import repos.MobileAppRepository
-import repos.SearchCriteria
-import upickle.default.write
+import utils.Bson._
 
 class MobileAppController @Inject() (
   scc:        SecuredControllerComponents,
@@ -19,7 +18,7 @@ class MobileAppController @Inject() (
 
   def getAll = Action.async {
     Logger.info("Fetching mobile apps")
-    repository.getAll.map(all => Ok(write(all)))
+    repository.getAll.map(all => Ok(toJson(all)))
   }
 
   def getApp(id: String) = Action.async {
@@ -27,33 +26,30 @@ class MobileAppController @Inject() (
     parseId(id)
       .flatMap(validId =>
         repository
-          .findOneBy(SearchCriteria.id(validId))
+          .getById(validId))
           .map({
-            case Some(mobileApp) => Ok(write(mobileApp))
+            case Some(mobileApp) => Ok(toJson(mobileApp))
             case None            => NotFound
-          }))
+          })
       .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
   }
 
-  //TODO create a model only to update the app...you don't want to 
-  // update the same fields used when creating the app (e.g the 
-  // store shouldn't be updated...)
   def postApp = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Creating mobile app")
-    req.body.validate[MobileAppUploadModel]
+    req.body.validate[MobileApp]
       .map(uploadModel => {
         repository
-          .findOneBy(SearchCriteria.uniqueApp(uploadModel.name, uploadModel.company, uploadModel.store))
+          .getByKey(uploadModel.name, uploadModel.company, uploadModel.store)
           .flatMap({
             case Some(_) =>
               Future(BadRequest(
                   "Found existing app with same name, company, store combination "+ 
                   s"(${uploadModel.name}, ${uploadModel.company}, ${uploadModel.store})"))
             case None => {
-              val app = createMobileApp(uploadModel)
+              val app = uploadModel.copy(_id = newId)
               repository
-                .addApp(app)
-                .map(_ => Created(app._id))
+                .addOne(app)
+                .map(id => Created(id))
                 .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
             }
           })
@@ -66,9 +62,9 @@ class MobileAppController @Inject() (
     parseId(id)
       .flatMap(validId =>
         repository
-          .deleteApp(validId)
+          .deleteOne(validId)
           .map({
-            case Some(mobileApp) => Ok(write(mobileApp))
+            case Some(mobileApp) => Ok(toJson(mobileApp))
             case None            => NotFound
           }))
       .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
@@ -76,31 +72,17 @@ class MobileAppController @Inject() (
 
   def updateApp(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Updating mobile app")
-    req.body.validate[MobileAppUploadModel]
+    req.body.validate[MobileApp]
       .map(uploadModel =>
         parseId(id)
           .flatMap(validId =>
             repository
-              .updateApp(validId, createMobileApp(uploadModel, Some(validId)))
+              .updateOne(validId, uploadModel)
               .map({
-                case Some(mobileApp) => Ok(write(mobileApp))
+                case Some(mobileApp) => Ok(toJson(mobileApp))
                 case None            => NotFound
               }))
           .recover({ case ex => Logger.error(ex.getMessage); BadRequest }))
       .getOrElse({ Logger.error("Invalid payload"); Future(BadRequest) })
-  }
-
-  private def parseId(id: String) = {
-    Future.fromTry(BSONObjectID.parse(id).map(_.stringify))
-  }
-
-  private def createMobileApp(uploadModel: MobileAppUploadModel, existingId: Option[String] = None) = {
-    MobileApp(
-      existingId.fold(BSONObjectID.generate.stringify)(identity),
-      uploadModel.name,
-      uploadModel.company,
-      uploadModel.genre,
-      uploadModel.price,
-      uploadModel.store)
   }
 }
