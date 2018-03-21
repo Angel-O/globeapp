@@ -94,11 +94,16 @@ object MobileAppPage {
 
     @dom
     val rating = {
-      val score =
-        reviews.bind
-          .foldLeft(0)((acc, curr) => acc + curr.rating) / reviews.bind.length
+      
+      val totalReviews = reviews.bind.length
 
-      <div>{for (i <- toBindingSeq(1 to score)) yield { <Icon id={"star"}/>.build.bind }}</div>
+      val avgRating =
+        if (totalReviews == 0) totalReviews
+        else
+          reviews.value
+            .foldLeft(0)((acc, curr) => acc + curr.rating) / totalReviews
+
+      <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
     }
 
     @dom

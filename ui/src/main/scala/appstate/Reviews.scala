@@ -63,12 +63,6 @@ trait ReviewEffects {
     Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
         .map(xhr => ReviewCreated(review.copy(_id = Some(xhr.responseText))))) //TODO recover
   }
-  
-  // def testEffect(review:Review) = {
-  //   Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
-  //       .map(xhr => MatchingUsernamesCount(xhr.responseText.toInt))
-  //       .recover({ case _ => VerifyUsernameAlreadyTakenFailed }))
-  // }
 }
 
 // Selector
