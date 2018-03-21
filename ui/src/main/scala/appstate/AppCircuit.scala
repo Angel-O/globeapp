@@ -82,8 +82,8 @@ trait HelpConnect[M <: AnyRef] {
   // connect can be called from a routing view, each time the view is rendered: it's inefficient
   // therefore it is a good thing to unsubscribe first, then resubscribe
   def connect[T](connector: => Unit)(implicit cursor: ModelR[M, T] = circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) = {   
-      unsubscribe.map(handler => handler()) 
-      unsubscribe = Some(circuit.subscribe(cursor)(_ => connector))
+    unsubscribe.map(handler => handler()) 
+    unsubscribe = Some(circuit.subscribe(cursor)(_ => connector))
   }
     
     

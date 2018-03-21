@@ -11,7 +11,7 @@ import com.thoughtworks.binding.{dom, Binding}, Binding.Var
 import navigation.Navigators._
 import router.RoutingView
 import appstate.{Connect, Login}
-import appstate.{MobileAppsSelector, FetchAllMobileApps}
+import appstate.{MobileAppsSelector, FetchAllMobileApps, FetchReviews}
 import apimodels.mobile.MobileApp
 import views.catalog._
 import appstate.AppCircuit._
@@ -45,7 +45,7 @@ object CatalogPage {
                 onMouseLeave={handleMouseLeave _}
                 header={<TableHeader cells={headers}/>}
                 rows={toBindingSeq(apps.value).map(app => 
-                <TableRow onHover={handleRowHover _} onClick={_:Int => navigateToMobileAppDetail(app._id.get)} cells={Seq(
+                <TableRow onHover={handleRowHover _} onClick={_:Int => nav(app._id.get)} cells={Seq(
                   <span style={"text-decoration: underline"}>{ app.name }</span>, 
                   app.company, 
                   app.genre, 
@@ -79,6 +79,11 @@ object CatalogPage {
       </div>
     }
 
+
+    def nav(id:String) = {
+      dispatch(FetchReviews(id))
+      navigateToMobileAppDetail(id)
+    }
     def handleSearchBoxChange(text: String) = {
       apps.value = getMobileApps() // reset before filtering to avoid filtering over progressively decreasing data
       apps.value = apps.value.filter(app => searchMatchAcrossAllFields(text, app))

@@ -50,14 +50,14 @@ class ReviewController @Inject() (
     req.body.validate[Review]
       .map(uploadModel => {
         repository
-          .getByKey(uploadModel.mobileAppId, uploadModel.userId)
+          .getByKey(uploadModel.mobileAppId, req.user._id.get)
           .flatMap({
             case Some(_) =>
               Future(BadRequest(
                 s"User with id ${uploadModel.userId} have already created review for " +
                   s"app with id ${uploadModel.mobileAppId}"))
             case None => {
-              val app = uploadModel.copy(_id = newId, dateCreated = newDate)
+              val app = uploadModel.copy(_id = newId, dateCreated = newDate, userId = req.user._id)
               repository
                 .addOne(app)
                 .map(id => Created(id))
@@ -73,24 +73,18 @@ class ReviewController @Inject() (
     parseId(id)
       .flatMap(validId =>
         repository
-          .getById(validId)
-          .map(maybeReview => maybeReview.map(review => Some(review.userId) == req.user._id))
+          .getByIdAndUser(validId, req.user._id.get) //verifying user who is trying to delete the review is actually the author
           .flatMap({
-            case None        => Future { NotFound }
-            case Some(false) =>
-              Future {
-                Logger.warn(s"User (id: ${req.user._id}) trying to delete someone" +
-                  s"else's review. (reviewId: ${validId})")
-                Forbidden
-              }
-            case Some(true) =>
+            case None => Future{ NotFound }
+            case Some(_) => 
               repository
                 .deleteOne(validId)
-                .collect({ case Some(review) => Ok(toJson(review)) }) // safe to only collect the positive branch at this point
-          }))
-      .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
+                .collect({ case Some(review) => Ok(toJson(review)) })
+           })
+      .recover({ case ex => Logger.error(ex.getMessage); BadRequest }))
   }
 
+  // See deleteReview for an alternative on how to check that the user is the author
   def updateReview(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Updating review")
     req.body.validate[Review]
