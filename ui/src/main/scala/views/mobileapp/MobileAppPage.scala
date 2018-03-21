@@ -35,31 +35,23 @@ object MobileAppPage {
       // component CUrrently it is done on both ...PICK one
       dispatch(FetchReviews(appId))
 
-      //Fetch mobile app from server otherwise if user refreshes page this will be None...
-      val app = getMobileAppById(appId)
-
-      val appName = <div>{ app.map(_.name).getOrElse("") }</div>
-      val description =
-        <div>Description: { app.map(_.genre).getOrElse("") }</div>
-
-      val actions =
-        <div>
-          <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
-          <SimpleButton icon={<Icon id="clipboard"/>} label={"create poll"}/>
-        </div>
+      val topBar =
+      <div style={"display: flex; justify-content: space-between"}>
+        { appName.bind }
+        { actions.bind }
+      </div>
 
       val pageSkeleton =
         <div>
           <Tile isAncestor={true} children={Seq(
             <Tile isVertical={true} children={Seq(
               <Tile isParent={true} children={Seq(
-                <Tile isPrimary={true} content={appName}/>
+                <Tile isPrimary={true} content={topBar}/>
               )}/>,
               <Tile children={Seq(
                 <Tile width={5} children={Seq(
                   <Tile isParent={true} isVertical={true} children={Seq(
-                    <Tile isInfo={true} content={description}/>,
-                    <Tile content={actions}/>,
+                    <Tile isInfo={true} content={description.bind}/>,
                     <Tile content={reviewForm.bind}/>
                   )}/>
                 )}/>,
@@ -86,6 +78,35 @@ object MobileAppPage {
           <p> { x.content }</p><br/>
         </div>).all.bind }
       </div>;
+
+    @dom lazy val appName = {
+      //Fetch mobile app from server otherwise if user refreshes page this will be None...
+      <div>{ getMobileAppById(appId).map(_.name).getOrElse("") }</div>
+    }
+
+    @dom lazy val description = {
+      //Fetch mobile app from server otherwise if user refreshes page this will be None...
+      val genre = <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
+
+      <div>{genre} {rating.bind}</div> //NOTE: creating rating within this binding would fail...
+    }
+
+    @dom
+    val rating = {
+      val score =
+        reviews.bind
+          .foldLeft(0)((acc, curr) => acc + curr.rating) / reviews.bind.length
+
+      <div>{for (i <- toBindingSeq(1 to score)) yield { <Icon id={"star"}/>.build.bind }}</div>
+    }
+
+    @dom
+    val actions = {
+      <div>
+        <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
+        <SimpleButton icon={<Icon id="clipboard"/>} label={"create poll"}/>
+      </div>
+    }
 
     @dom def reviewForm() = {
       <div> 

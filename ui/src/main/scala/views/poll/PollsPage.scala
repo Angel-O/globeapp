@@ -14,7 +14,7 @@ import appstate.MobileAppsSelector._
 import appstate.AppCircuit._
 
 object PollsPage {
-  def view() = new RoutingView() { 
+  def view() = new RoutingView() {
 
     val polls = Var[Seq[Poll]](Seq.empty)
     val targetPoll = Var[Option[Poll]](None)
@@ -25,7 +25,7 @@ object PollsPage {
     override def element = {
       <div> { for (poll <- toBindingSeq(polls.bind)) yield {
         <div onclick={ (_: Event) => openDialog(poll) }>
-          <Card title={ poll.title } subTitle={ poll.createdBy } content={
+          <Card title={ poll.title } subTitle={ poll.createdBy.getOrElse("") } content={
             <div> { poll.content } </div>
           }/>
         </div>}} { val target = targetPoll.bind; val app = appName.bind

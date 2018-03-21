@@ -40,7 +40,7 @@ class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
     case ReviewsFetched(reviews) => updated(reviews)
     case CreateReview(title, content, rating, mobileAppId) =>
       effectOnly(createReviewEffect(title, content, rating, mobileAppId))
-    case ReviewCreated(review) => updated(value :+ review) // or fetch again??...no userId...
+    case ReviewCreated(review) => updated(review +: value) // or fetch again??...no userId...
   }
 }
 
