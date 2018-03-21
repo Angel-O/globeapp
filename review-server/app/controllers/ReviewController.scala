@@ -50,12 +50,13 @@ class ReviewController @Inject() (
     req.body.validate[Review]
       .map(uploadModel => {
         repository
-          .getByKey(uploadModel.mobileAppId, req.user._id.get)
+          .getByKey(uploadModel.mobileAppId, req.user._id.get) //safe to call get on option because route is authenticated
           .flatMap({
-            case Some(_) =>
-              Future(BadRequest(
-                s"User with id ${uploadModel.author.userId} have already created review for " +
-                  s"app with id ${uploadModel.mobileAppId}"))
+            case Some(_) => {
+              Logger.error(s"User with id ${req.user._id.get} has already created" +
+                  s" review for app with id ${uploadModel.mobileAppId}")
+              Future(BadRequest)
+            }
             case None => {
               val app = uploadModel.copy(_id = newId, dateCreated = newDate, author = uploadModel.author.copy(userId = req.user._id))
               repository
