@@ -52,7 +52,7 @@ object MobileAppPage {
               <Tile children={Seq(
                 <Tile width={5} children={Seq(
                   <Tile isParent={true} isVertical={true} children={Seq(
-                    <Tile isInfo={true} content={description.bind}/>,
+                    <Tile isInfo={true} content={<div>{summary.bind}</div>}/>,
                     <Tile content={reviewForm.bind}/>
                   )}/>
                 )}/>,
@@ -67,9 +67,6 @@ object MobileAppPage {
       pageSkeleton
     }
 
-    //TODO investigate on this calling reviews.bind before the bindingSeq scope makes the whole thing fail
-    // It's because of the way (recursion) Tiles are built: Solution(bind before the ancestor tile, or
-    // bind in a reusable distinct component)
     @dom
     val reviewArea =
       <div>
@@ -85,15 +82,7 @@ object MobileAppPage {
       <div>{ getMobileAppById(appId).map(_.name).getOrElse("") }</div>
     }
 
-    @dom lazy val description = {
-      //Fetch mobile app from server otherwise if user refreshes page this will be None...
-      val genre = <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
-
-      <div>{genre} {rating.bind}</div> //NOTE: creating rating within this binding would fail...
-    }
-
-    @dom
-    val rating = {
+    @dom val summary = {
       
       val totalReviews = reviews.bind.length
 
@@ -103,8 +92,32 @@ object MobileAppPage {
           reviews.value
             .foldLeft(0)((acc, curr) => acc + curr.rating) / totalReviews
 
-      <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
+      val rating = <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
+      
+      //Fetch mobile app from server otherwise if user refreshes page this will be None...
+      val genre = <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
+
+      //NOTE: creating rating within this binding would prevent the whole div from
+      // showing up when mounted in the Tile. Solutions: 
+      //1. wrap this binding inside an extra div (see Tiles above)
+      //2. create a separate binding for the rating node (see uncommented code below)
+      // TODO this issue needs to be investigated further
+      <div>{genre} {rating}</div> 
     }
+
+//    @dom
+//    val rating = {
+//      
+//      val totalReviews = reviews.bind.length
+//
+//      val avgRating =
+//        if (totalReviews == 0) totalReviews
+//        else
+//          reviews.value
+//            .foldLeft(0)((acc, curr) => acc + curr.rating) / totalReviews
+//
+//      <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
+//    }
 
     @dom
     val actions = {
