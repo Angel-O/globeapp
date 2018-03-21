@@ -5,6 +5,7 @@ import components.core.Implicits._
 import components.core.Helpers._
 import com.thoughtworks.binding.{dom, Binding}, Binding.F
 import components.core.ComponentBuilder
+import java.time.LocalDate
 
 //import com.github.ghik.silencer.silent
 
@@ -15,6 +16,7 @@ package object utils {
   val log = console
   lazy val nameOf = com.github.dwickern.macros.NameOf
   type Push = HashChanger
+  implicit val localDateOrdering: Ordering[LocalDate] = Ordering.by(_.toEpochDay)
   @dom def generateSeq[T](elements: Seq[T],
                           func: => T => Binding.F[ComponentBuilder]) = {
     toBindingSeq(elements)

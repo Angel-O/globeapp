@@ -81,7 +81,7 @@ object CatalogPage {
 
 
     def nav(id:String) = {
-      dispatch(FetchReviews(id))
+      //dispatch(FetchReviews(id))
       navigateToMobileAppDetail(id)
     }
     def handleSearchBoxChange(text: String) = {

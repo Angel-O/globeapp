@@ -194,6 +194,8 @@ abstract class ReadWriteConnectBase[M <: AnyRef, T] {
 }
 
 trait ReadConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
+  import utils.localDateOrdering
+  implicit val ordering = localDateOrdering // made available to all selectors...TODO find a better way..this shouldn't depend on utils
   protected def model = cursor.value
   protected def initialModel = circuit.initialModel
 }

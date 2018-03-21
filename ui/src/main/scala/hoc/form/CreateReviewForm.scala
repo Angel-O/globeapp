@@ -30,19 +30,22 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
 
   private val handleRatingChange = (value: Int) => {
     rating = value
-    ratingValidation.value = validateRequiredField(value.toString)
+    ratingValidation.value = validateRequiredField(
+      if (rating == 0) "" else rating.toString)
   }
 
   @dom def build = {
     <div class={ NOTIFICATION }>
     		<Box sizes={Seq(`2/3`)} contents={Seq(
     		    <div>
-    		    		<TextInput label= { "Title" } onChange={handleTitleChange}/>
-    		    		{ renderValidation(titleValidation.bind).bind  }
-    		    	</div>,
+    		    	<TextInput label= { "Title" } onChange={handleTitleChange}/>
+    		    	{ renderValidation(titleValidation.bind).bind  }
+    		    </div>,
     		    <div>
-    		    		<SelectInput label={ "Rating" } onSelect={ value:String => handleRatingChange(value.toInt) } 
-                hasDefaultOption={false} options={ Seq("1", "2", "3", "4", "5") } leftIcon={ <Icon id="star"/>.build.bind }/>
+    		    	<SelectInput label={ "Rating" } onSelect={ value: String => handleRatingChange(value.toInt) } 
+                hasDefaultOption={true} defaultOptionText={""} leftIcon={ <Icon id="star"/>.build.bind } options={ Seq(
+                 "1", "2", "3", "4", "5") }/>
+              { renderValidation(ratingValidation.bind).bind  }
     				</div>
     		)}/>  			
 			<div class={ FIELD }>
@@ -61,6 +64,7 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
   def runValidation() = {
     if (!contentValidation.value) handleContentChange(content)
     if (!titleValidation.value) handleTitleChange(title)
+    if (!ratingValidation.value) handleRatingChange(rating)
   }
 
   def runSubmit() = {
