@@ -80,12 +80,12 @@ object MobileAppPage {
     @dom
     val reviewArea =
       <div>
-          Reviews: { toBindingSeq(reviews.bind).map(x =>
-          <div>
-            <b>{ x.title } - { x.dateCreated.map(_.toString).getOrElse("just now") }</b>
-            <p> { x.content }</p>
-          </div>).all.bind }
-        </div>;
+        Reviews: { toBindingSeq(reviews.bind).map(x =>
+        <div>
+          <b>{ x.title } - { x.dateCreated.map(_.toString).getOrElse("just now") }</b>
+          <p> { x.content }</p><br/>
+        </div>).all.bind }
+      </div>;
 
     @dom def reviewForm() = {
       <div> 
