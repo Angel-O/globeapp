@@ -169,3 +169,20 @@ trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
   val circuit = AppCircuit
   connect()
 }
+
+object AuthSelector extends ReadConnect[AppModel, AuthParams] {
+
+  import utils.persist._
+  def getToken() = model.jwt.getOrElse("UNSET")
+  def getErrorCode() = model.errorCode
+  def getUsername() = model.username.getOrElse(retrieve().username)
+  def getLoggedIn() = model.loggedIn.getOrElse(false)
+  def getMatchingUsernamesCount() = model.matchingUsernames.state match{
+    case PotReady => Some(model.matchingUsernames.get)
+    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result
+    case _ => None
+  }
+
+  val cursor = AppCircuit.authSelector
+  val circuit = AppCircuit
+}

@@ -54,10 +54,10 @@ class ReviewController @Inject() (
           .flatMap({
             case Some(_) =>
               Future(BadRequest(
-                s"User with id ${uploadModel.userId} have already created review for " +
+                s"User with id ${uploadModel.author.userId} have already created review for " +
                   s"app with id ${uploadModel.mobileAppId}"))
             case None => {
-              val app = uploadModel.copy(_id = newId, dateCreated = newDate, userId = req.user._id)
+              val app = uploadModel.copy(_id = newId, dateCreated = newDate, author = uploadModel.author.copy(userId = req.user._id))
               repository
                 .addOne(app)
                 .map(id => Created(id))
@@ -93,7 +93,7 @@ class ReviewController @Inject() (
           .flatMap(validId =>
             repository
               .getById(validId)
-              .map(maybeReview => maybeReview.map(review => Some(review.userId) == req.user._id))
+              .map(maybeReview => maybeReview.map(review => Some(review.author.userId) == req.user._id))
               .flatMap({
                 case None        => Future { NotFound }
                 case Some(false) =>

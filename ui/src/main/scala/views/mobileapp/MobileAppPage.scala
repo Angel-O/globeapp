@@ -11,6 +11,7 @@ import navigation.Navigators._
 import appstate.AppCircuit._
 import appstate.MobileAppsSelector._
 import appstate.ReviewsSelector._
+import appstate.AuthSelector._
 import apimodels.mobile.MobileApp
 import appstate.{CreateReview, FetchReviews}
 import apimodels.review.Review
@@ -74,7 +75,7 @@ object MobileAppPage {
       <div>
         Reviews: { toBindingSeq(reviews.bind).map(x =>
         <div>
-          <b>{ x.title } - { x.dateCreated.map(_.toString).getOrElse("just now") }</b>
+          <b>{ x.title } - { x.author.name } - { x.dateCreated.map(_.toString).getOrElse("just now") }</b>
           <p> { x.content }</p><br/>
         </div>).all.bind }
       </div>;
@@ -116,10 +117,12 @@ object MobileAppPage {
 
     def submitReview(title: String, content: String, rating: Int) = {
       dispatch(
-        CreateReview(title = title,
-                     content = content,
-                     rating = rating,
-                     mobileAppId = appId))
+        CreateReview(
+          username = getUsername(),
+          title = title,
+          content = content,
+          rating = rating,
+          mobileAppId = appId))
     }
 
     connect(reviews.value = getReviewsByApp(appId))(reviewSelector)
