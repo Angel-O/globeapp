@@ -9,6 +9,7 @@ import apimodels.review.Review
 import javax.inject.Inject
 import play.api.libs.json.Json.obj
 import play.modules.reactivemongo.ReactiveMongoApi
+import repository.{RepoBase, Criteria}
 
 trait ReviewSearchCriteria extends Criteria {
   def byApp(mobileAppId: String) = obj(nameOf(mobileAppId) -> mobileAppId)

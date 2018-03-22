@@ -9,16 +9,15 @@ import apimodels.user.User
 import javax.inject.Inject
 import play.api.libs.json.Json.obj
 import play.modules.reactivemongo.ReactiveMongoApi
-import repository.GenericRepository
-import repository.SearchCriteria
+import repository.{RepoBase, Criteria}
 
-trait UserSearchCriteria extends SearchCriteria {
+trait UserSearchCriteria extends Criteria {
   def byEmail(email: String) = obj(nameOf(email) -> email)
 }
 
 class UserRepository @Inject()(implicit ec: ExecutionContext,
                                reactiveMongoApi: ReactiveMongoApi)
-    extends GenericRepository[User]("users", ec, reactiveMongoApi)
+    extends RepoBase[User]("users", ec, reactiveMongoApi)
     with UserSearchCriteria {
 
   def getByEmail(email: String): Future[Option[User]] =

@@ -9,10 +9,9 @@ import apimodels.mobile.MobileApp
 import javax.inject.Inject
 import play.api.libs.json.Json.obj
 import play.modules.reactivemongo.ReactiveMongoApi
-import repository.GenericRepository
-import repository.SearchCriteria
+import repository.{RepoBase, Criteria}
 
-trait MobileAppSearchCriteria extends SearchCriteria {
+trait MobileAppSearchCriteria extends Criteria {
   def byKey(name: String, company: String, store: String) =
     obj(nameOf(name) -> name,
         nameOf(company) -> company,
@@ -21,7 +20,7 @@ trait MobileAppSearchCriteria extends SearchCriteria {
 
 class MobileAppRepository @Inject()(implicit ec: ExecutionContext,
                                     reactiveMongoApi: ReactiveMongoApi)
-    extends GenericRepository[MobileApp]("mobile-apps", ec, reactiveMongoApi)
+    extends RepoBase[MobileApp]("mobile-apps", ec, reactiveMongoApi)
     with MobileAppSearchCriteria {
 
   def getByKey(name: String,

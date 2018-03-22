@@ -69,6 +69,7 @@ class ReviewController @Inject() (
       .getOrElse({ Logger.error("Invalid payload"); Future(BadRequest) })
   }
 
+  //TODO add admin users...they should be the ones allowed to delte reviews...
   def deleteReview(id: String) = AuthenticatedAction.async { req =>
     Logger.info("Deleting review")
     parseId(id)

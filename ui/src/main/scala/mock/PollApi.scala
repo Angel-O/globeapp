@@ -1,6 +1,6 @@
 package mock
 
-import apimodels.poll.{Poll, PollOption}
+import apimodels.poll.{Poll, PollOption, Open, Closed}
 
 object PollApi {
   import java.time._
@@ -12,7 +12,7 @@ object PollApi {
            "1",
            Some("John"),
            LocalDate.of(2001, 1, 31),
-           "open",
+           Open,
            Seq(PollOption("option1", Seq("me")))),
       Poll(
         Some("2"),
@@ -21,7 +21,7 @@ object PollApi {
         "2",
         Some("Paul"),
         LocalDate.of(2001, 1, 31),
-        "open",
+        Open,
         Seq(PollOption("option1", Seq("me")))
       ),
       Poll(
@@ -31,7 +31,7 @@ object PollApi {
         "3",
         Some("Bill"),
         LocalDate.of(2001, 1, 31),
-        "open",
+        Open,
         Seq(PollOption("option1", Seq("me", "bla")))
       ),
       Poll(
@@ -41,7 +41,7 @@ object PollApi {
         "4",
         Some("Kent"),
         LocalDate.of(2001, 1, 31),
-        "closed",
+        Closed,
         Seq(PollOption("option1", Seq("me", "they")))
       ),
       Poll(Some("5"),
@@ -50,7 +50,7 @@ object PollApi {
            "5",
            Some("Tom"),
            LocalDate.of(2001, 1, 31),
-           "closed",
+           Closed,
            Seq(PollOption("option1", Seq("me", "you"))))
     )
   }
