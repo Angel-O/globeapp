@@ -3,15 +3,14 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.poll.Poll
-import apimodels.poll.Poll._
+import apimodels.poll.{Poll, Closed}, Poll._
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json.toJson
 import repos.PollRepository
 import utils.Bson._
-import apimodels.poll.Open
-import apimodels.poll.Closed
+import utils.FutureImplicits._
+import utils.Json._
 
 class PollController @Inject()(scc: SecuredControllerComponents,
                                repository: PollRepository)
@@ -60,7 +59,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
   }
 
   // admin endpoint
-  def updatePoll(id: String) = AuthenticatedAction.async(parse.json) { req =>
+  def updatePollOLD(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Updating poll")
     parseId(id).flatMap(validId => {
       val updated = req.body.validate[Poll].get
@@ -71,6 +70,16 @@ class PollController @Inject()(scc: SecuredControllerComponents,
           case None       => NotFound
         })
     })
+  }
+
+  // admin endpoint
+  def updatePoll(id: String) = AuthenticatedAction.async(parse.json) { req =>
+    Logger.info(s"Updating poll (id = $id)")
+    (for {
+      (validId, validPayload) <- parseId(id) zip parsePayload(req) // they can run concurrently
+      maybePoll <- repository.updateOne(validId, validPayload)
+      httpResponse <- Future { maybePoll.fold(NotFound)(poll => Ok(toJson(poll)).asInstanceOf) }
+    } yield (httpResponse)).recover({ case ex => { Logger.error(ex.getMessage); BadRequest } })
   }
   
   def vote(pollId: String, optionId: String) = AuthenticatedAction.async { req =>
@@ -94,8 +103,8 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       .flatMap(validId =>
         repository.getById(validId)
           .map(maybePoll => maybePoll
-            .map(implicit poll => {
-              addVote(req.user._id.get, optionId)
+            .map(poll => {
+              addVote(req.user._id.get, optionId, poll)
                 .map(poll =>
                   repository
                     .updateOne(validId, poll)
@@ -122,7 +131,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
   }
   
   private def castVote(maybePoll: Option[Poll], userId: String, optionId: String) = 
-      Future{ maybePoll.flatMap(implicit poll => addVote(userId, optionId)) } //TODO remove implicit from addVote signature...it adds nothing
+      Future{ maybePoll.flatMap(poll => addVote(userId, optionId, poll)) }
 
   private def persistVoteResponse(maybePoll: Option[Poll], pollId: String) =
       maybePoll
