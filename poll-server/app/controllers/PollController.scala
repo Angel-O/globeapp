@@ -11,6 +11,7 @@ import repos.PollRepository
 import utils.Bson._
 import utils.FutureImplicits._
 import utils.Json._
+import scala.util.Failure
 
 class PollController @Inject()(scc: SecuredControllerComponents,
                                repository: PollRepository)
@@ -33,43 +34,26 @@ class PollController @Inject()(scc: SecuredControllerComponents,
           }))
       .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
   }
-
+  
   def postPoll = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Creating poll")
-    req.body
-      .validate[Poll]
-      .map(poll =>
-        repository
-          .addOne(poll.copy(_id = newId))
-          .map(id => Created(id)))
-      .getOrElse(Future { BadRequest("Invalid payload") })
+    (for {
+      validPayload <- parsePayload(req)
+      id <- repository.addOne(validPayload.copy(_id = newId))
+      httpResponse <- Future.successful { Ok(id) }
+    } yield (httpResponse))
+    .recover({ case _ => BadRequest }) logFailure
   }
-
+  
   // TODO only admin should be allowed to delete
   def deletePoll(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Deleting poll")
-    parseId(id).flatMap(
-      validId =>
-        repository
-          .deleteOne(validId)
-          .map({
-            case Some(poll) => Ok(toJson(poll))
-            case None       => NotFound
-          }))
-  }
-
-  // admin endpoint
-  def updatePollOLD(id: String) = AuthenticatedAction.async(parse.json) { req =>
-    Logger.info("Updating poll")
-    parseId(id).flatMap(validId => {
-      val updated = req.body.validate[Poll].get
-      repository
-        .updateOne(validId, updated)
-        .map({
-          case Some(poll) => Ok(toJson(poll))
-          case None       => NotFound
-        })
-    })
+    (for {
+      validId <- parseId(id)
+      maybePoll <- repository.deleteOne(id)
+      httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
+    } yield (httpResponse))
+    .recover({ case _ => BadRequest }) logFailure
   }
 
   // admin endpoint
@@ -94,42 +78,6 @@ class PollController @Inject()(scc: SecuredControllerComponents,
     } yield (httpResponse)).recover({ case ex => { Logger.error(ex.getMessage); BadRequest } }) 
   }
 
-  // TODO verify poll is still open
-  // TODO use id for option???...options should be unique...
-  // Note flatten(flatMap after parsing id is not enough because options and future do not compose...)
-  def voteOld(pollId: String, optionId: String) = AuthenticatedAction.async(parse.json) { req =>
-    Logger.info("Voting")
-    parseId(pollId)
-      .flatMap(validId =>
-        repository.getById(validId)
-          .map(maybePoll => maybePoll
-            .map(poll => {
-              addVote(req.user._id.get, optionId, poll)
-                .map(poll =>
-                  repository
-                    .updateOne(validId, poll)
-                    .map(updated => Ok(toJson(updated))))
-                .getOrElse(Future { BadRequest }) //poll option not found
-            })
-            .getOrElse(Future { NotFound }))).flatten //poll not found. 
-      .recover({ case ex => { Logger.error(ex.getMessage); BadRequest } })
-  }
-  
-  def voteforComprehension(pollId: String, optionId: String) = AuthenticatedAction.async(parse.json) { req =>
-    Logger.info("Voting") 
-    //for comprehension running futures sequentially
-    (for {
-      validId <- parseId(pollId)
-      maybePoll <- repository.getById(validId)  
-      _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
-      //maybeVote is an Option[Poll] (calling it vote is more idiomatic)
-      maybeVote <- castVote(maybePoll, req.user._id.get, optionId) 
-      httpResponse <- persistVoteResponse(maybeVote, validId)
-      //invalid id, or poll option not found, that is (invalid pollOption for current poll...bad request makes sense)
-      // or user has already voted...
-    } yield (httpResponse)).recover({ case ex => { Logger.error(ex.getMessage); BadRequest } }) 
-  }
-  
   private def castVote(maybePoll: Option[Poll], userId: String, optionId: String) = 
       Future{ maybePoll.flatMap(poll => addVote(userId, optionId, poll)) }
 
@@ -142,7 +90,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
             // by the recover clause outside the for comprehension
             //.map(_ => throw new Exception("bla bla")) 
             .map(updated => Ok(toJson(updated)))) //Note: updated is an option
-        .getOrElse(Future { NotFound }) // poll not found
+        .getOrElse(Future.successful { NotFound }) // poll not found
 
   private def userHasAlreadyVotedCheck(maybePoll: Option[Poll], userId: String): Future[Option[Unit]] = {
     Future {
@@ -163,3 +111,80 @@ class PollController @Inject()(scc: SecuredControllerComponents,
     }
   }
 }
+
+
+
+//// TODO verify poll is still open
+//  // TODO use id for option???...options should be unique...
+//  // Note flatten(flatMap after parsing id is not enough because options and future do not compose...)
+//  def voteOld(pollId: String, optionId: String) = AuthenticatedAction.async(parse.json) { req =>
+//    Logger.info("Voting")
+//    parseId(pollId)
+//      .flatMap(validId =>
+//        repository.getById(validId)
+//          .map(maybePoll => maybePoll
+//            .map(poll => {
+//              addVote(req.user._id.get, optionId, poll)
+//                .map(poll =>
+//                  repository
+//                    .updateOne(validId, poll)
+//                    .map(updated => Ok(toJson(updated))))
+//                .getOrElse(Future.successful { BadRequest }) //poll option not found
+//            })
+//            .getOrElse(Future.successful { NotFound }))).flatten //poll not found. 
+//      .recover({ case ex => { Logger.error(ex.getMessage); BadRequest } })
+//  }
+//  
+//  // with comments
+//  def voteforComprehension(pollId: String, optionId: String) = AuthenticatedAction.async(parse.json) { req =>
+//    Logger.info("Voting") 
+//    //for comprehension running futures sequentially
+//    (for {
+//      validId <- parseId(pollId)
+//      maybePoll <- repository.getById(validId)  
+//      _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
+//      //maybeVote is an Option[Poll] (calling it vote is more idiomatic)
+//      maybeVote <- castVote(maybePoll, req.user._id.get, optionId) 
+//      httpResponse <- persistVoteResponse(maybeVote, validId)
+//      //invalid id, or poll option not found, that is (invalid pollOption for current poll...bad request makes sense)
+//      // or user has already voted...
+//    } yield (httpResponse)).recover({ case ex => { Logger.error(ex.getMessage); BadRequest } }) 
+//  }
+//
+//  def postPoll = AuthenticatedAction.async(parse.json) { req =>
+//    Logger.info("Creating poll")
+//    req.body
+//      .validate[Poll]
+//      .map(poll =>
+//        repository
+//          .addOne(poll.copy(_id = newId))
+//          .map(id => Created(id)))
+//      .getOrElse(Future { BadRequest("Invalid payload") })
+//  }
+//
+// TODO only admin should be allowed to delete
+//  def deletePoll(id: String) = AuthenticatedAction.async(parse.json) { req =>
+//    Logger.info("Deleting poll")
+//    parseId(id).flatMap(
+//      validId =>
+//        repository
+//          .deleteOne(validId)
+//          .map({
+//            case Some(poll) => Ok(toJson(poll))
+//            case None       => NotFound
+//          }))
+//  }
+//
+// admin endpoint
+//  def updatePollOLD(id: String) = AuthenticatedAction.async(parse.json) { req =>
+//    Logger.info("Updating poll")
+//    parseId(id).flatMap(validId => {
+//      val updated = req.body.validate[Poll].get
+//      repository
+//        .updateOne(validId, updated)
+//        .map({
+//          case Some(poll) => Ok(toJson(poll))
+//          case None       => NotFound
+//        })
+//    })
+//  }
