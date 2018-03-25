@@ -3,7 +3,7 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.poll.{Poll, Closed}, Poll._
+import apimodels.poll.{Poll, Closed, Open}, Poll._
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json.toJson
@@ -11,7 +11,7 @@ import repos.PollRepository
 import utils.Bson._
 import utils.FutureImplicits._
 import utils.Json._
-import scala.util.Failure
+import apimodels.poll.PollOption
 
 class PollController @Inject()(scc: SecuredControllerComponents,
                                repository: PollRepository)
@@ -24,36 +24,30 @@ class PollController @Inject()(scc: SecuredControllerComponents,
 
   def getPoll(id: String) = AuthenticatedAction.async {
     Logger.info("Fetching poll")
-    parseId(id)
-      .flatMap(validId =>
-        repository
-          .getById(validId)
-          .map({
-            case Some(poll) => Ok(toJson(poll))
-            case None       => NotFound
-          }))
-      .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
+    (for {
+      validId <- parseId(id)
+      maybePoll <- repository.getById(validId)
+      httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
+    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
   }
   
   def postPoll = AuthenticatedAction.async(parse.json) { req =>
-    Logger.info("Creating poll")
+    Logger.info(s"Creating poll (userId = ${req.user._id})")
     (for {
       validPayload <- parsePayload(req)
       id <- repository.addOne(validPayload.copy(_id = newId))
       httpResponse <- Future.successful { Ok(id) }
-    } yield (httpResponse))
-    .recover({ case _ => BadRequest }) logFailure
+    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
   }
-  
+
   // TODO only admin should be allowed to delete
-  def deletePoll(id: String) = AuthenticatedAction.async(parse.json) { req =>
-    Logger.info("Deleting poll")
+  def deletePoll(id: String) = AuthenticatedAction.async { req =>
+    Logger.info(s"Deleting poll (id = $id)")
     (for {
       validId <- parseId(id)
       maybePoll <- repository.deleteOne(id)
       httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
-    } yield (httpResponse))
-    .recover({ case _ => BadRequest }) logFailure
+    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
   }
 
   // admin endpoint
@@ -62,8 +56,8 @@ class PollController @Inject()(scc: SecuredControllerComponents,
     (for {
       (validId, validPayload) <- parseId(id) zip parsePayload(req) // they can run concurrently
       maybePoll <- repository.updateOne(validId, validPayload)
-      httpResponse <- Future { maybePoll.fold(NotFound)(poll => Ok(toJson(poll)).asInstanceOf) }
-    } yield (httpResponse)).recover({ case ex => { Logger.error(ex.getMessage); BadRequest } })
+      httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
+    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
   }
   
   def vote(pollId: String, optionId: String) = AuthenticatedAction.async { req =>
@@ -71,44 +65,68 @@ class PollController @Inject()(scc: SecuredControllerComponents,
     (for {
       validId <- parseId(pollId)
       maybePoll <- repository.getById(validId) 
-      _ <- pollIsStillOpenCheck(maybePoll)
-      _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
-      maybeVote <- castVote(maybePoll, req.user._id.get, optionId) 
+      _ <- Future { pollIsStillOpenCheck(maybePoll) }
+      _ <- Future { userHasAlreadyVotedCheck(maybePoll, req.user._id.get) }
+      maybeVote <- castVote(maybePoll, req.user._id.get, optionId)
       httpResponse <- persistVoteResponse(maybeVote, validId)
-    } yield (httpResponse)).recover({ case ex => { Logger.error(ex.getMessage); BadRequest } }) 
+    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
   }
 
   private def castVote(maybePoll: Option[Poll], userId: String, optionId: String) = 
       Future{ maybePoll.flatMap(poll => addVote(userId, optionId, poll)) }
 
-  private def persistVoteResponse(maybePoll: Option[Poll], pollId: String) =
-      maybePoll
-        .map(poll =>
-          repository
-            .updateOne(pollId, poll) 
-            // if the above fails the exception is picked up 
-            // by the recover clause outside the for comprehension
-            //.map(_ => throw new Exception("bla bla")) 
-            .map(updated => Ok(toJson(updated)))) //Note: updated is an option
-        .getOrElse(Future.successful { NotFound }) // poll not found
-
-  private def userHasAlreadyVotedCheck(maybePoll: Option[Poll], userId: String): Future[Option[Unit]] = {
-    Future {
-      maybePoll
-        .map(_.options
-          .find(_.votedBy.contains(userId))
-          .fold(Unit)(throw new Exception(
-            s"user(id = $userId) has already voted for " +
-              s"poll with id = ${maybePoll.get._id}")))
-    }
+  private def persistVoteResponse(maybePoll: Option[Poll], pollId: String) = {
+    maybePoll
+      .map(poll =>
+        repository
+          .updateOne(pollId, poll)
+          .map(updated => Ok(toJson(updated)))) //Note: updated is an option
+      .getOrElse(Future.successful { NotFound })
   }
 
-  private def pollIsStillOpenCheck(maybePoll: Option[Poll]): Future[Unit] = {
-    Future {
-      maybePoll
-        .find(_.status == Closed)
-        .fold(Unit)(throw new Exception(s"poll (id = ${maybePoll.get._id}) no longer acception votes"))
-    }
+  private def userHasAlreadyVotedCheck(maybePoll: Option[Poll], userId: String) = {
+    //Future {
+     
+   // Note by using for comprehnsion the absence of a poll is retained
+   // using map & get or else leads to errors because the absence 
+   // of a poll is transformed into an absense of a non-voted option
+   // which is not correct as if a poll is missing a 404 should be returned
+   // while if a voted option exists a Bad request should be returned.
+   // Alternatively a double opyion.fold can be used, or pattern matching
+   // or collect
+//   (for {
+//     poll <- maybePoll
+//     votedOption <- poll.options.find(_.votedBy.contains(userId))   
+//   } yield(votedOption))
+//   .fold(Unit)(_ => throw new Exception(
+//        s"user(id = $userId) has already voted for " +
+//          s"poll with id = ${maybePoll.get._id}")) //calling get on the option is safe at this point
+          
+    maybePoll
+    .flatMap(_.options.find(_.votedBy.contains(userId)))
+    .collect({case _ => throw new Exception(
+        s"user(id = $userId) has already voted for " + //calling get on the option is safe at this point
+          s"poll with id = ${maybePoll.get._id}")
+    })
+   
+//    maybePoll
+//    .fold(Unit)(_.options
+//        .find(_.votedBy.contains(userId))
+//        .fold(Unit)(_ => throw new Exception(
+//        s"user(id = $userId) has already voted for " +
+//          s"poll with id = ${maybePoll.get._id}")))
+    //}
+  }
+
+  private def pollIsStillOpenCheck(maybePoll: Option[Poll]) = {
+
+    maybePoll
+      .map(_.status)
+      .collect({
+        case Closed => throw new Exception(
+          s"poll (id = ${maybePoll.get._id}) " + //calling get on the option is safe at this point
+            "no longer accepting votes")
+      })
   }
 }
 
@@ -187,4 +205,17 @@ class PollController @Inject()(scc: SecuredControllerComponents,
 //          case None       => NotFound
 //        })
 //    })
+//  }
+//
+//  def getPoll(id: String) = AuthenticatedAction.async {
+//    Logger.info("Fetching poll")
+//    parseId(id)
+//      .flatMap(validId =>
+//        repository
+//          .getById(validId)
+//          .map({
+//            case Some(poll) => Ok(toJson(poll))
+//            case None       => NotFound
+//          }))
+//      .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
 //  }

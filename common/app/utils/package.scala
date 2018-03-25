@@ -7,12 +7,14 @@ import play.api.libs.json.JsValue
 import play.api.libs.json.Reads
 import scala.util.Failure
 import play.api.Logger
+import scala.util.Success
 
 package object utils {
 
   object Bson {
-    def parseId(id: String) = {
-      Future.fromTry(BSONObjectID.parse(id).map(_.stringify))
+    import FutureImplicits._
+    def parseId(id: String)(implicit ec: ExecutionContext) = {
+      Future.fromTry(BSONObjectID.parse(id).map(_.stringify)) failMessage "Invalid id"
     }
 
     def newId = Some(BSONObjectID.generate.stringify)
@@ -37,7 +39,7 @@ package object utils {
     
     implicit class LogErrorFuture[A](x: Future[A]){
       def logFailure(implicit ec: ExecutionContext) =
-        x.andThen({ case Failure(ex) => Logger.error(ex.getMessage) })
+        x.andThen({ case Failure(ex) => Logger.error(ex.getMessage, ex) })
     }
   }
 }
