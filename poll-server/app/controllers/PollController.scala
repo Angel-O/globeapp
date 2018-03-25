@@ -65,8 +65,8 @@ class PollController @Inject()(scc: SecuredControllerComponents,
     (for {
       validId <- parseId(pollId)
       maybePoll <- repository.getById(validId) 
-      _ <- Future { pollIsStillOpenCheck(maybePoll) }
-      _ <- Future { userHasAlreadyVotedCheck(maybePoll, req.user._id.get) }
+      _ <- pollIsStillOpenCheck(maybePoll)
+      _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
       maybeVote <- castVote(maybePoll, req.user._id.get, optionId)
       httpResponse <- persistVoteResponse(maybeVote, validId)
     } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
@@ -85,48 +85,27 @@ class PollController @Inject()(scc: SecuredControllerComponents,
   }
 
   private def userHasAlreadyVotedCheck(maybePoll: Option[Poll], userId: String) = {
-    //Future {
-     
-   // Note by using for comprehnsion the absence of a poll is retained
-   // using map & get or else leads to errors because the absence 
-   // of a poll is transformed into an absense of a non-voted option
-   // which is not correct as if a poll is missing a 404 should be returned
-   // while if a voted option exists a Bad request should be returned.
-   // Alternatively a double opyion.fold can be used, or pattern matching
-   // or collect
-//   (for {
-//     poll <- maybePoll
-//     votedOption <- poll.options.find(_.votedBy.contains(userId))   
-//   } yield(votedOption))
-//   .fold(Unit)(_ => throw new Exception(
-//        s"user(id = $userId) has already voted for " +
-//          s"poll with id = ${maybePoll.get._id}")) //calling get on the option is safe at this point
-          
-    maybePoll
-    .flatMap(_.options.find(_.votedBy.contains(userId)))
-    .collect({case _ => throw new Exception(
-        s"user(id = $userId) has already voted for " + //calling get on the option is safe at this point
-          s"poll with id = ${maybePoll.get._id}")
-    })
-   
-//    maybePoll
-//    .fold(Unit)(_.options
-//        .find(_.votedBy.contains(userId))
-//        .fold(Unit)(_ => throw new Exception(
-//        s"user(id = $userId) has already voted for " +
-//          s"poll with id = ${maybePoll.get._id}")))
-    //}
+    Future {
+      maybePoll
+        .flatMap(_.options.find(_.votedBy.contains(userId)))
+        .collect({
+          case _ => throw new Exception(
+            s"user(id = $userId) has already voted for " + 
+              s"poll with id = ${maybePoll.get._id}") //calling get on the option is safe at this point
+        })
+    }
   }
 
   private def pollIsStillOpenCheck(maybePoll: Option[Poll]) = {
-
-    maybePoll
-      .map(_.status)
-      .collect({
-        case Closed => throw new Exception(
-          s"poll (id = ${maybePoll.get._id}) " + //calling get on the option is safe at this point
-            "no longer accepting votes")
-      })
+    Future {
+      maybePoll
+        .map(_.status)
+        .collect({
+          case Closed => throw new Exception(
+            s"poll (id = ${maybePoll.get._id}) " + //calling get on the option is safe at this point
+              "no longer accepting votes")
+        })
+    }
   }
 }
 
