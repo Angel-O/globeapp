@@ -19,4 +19,4 @@ PUT		/api/polls/:id				controllers.PollController.updatePoll(id: String)
 
 DELETE  /api/polls/:id				controllers.PollController.deletePoll(id: String)
 
-PUT		/api/polls/:pollId/:optionId	controllers.PollController.vote(pollId: String, optionId: String)
+PUT		/api/polls/:pollId/:optionId	controllers.PollController.vote(pollId: String, optionId: Int)
