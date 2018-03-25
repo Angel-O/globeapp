@@ -3,7 +3,7 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.poll.{Poll, Closed, Open}, Poll._
+import apimodels.poll.{Poll, Closed}, Poll._
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json.toJson
@@ -11,7 +11,6 @@ import repos.PollRepository
 import utils.Bson._
 import utils.FutureImplicits._
 import utils.Json._
-import apimodels.poll.PollOption
 
 class PollController @Inject()(scc: SecuredControllerComponents,
                                repository: PollRepository)
@@ -54,7 +53,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
   def updatePoll(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info(s"Updating poll (id = $id)")
     (for {
-      (validId, validPayload) <- parseId(id) zip parsePayload(req) // they can run concurrently
+      (validId, validPayload) <- parseId(id) zip parsePayload(req) // they can run concurrently: TODO(are they actually run concurrently?)
       maybePoll <- repository.updateOne(validId, validPayload)
       httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
     } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
@@ -65,11 +64,11 @@ class PollController @Inject()(scc: SecuredControllerComponents,
     (for {
       validId <- parseId(pollId)
       maybePoll <- repository.getById(validId) 
-      _ <- pollIsStillOpenCheck(maybePoll)
+      _ <- pollIsStillOpenCheck(maybePoll) 
       _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
       maybeVote <- castVote(maybePoll, req.user._id.get, optionId)
-      httpResponse <- persistVoteResponse(maybeVote, validId)
-    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
+      httpResponse <- persistVoteResponse(maybeVote, validId) //TODO learn scalaZ to compose options and futures nicely
+    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest(ex.getMessage) })
   }
 
   private def castVote(maybePoll: Option[Poll], userId: String, optionId: String) = 
@@ -85,14 +84,14 @@ class PollController @Inject()(scc: SecuredControllerComponents,
   }
 
   private def userHasAlreadyVotedCheck(maybePoll: Option[Poll], userId: String) = {
+    // Note how the parameter is needed. Without it the exception would be thrown regardless
+    // (https://stackoverflow.com/questions/30237608/throwing-exception-in-foreach-map-block)
     Future {
       maybePoll
         .flatMap(_.options.find(_.votedBy.contains(userId)))
-        .collect({
-          case _ => throw new Exception(
-            s"user(id = $userId) has already voted for " + 
-              s"poll with id = ${maybePoll.get._id}") //calling get on the option is safe at this point
-        })
+        .map(_ => throw new Exception(
+          s"user(id = $userId) has already voted for " +
+            s"poll with id = ${maybePoll.get._id}")) //calling get on the option is safe at this point
     }
   }
 
