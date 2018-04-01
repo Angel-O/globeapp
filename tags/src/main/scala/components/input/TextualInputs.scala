@@ -25,6 +25,7 @@ case class TextInputBuilder() extends { val inputType = TextInput } with Textual
   def render = this
   
   var onChange: String => Any = _
+  var inputValue: String = _
   
   private def handleChange = (e: Event) => {
      val target = e.currentTarget.asInstanceOf[HTMLInputElement]
@@ -35,6 +36,32 @@ case class TextInputBuilder() extends { val inputType = TextInput } with Textual
     
     val input = inputElement.bind.asInstanceOf[HTMLInputElement]
     input.oninput = handleChange
+    Some(inputValue).map(text => input.value = text) 
+    super.build.bind
+  }
+}
+
+case class NumericInputBuilder() extends { val inputType = NumericInput } with TextualInput {
+  
+  def render = this
+  
+  var onChange: Int => Any = _
+  var min: String = _ 
+  var max: String = _
+  var inputValue: String = _
+  
+  private def handleChange = (e: Event) => {
+     val target = e.currentTarget.asInstanceOf[HTMLInputElement]
+     onChange(target.value.toInt)
+  }
+  
+  @dom override def build = {
+    
+    val input = inputElement.bind.asInstanceOf[HTMLInputElement]
+    input.oninput = handleChange
+    input.value = inputValue
+    Some(min).map(m => input.min = m)
+    Some(max).map(m => input.max = m)
      
     super.build.bind
   }

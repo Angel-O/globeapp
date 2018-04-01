@@ -3,13 +3,11 @@ package controllers
 import javax.inject.Inject
 
 import apimodels.user.User
-//import pdi.jwt.JwtUpickle._ 
 import pdi.jwt.JwtSession._
 import play.api.http.FileMimeTypes
 import play.api.i18n.{ Langs, MessagesApi }
 import play.api.mvc.Results._
 import play.api.mvc._
-import upickle.default._
 import play.api.Logger
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -17,36 +15,31 @@ import play.api.libs.json.Json
 
 class AuthenticatedRequest[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)
 
-protected class AuthenticatedActionBuilder @Inject()(bodyParser: BodyParsers.Default)(implicit ec: ExecutionContext)
-    extends ActionBuilder[AuthenticatedRequest, AnyContent] {
-  
+protected class AuthenticatedActionBuilder @Inject() (bodyParser: BodyParsers.Default)(implicit ec: ExecutionContext)
+  extends ActionBuilder[AuthenticatedRequest, AnyContent] {
+
   override def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[Result]): Future[Result] = {
-     request.jwtSession.get("user") match {
+    request.jwtSession.get("user") match {
       case Some(json) => {
-//        Logger.info("Parsing user")
-//        Logger.info(Json.stringify(json))
-//        Logger.info(json.as[String])
-        val user = json.validate[User].get //read[User](json.as[String])  
-        //val session = request.jwtSession.refresh
+        val user = json.validate[User].get
         block(new AuthenticatedRequest[A](user, request)).map(_.refreshJwtSession(request))
-      }     
-      case _ => Future(Unauthorized)
+      }
+      case _ => Future { Unauthorized }
     }
   }
   def parser: BodyParser[AnyContent] = bodyParser
   protected def executionContext = ec
 }
 
-case class SecuredControllerComponents @Inject()(
-    //adminActionBuilder: AdminActionBuilder,
-    authenticatedActionBuilder: AuthenticatedActionBuilder,
-    actionBuilder: DefaultActionBuilder,
-    parsers: PlayBodyParsers,
-    messagesApi: MessagesApi,
-    langs: Langs,
-    fileMimeTypes: FileMimeTypes,
-    executionContext: scala.concurrent.ExecutionContext
-) extends ControllerComponents
+case class SecuredControllerComponents @Inject() (
+  //adminActionBuilder: AdminActionBuilder,
+  authenticatedActionBuilder: AuthenticatedActionBuilder,
+  actionBuilder:              DefaultActionBuilder,
+  parsers:                    PlayBodyParsers,
+  messagesApi:                MessagesApi,
+  langs:                      Langs,
+  fileMimeTypes:              FileMimeTypes,
+  executionContext:           scala.concurrent.ExecutionContext) extends ControllerComponents
 
 class SecuredController @Inject()(scc: SecuredControllerComponents) extends AbstractController(scc) {
   //def AdminAction: AdminActionBuilder                 = scc.adminActionBuilder

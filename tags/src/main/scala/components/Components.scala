@@ -77,6 +77,7 @@ object Components {
     def FieldValidation() = new FieldValidationBuilder()
     def Input() = new InputBuilder()
     def InputRaw() = new InputBuilderRaw()
+    def NumericInput() = new NumericInputBuilder()
     def PasswordInput = new PasswordInputBuilder()
     def RadioInput = new RadioInputBuilder()
     def SelectInput = new SelectInputBuilder()
@@ -93,6 +94,7 @@ object Components {
 
   implicit final class Modal(x: dom.Runtime.TagsAndTags2.type) {
     def ModalCard() = new ModalCardBuilder()
+    def PageModal() = new PageModalBuilder()
     def SimpleModal() = new SimpleModalBuilder()
   }
 

@@ -19,7 +19,7 @@ case class ModalCardBuilder() extends {
   val modalContentClassName = "modal-card"
 } with ModalBase {
   def render = this
-  var title: String = _
+  var title: String = _ //TODO handle null value
   var onSave: () => Unit = _
 
   @dom def build = {

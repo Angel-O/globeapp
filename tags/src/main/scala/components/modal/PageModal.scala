@@ -12,10 +12,11 @@ Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLHRElement
 
-case class SimpleModalBuilder() extends {
-  val targetId = s"simpleModal_${SimpleModalBuilder.getId}" //using scala early initializers!!!
+case class PageModalBuilder() extends {
+  val targetId = s"pageModal_${PageModalBuilder.getId}" //using scala early initializers!!!
   val modalContentClassName = "modal-content" // constant from bulmacss classes is not visible here!!
 } with ModalBase {
+
   def render = this
 
   @dom def build = {
@@ -43,7 +44,7 @@ case class SimpleModalBuilder() extends {
       { unwrapElement(modalTrigger, showTrigger).bind }
       <div class={ modalClass } id={ targetId }>
         <div class="modal-background"></div>
-				<div class="modal-content">
+				<div class="modal-content" style={"background-color: white; padding: 1.5em"}> //TODO this is not flexible...
     			{ content }
   			</div>
 				{ unwrapElement(closeButton, smartClose).bind }
@@ -52,7 +53,7 @@ case class SimpleModalBuilder() extends {
   }
 }
 
-case object SimpleModalBuilder {
+case object PageModalBuilder {
   var lastAssignedId: Int = _
   def getId() = {
     lastAssignedId += 1

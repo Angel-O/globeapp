@@ -49,7 +49,6 @@ class PollHandler[M](modelRW: ModelRW[M, Seq[Poll]]) extends ActionHandler(model
 trait PollEffects extends Push{
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import upickle.default._
   import utils.api._, utils.jwt._, utils.persist._
   import diode.{Effect, NoAction}
   import config._
@@ -58,7 +57,7 @@ trait PollEffects extends Push{
   import mock.PollApi._
 
   def fetchPollsEffect() =
-    Effect(Future { 1 }.map(_ => PollsFetched(getAll)))
+    Effect(Get(url = s"$POLL_SERVER_ROOT/api/polls").map(xhr => PollsFetched(read[Seq[Poll]](xhr.responseText))))
 }
 
 // Selector

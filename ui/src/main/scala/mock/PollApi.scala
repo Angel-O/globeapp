@@ -13,7 +13,7 @@ object PollApi {
            Some("John"),
            LocalDate.of(2001, 1, 31),
            Open,
-           Seq(PollOption("option1", Seq("me")))),
+           Seq(PollOption("option1"))),
       Poll(
         Some("2"),
         "Ability to filter contacts",
@@ -22,7 +22,7 @@ object PollApi {
         Some("Paul"),
         LocalDate.of(2001, 1, 31),
         Open,
-        Seq(PollOption("option1", Seq("me")))
+        Seq(PollOption("option1"))
       ),
       Poll(
         Some("3"),
@@ -32,7 +32,7 @@ object PollApi {
         Some("Bill"),
         LocalDate.of(2001, 1, 31),
         Open,
-        Seq(PollOption("option1", Seq("me", "bla")))
+        Seq(PollOption("option1"))
       ),
       Poll(
         Some("4"),
@@ -42,7 +42,7 @@ object PollApi {
         Some("Kent"),
         LocalDate.of(2001, 1, 31),
         Closed,
-        Seq(PollOption("option1", Seq("me", "they")))
+        Seq(PollOption("option1"))
       ),
       Poll(Some("5"),
            "Zero return",
@@ -51,7 +51,7 @@ object PollApi {
            Some("Tom"),
            LocalDate.of(2001, 1, 31),
            Closed,
-           Seq(PollOption("option1", Seq("me", "you"))))
+           Seq(PollOption("option1")))
     )
   }
 }

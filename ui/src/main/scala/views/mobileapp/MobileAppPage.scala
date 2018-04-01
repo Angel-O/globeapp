@@ -3,7 +3,7 @@ package views.mobileapp
 import navigation.URIs._
 import components.core.Implicits._
 import components.core.Helpers._
-import components.Components.{Layout, Button, Input, Misc}
+import components.Components.{Layout, Button, Input, Misc, Modal}
 import router.RoutingView
 import org.scalajs.dom.raw.HTMLElement
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
@@ -16,7 +16,7 @@ import apimodels.mobile.MobileApp
 import appstate.{CreateReview, FetchReviews}
 import apimodels.review.Review
 import appstate.ReviewsFetched
-import hoc.form.CreateReviewForm
+import hoc.form.{CreateReviewForm, CreatePollForm}
 
 object MobileAppPage {
 
@@ -121,9 +121,16 @@ object MobileAppPage {
 
     @dom
     val actions = {
-      <div>
+
+      //TODO add icon to modal trigger ...icon={<Icon id="clipboard"/>}
+
+      <div style={"display: flex"}>
         <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
-        <SimpleButton icon={<Icon id="clipboard"/>} label={"create poll"}/>
+        <PageModal label={"create poll"} content={
+          <div>
+            <CreatePollForm onSubmit={(a:String, b:String) => println("HELLO")}/> 
+          </div>
+        }/>
       </div>
     }
 

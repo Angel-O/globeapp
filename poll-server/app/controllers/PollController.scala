@@ -68,7 +68,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
       maybeVote <- castVote(maybePoll, req.user._id.get, optionId)
       httpResponse <- persistVoteResponse(maybeVote, validId) //TODO learn scalaZ to compose options and futures nicely
-    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest(ex.getMessage) })
+    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
   }
 
   private def castVote(maybePoll: Option[Poll], userId: String, optionId: Int) = 
@@ -79,8 +79,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       .map(poll =>
         repository
           .updateOne(pollId, poll)
-          .map(updated => Ok(toJson(updated))) //Note: updated is an option
-          .logFailure.recover({ case ex => BadRequest })) 
+          .map(updated => Ok(toJson(updated)))) //Note: updated is an option
       .getOrElse(Future.successful { NotFound })
   }
 

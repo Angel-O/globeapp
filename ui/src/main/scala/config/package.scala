@@ -3,6 +3,7 @@ package object config {
   val AUTH_SERVER_ROOT = "http://localhost:3000"
   val MOBILEAPP_SERVER_ROOT = "http://localhost:3001"
   val REVIEW_SERVER_ROOT = "http://localhost:3002"
+  val POLL_SERVER_ROOT = "http://localhost:3003"
   val REQUEST_TIMEOUT = 9000
   val ROOT_PATH = "/globeapp"
   val RESPONSE_TYPE = "text"
