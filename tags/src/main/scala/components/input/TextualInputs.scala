@@ -52,7 +52,19 @@ case class NumericInputBuilder() extends { val inputType = NumericInput } with T
   
   private def handleChange = (e: Event) => {
      val target = e.currentTarget.asInstanceOf[HTMLInputElement]
-     onChange(target.value.toInt)
+     val numericValue = if(target.value.trim == "") 0 else target.value.toInt
+
+     var cappedValue =
+     (for{
+       minimum <- Some(min)
+       maximum <- Some(max)
+     }
+     yield(
+       if (numericValue > maximum.toInt) maximum.toInt 
+       else if(numericValue < minimum.toInt) minimum.toInt
+       else numericValue)).getOrElse(0)
+
+     onChange(cappedValue)
   }
   
   @dom override def build = {

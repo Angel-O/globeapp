@@ -17,6 +17,7 @@ import appstate.{CreateReview, FetchReviews}
 import apimodels.review.Review
 import appstate.ReviewsFetched
 import hoc.form.{CreateReviewForm, CreatePollForm}
+import java.time.LocalDate
 
 object MobileAppPage {
 
@@ -128,7 +129,7 @@ object MobileAppPage {
         <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
         <PageModal label={"create poll"} content={
           <div>
-            <CreatePollForm onSubmit={(a:String, b:String) => println("HELLO")}/> 
+            <CreatePollForm onSubmit={(a:String, b:String, c:LocalDate, d:Seq[String]) => println("HELLO")}/> 
           </div>
         }/>
       </div>

@@ -113,7 +113,9 @@ trait BulmaCssClasses {
   val TRANSPARENT = "is-transparent"
   val VERTICAL = "is-vertical"
   val `3/4` = "is-three-quarters"
+  val `1/3` = "is-one-third"
   val `1/2` = "is-half"
+  val `1/4`= "is-one-quarter"
   val `2/3` = "is-two-thirds"
 
   // Note making this private would make compilation with fastOPTJS fail
