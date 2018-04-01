@@ -13,7 +13,7 @@ import appstate.MobileAppsSelector._
 import appstate.ReviewsSelector._
 import appstate.AuthSelector._
 import apimodels.mobile.MobileApp
-import appstate.{CreateReview, FetchReviews}
+import appstate.{CreateReview, FetchReviews, CreatePoll}
 import apimodels.review.Review
 import appstate.ReviewsFetched
 import hoc.form.{CreateReviewForm, CreatePollForm}
@@ -26,6 +26,8 @@ object MobileAppPage {
     lazy val appId = routeParams(0)
     //lazy val app = Var[Option[MobileApp]](getMobileAppById(appId))
     val reviews = Var[Seq[Review]](Seq.empty)
+
+    val pollPopUpIsOpen = Var(false)
 
     //TODO use pot data, feetch app by Id and store it in state
     // if fetching fails redirect to 404 or show error msg
@@ -99,7 +101,7 @@ object MobileAppPage {
       val genre = <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
 
       //NOTE: creating rating within this binding would prevent the whole div from
-      // showing up when mounted in the Tile. Solutions: 
+      // showing up when mounted in the Tile. Solutions:
       //1. wrap this binding inside an extra div (see Tiles above)
       //2. create a separate binding for the rating node (see uncommented code below)
       // TODO this issue needs to be investigated further
@@ -108,7 +110,7 @@ object MobileAppPage {
 
 //    @dom
 //    val rating = {
-//      
+//
 //      val totalReviews = reviews.bind.length
 //
 //      val avgRating =
@@ -124,12 +126,12 @@ object MobileAppPage {
     val actions = {
 
       //TODO add icon to modal trigger ...icon={<Icon id="clipboard"/>}
-
+      val isOpen = pollPopUpIsOpen.bind //TODO not working
       <div style={"display: flex"}>
         <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
-        <PageModal label={"create poll"} content={
+        <PageModal label={"create poll"} isOpen={isOpen} content={
           <div>
-            <CreatePollForm onSubmit={(a:String, b:String, c:LocalDate, d:Seq[String]) => println("HELLO")}/> 
+            <CreatePollForm onSubmit={createPoll _}/> 
           </div>
         }/>
       </div>
@@ -149,6 +151,23 @@ object MobileAppPage {
           content = content,
           rating = rating,
           mobileAppId = appId))
+    }
+
+    def createPoll(title: String,
+                   content: String,
+                   closingDate: LocalDate,
+                   options: Seq[String]) = {
+      dispatch(
+        CreatePoll(title,
+                   content,
+                   appId,
+                   createdBy = getUsername(),
+                   closingDate,
+                   options)
+      )
+
+      pollPopUpIsOpen.value = false
+      println("OP", pollPopUpIsOpen.value)
     }
 
     connect(reviews.value = getReviewsByApp(appId))(reviewSelector)

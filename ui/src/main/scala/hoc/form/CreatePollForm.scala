@@ -59,7 +59,7 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
       Some(s"Please provide a closing date"))
   }
   private val handleOptionNumberChange = (value: Int) => {
-      val changeOccurred = value != option.size
+      val changeOccurred = value != options.size
       if (value > options.size) {
           val optionsToAdd = value - ovs.value.total
           options = options ++ Seq.fill(optionsToAdd)("")
