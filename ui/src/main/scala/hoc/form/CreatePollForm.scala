@@ -48,7 +48,7 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   }
   private val handleOptionsChange = () => {
     val indexed = ovs.value.validations.zipWithIndex
-    val update = indexed.map({case (_, i) => validateRequiredField(options(i))})
+    val update = indexed.map({ case (_, i) => validateRequiredField(options(i)) })
     ovs.value = ovs.value.copy(validations = update)
   }
   private val handleClosingDateChange = (value: String) => {
@@ -74,7 +74,7 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   @dom def build = {
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    val today = LocalDate.parse(new Date().toLocaleDateString, formatter) //LocalDate.parse("2007-12-12")
+    val today = LocalDate.parse(new Date().toLocaleDateString, formatter) 
     val days = { for { i <- 1 to 10 } yield (today.plusDays(i)) } :+ today map (_.toString) //TODO remove today
 
     val form =
@@ -138,7 +138,7 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   def runValidation() = {
     handleTitleChange(title)
     handleContentChange(content)
-    handleClosingDateChange(closingDate match {case null => "" case _ => closingDate.toString})
+    handleClosingDateChange(Option(closingDate).map(_.toString).getOrElse(""))
     handleOptionsChange()
   }
 
