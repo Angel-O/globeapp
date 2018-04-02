@@ -69,8 +69,10 @@ trait PollEffects extends Push {
   import mock.PollApi._
 
   def fetchPollsEffect() =
-    Effect(Get(url = s"$POLL_SERVER_ROOT/api/polls").map(xhr =>
-      PollsFetched(read[Seq[Poll]](xhr.responseText))))
+    Effect(
+        Get(url = s"$POLL_SERVER_ROOT/api/polls")
+        .map(xhr => PollsFetched(read[Seq[Poll]](xhr.responseText)))
+        .recover({ case ex => {println(ex); push(ROOT_PATH); NoAction }})) //TODO redirect to login, handle unauthorized better
 
   def createPollEffect(title: String,
                        content: String,
