@@ -6,6 +6,11 @@ import components.core.Helpers._
 import com.thoughtworks.binding.{dom, Binding}, Binding.F
 import components.core.ComponentBuilder
 import java.time.LocalDate
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import diode.NoAction
+import diode.Action
+import navigation.URIs.LoginPageURI
 
 //import com.github.ghik.silencer.silent
 
@@ -23,6 +28,12 @@ package object utils {
       .map(element => func(element).bind)
       .all
       .bind
+  }
+  
+  implicit class RedirectFuture[B <: Action](x: Future[B]) extends Push{
+    def redirectToLoginOnFailure: Future[B] = {
+      x.recoverWith({ case _ => push(LoginPageURI); Future{ NoAction } })
+    }
   }
 //  type safe = com.github.ghik.silencer.silent
 }

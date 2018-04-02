@@ -58,21 +58,18 @@ class PollHandler[M](modelRW: ModelRW[M, Seq[Poll]])
 }
 
 // Effects
-trait PollEffects extends Push {
+trait PollEffects {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import utils.api._, utils.jwt._, utils.persist._
+  import utils.api._, utils.jwt._, utils.persist._, utils._
   import diode.{Effect, NoAction}
   import config._
 
-  //TODO implement real api calls
-  import mock.PollApi._
-
   def fetchPollsEffect() =
     Effect(
-        Get(url = s"$POLL_SERVER_ROOT/api/polls")
+      Get(url = s"$POLL_SERVER_ROOT/api/polls")
         .map(xhr => PollsFetched(read[Seq[Poll]](xhr.responseText)))
-        .recover({ case ex => {println(ex); push(ROOT_PATH); NoAction }})) //TODO redirect to login, handle unauthorized better
+        .redirectToLoginOnFailure)
 
   def createPollEffect(title: String,
                        content: String,
@@ -82,15 +79,17 @@ trait PollEffects extends Push {
                        options: Seq[String]) = {
     val poll = Poll(
       _id = None, title, //TODO fix this...
-                    content,
-                    mobileAppId,
-                    createdBy = Some(createdBy),
-                    closingDate,
-                    status = Open,
-                    options.map(PollOption.apply))
+      content,
+      mobileAppId,
+      createdBy = Some(createdBy),
+      closingDate,
+      status = Open,
+      options.map(PollOption.apply))
+      
     Effect(
-      Post(url = s"$POLL_SERVER_ROOT/api/polls", payload = write(poll)).map(_ =>
-        NoAction))
+      Post(url = s"$POLL_SERVER_ROOT/api/polls", payload = write(poll))
+        .map(_ => NoAction)
+        .redirectToLoginOnFailure)
   }
 }
 
