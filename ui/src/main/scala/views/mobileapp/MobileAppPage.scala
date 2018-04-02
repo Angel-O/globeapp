@@ -129,8 +129,6 @@ object MobileAppPage {
     val actions = {
 
       //TODO add icon to modal trigger ...icon={<Icon id="clipboard"/>}
-      //val isOpen = pollPopUpIsOpen.bind//TODO not working
-      println("HELLO MATE")
       val open = pollPopUpIsOpen.bind
       <div style={"display: flex"}>
         <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>

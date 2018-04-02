@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import scala.scalajs.js.Date
 
-case class OptionsValidationState(var validations: Seq[ValidationResult], var total: Int = 2)
+case class OptionsValidationState(var validations: Seq[ValidationResult])
 
 case class CreatePollFormBuilder() extends ComponentBuilder {
 
@@ -25,12 +25,11 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   private var closingDate: LocalDate = _
   private var numberOfOptions: Var[Int] = Var(2)
   private var options = Seq.fill(2)("")
-  private val titleValidation, contentValidation, closingDateValidation,
-  optionsValidation: Var[ValidationResult] = Var(YetToBeValidated)
+  private val titleValidation, contentValidation, closingDateValidation: Var[ValidationResult] = Var(YetToBeValidated)
+
+  //TODO remove this once a better solution is found and restore allOptionValidations
+  private val ovs = Var(OptionsValidationState(Seq.fill(2)(YetToBeValidated)))
   //private val allOptionValidations: Var[Seq[ValidationResult]] = Var(Seq.fill(options.size)(YetToBeValidated))
-
-  private val ovs = Var(OptionsValidationState(Seq.fill(2)(YetToBeValidated))) //TODO rmove this now...
-
 
   private val handleTitleChange = (value: String) => {
     title = value.trim()
@@ -58,10 +57,16 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
       "closing date",
       Some(s"Please provide a closing date"))
   }
+  // Note: interesting, by wrapping the validation in the ovs case class we can update
+  // the value without triggering the binding update. This avoids a situation where
+  // two updates happening in the same method (this method. The first update is the
+  // nuberOfOptions the second update is "masked" by the ovs: rather than calling the
+  // value method on the ovs the update is performed on the validations field of
+  // the ovs) could cause issues (See notes on createValidation method)
   private val handleOptionNumberChange = (value: Int) => {
     val changeOccurred = value != options.size
     if (value > options.size) {
-      val optionsToAdd = value - ovs.value.total
+      val optionsToAdd = value - options.size
       options = options ++ Seq.fill(optionsToAdd)("")
       ovs.value.validations = ovs.value.validations ++ Seq.fill(optionsToAdd)(YetToBeValidated)
     } else if (value < options.size) {
@@ -74,7 +79,7 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
 
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     val today = LocalDate.parse(new Date().toLocaleDateString, formatter) 
-    val days = { for { i <- 1 to 10 } yield (today.plusDays(i)) } :+ today map (_.toString) //TODO remove today
+    val days = { for { i <- 1 to 10 } yield (today.plusDays(i)) } map (_.toString) //TODO remove today
 
     val form =
       <div>
@@ -97,7 +102,7 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
             <div class="field-label">
                 <label class="label">Options</label>
                 <NumericInput 
-                onChange={ handleOptionNumberChange } min={"2"} max={"10"} inputValue={ovs.bind.total.toString} /> //FIX THIS
+                onChange={ handleOptionNumberChange } min={"2"} max={"10"} inputValue={options.size.toString} /> //FIX THIS
             </div>,
             <div> { for ((_, i) <- toBindingSeq((0 until numberOfOptions.bind).zipWithIndex)) yield {    
                 val handleOptionChange = (value: String) => { 
@@ -129,6 +134,13 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
     create(form, "poll-form")
   }
 
+  // This method depends on two bindings: numberOfOptions and ovs.
+  // The updates happening chcange the size of the validation collection: 
+  // this could be problematic if the updates happen together
+  // as an index out of boud can be raised: (the index passed
+  // to the method can be out of sync with one of the updates...)
+  // (See comments on handleOptionNumberChange method) to understand how 
+  // the issue is resolved)
   @dom def createValidation(index: Int) = {
     val all = ovs.bind.validations.take(numberOfOptions.bind)
     <div>{ renderValidation(all(index)).bind }</div> //wrapping inside div necessary double nested binding dependency!!!
