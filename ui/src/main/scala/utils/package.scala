@@ -31,7 +31,7 @@ package object utils {
   }
   
   implicit class RedirectFuture[B <: Action](x: Future[B]) extends Push{
-    def redirectToLoginOnFailure: Future[B] = {
+    def redirectToLoginOnFailure = {
       x.recoverWith({ case _ => push(LoginPageURI); Future{ NoAction } })
     }
   }
