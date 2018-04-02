@@ -48,7 +48,7 @@ class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
 trait ReviewEffects {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import utils.api._
+  import utils.api._, utils._
   import diode.{Effect, NoAction}
   import config._
 
@@ -61,7 +61,8 @@ trait ReviewEffects {
   def createReviewEffect(username: String, title: String, content: String, rating: Int, mobileAppId: String) = {
     val review = Review(author = Author(name = username), title = title, content = content, rating = rating, mobileAppId = mobileAppId)
     Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
-        .map(xhr => ReviewCreated(review.copy(_id = Some(xhr.responseText))))) //TODO recover
+      .map(xhr => ReviewCreated(review.copy(_id = Some(xhr.responseText))))
+      .redirectOnFailure)
   }
 }
 

@@ -1,57 +1,56 @@
 package mock
 
-import apimodels.poll.{Poll, PollOption, Open, Closed}
+import apimodels.poll.{ Poll, PollOption, Open, Closed }
 
 object PollApi {
   import java.time._
   def getAll = {
     Seq(
-      Poll(Some("1"),
-           "More points",
-           "We want to know bla...bla...bla",
-           "1",
-           Some("John"),
-           LocalDate.of(2001, 1, 31),
-           Open,
-           Seq(PollOption("option1"))),
       Poll(
-        Some("2"),
+        "More points",
+        "We want to know bla...bla...bla",
+        "1",
+        "John",
+        LocalDate.of(2001, 1, 31),
+        Open,
+        Seq(PollOption("option1")),
+        Some("1")),
+      Poll(
         "Ability to filter contacts",
         "We want to know bla...bla...bla",
         "2",
-        Some("Paul"),
+        "Paul",
         LocalDate.of(2001, 1, 31),
         Open,
-        Seq(PollOption("option1"))
-      ),
+        Seq(PollOption("option1")),
+        Some("2")),
       Poll(
-        Some("3"),
         "Track by name or by id?",
         "We want to know bla...bla...bla",
         "3",
-        Some("Bill"),
+        "Bill",
         LocalDate.of(2001, 1, 31),
         Open,
-        Seq(PollOption("option1"))
-      ),
+        Seq(PollOption("option1")),
+        Some("3")),
       Poll(
-        Some("4"),
+
         "Free coins",
         "We want to know bla...bla...bla",
         "4",
-        Some("Kent"),
+        "Kent",
         LocalDate.of(2001, 1, 31),
         Closed,
-        Seq(PollOption("option1"))
-      ),
-      Poll(Some("5"),
-           "Zero return",
-           "We want to know bla...bla...bla",
-           "5",
-           Some("Tom"),
-           LocalDate.of(2001, 1, 31),
-           Closed,
-           Seq(PollOption("option1")))
-    )
+        Seq(PollOption("option1")),
+        Some("4")),
+      Poll(
+        "Zero return",
+        "We want to know bla...bla...bla",
+        "5",
+        "Tom",
+        LocalDate.of(2001, 1, 31),
+        Closed,
+        Seq(PollOption("option1")),
+        Some("5")))
   }
 }

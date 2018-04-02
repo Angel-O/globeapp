@@ -69,7 +69,7 @@ trait PollEffects {
     Effect(
       Get(url = s"$POLL_SERVER_ROOT/api/polls")
         .map(xhr => PollsFetched(read[Seq[Poll]](xhr.responseText)))
-        .redirectToLoginOnFailure)
+        .redirectOnFailure)
 
   def createPollEffect(title: String,
                        content: String,
@@ -78,10 +78,10 @@ trait PollEffects {
                        closingDate: LocalDate,
                        options: Seq[String]) = {
     val poll = Poll(
-      _id = None, title, //TODO fix this...
+      title,
       content,
       mobileAppId,
-      createdBy = Some(createdBy),
+      createdBy,
       closingDate,
       status = Open,
       options.map(PollOption.apply))
@@ -89,7 +89,7 @@ trait PollEffects {
     Effect(
       Post(url = s"$POLL_SERVER_ROOT/api/polls", payload = write(poll))
         .map(_ => NoAction)
-        .redirectToLoginOnFailure)
+        .redirectOnFailure)
   }
 }
 

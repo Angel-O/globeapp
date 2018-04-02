@@ -11,6 +11,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import diode.NoAction
 import diode.Action
 import navigation.URIs.LoginPageURI
+import config.ROOT_PATH
 
 //import com.github.ghik.silencer.silent
 
@@ -29,10 +30,20 @@ package object utils {
       .all
       .bind
   }
-  
-  implicit class RedirectFuture[B <: Action](x: Future[B]) extends Push{
-    def redirectToLoginOnFailure = {
-      x.recoverWith({ case _ => push(LoginPageURI); Future{ NoAction } })
+
+  implicit class RedirectFuture[B <: Action](x: Future[B]) extends Push {
+    import api.getErrorCode
+
+    def redirectOnFailure = {
+      x.recoverWith({
+        case ex => {
+          getErrorCode(ex) match {
+            case 401 => push(LoginPageURI)
+            case _   => push(ROOT_PATH) //TODO redirect to custom error page instead
+          }
+          Future { NoAction }
+        }
+      })
     }
   }
 //  type safe = com.github.ghik.silencer.silent
