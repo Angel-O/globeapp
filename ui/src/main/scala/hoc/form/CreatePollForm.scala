@@ -103,7 +103,9 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
             <div> { for ((_, i) <- toBindingSeq((0 until numberOfOptions.bind).zipWithIndex)) yield {    
                 val handleOptionChange = (value: String) => { 
                     options = options.updated(i, value)
-                    val newOvs = ovs.value.copy(validations = ovs.value.validations.updated(i, validateRequiredField(options(i))))
+                    val newOvs = ovs.value.copy(
+                        validations = ovs.value.validations.updated(
+                            i, validateRequiredField(options(i)) |> validateUniqueOption(options(i), i) ))
                     ovs.value = newOvs
                 }
                 <div class={ FIELD } style={"display: flex; flex-direction: column"}>
@@ -130,7 +132,7 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
 
   @dom def createValidation(index: Int) = {
       val all = ovs.bind.validations.take(numberOfOptions.bind)
-      <div>{ renderValidation(all(index)).bind }</div> //wrapping inside div necessary double nested binding dependency!!! 
+      <div>{ renderValidation(all(index)).bind }</div> //wrapping inside div necessary double nested binding dependency!!!
   }
 
   def runValidation() = {
@@ -141,4 +143,13 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   }
 
   def runSubmit() = onSubmit(title, content, closingDate, options)
+
+  private def validateUniqueOption(currentOption: String, currentOptionIndex: Int) = {
+      options
+      .zipWithIndex
+      .filter({ case (_, i) => i != currentOptionIndex })
+      .find({ case(option, _) => option.trim != "" && option.trim == currentOption })
+      .map({ case(_, i) =>  Error(s"This option was already added as option ${i + 1}") })
+      .getOrElse(Success(""))  
+  }
 }
