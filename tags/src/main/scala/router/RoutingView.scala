@@ -17,7 +17,7 @@ class RoutingView(navigators: BrowserHistory => Unit*) extends ComponentBuilder 
     this
   }
   implicit var history: BrowserHistory = _
-  def routeParams(index: Int) = if(history == null) "" else history.getParams(index).fold("")(identity) //equivalent of getOrElse("")
+  def routeParams(index: Int) = Option(history).flatMap(_.getParams(index)).getOrElse("")
 
   def element: Binding[HTMLElement] = //TODO add support for pure html elements
     throw new IllegalArgumentException("element method in RoutingView must be overridden")

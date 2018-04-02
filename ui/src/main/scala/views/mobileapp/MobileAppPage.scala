@@ -29,7 +29,7 @@ object MobileAppPage {
 
     val pollPopUpIsOpen = Var(false)
 
-    //TODO use pot data, feetch app by Id and store it in state
+    //TODO use pot data, fetch app by Id and store it in state
     // if fetching fails redirect to 404 or show error msg
     @dom override def element = {
 
