@@ -48,28 +48,27 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   }
   private val handleOptionsChange = () => {
     val indexed = ovs.value.validations.zipWithIndex
-    val update = indexed.map({ case (_, i) => validateRequiredField(options(i)) })
+    val update = indexed.map({ case (_, i) => validateRequiredField(options(i)) |> validateUniqueOption(options(i), i) })
     ovs.value = ovs.value.copy(validations = update)
   }
   private val handleClosingDateChange = (value: String) => {
-      closingDate = if(value.trim == "") null else LocalDate.parse(value)
-      closingDateValidation.value = validateRequiredField(
+    closingDate = if (value.trim == "") null else LocalDate.parse(value)
+    closingDateValidation.value = validateRequiredField(
       value,
       "closing date",
       Some(s"Please provide a closing date"))
   }
   private val handleOptionNumberChange = (value: Int) => {
-      val changeOccurred = value != options.size
-      if (value > options.size) {
-          val optionsToAdd = value - ovs.value.total
-          options = options ++ Seq.fill(optionsToAdd)("")
-          ovs.value.validations = ovs.value.validations ++ Seq.fill(optionsToAdd)(YetToBeValidated)
-      }
-      else if (value < options.size) {
-          options = options.take(value)
-          ovs.value.validations = ovs.value.validations.take(value)
-      }
-      if (changeOccurred){ numberOfOptions.value = value }
+    val changeOccurred = value != options.size
+    if (value > options.size) {
+      val optionsToAdd = value - ovs.value.total
+      options = options ++ Seq.fill(optionsToAdd)("")
+      ovs.value.validations = ovs.value.validations ++ Seq.fill(optionsToAdd)(YetToBeValidated)
+    } else if (value < options.size) {
+      options = options.take(value)
+      ovs.value.validations = ovs.value.validations.take(value)
+    }
+    if (changeOccurred) { numberOfOptions.value = value }
   }
   @dom def build = {
 
@@ -131,8 +130,8 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   }
 
   @dom def createValidation(index: Int) = {
-      val all = ovs.bind.validations.take(numberOfOptions.bind)
-      <div>{ renderValidation(all(index)).bind }</div> //wrapping inside div necessary double nested binding dependency!!!
+    val all = ovs.bind.validations.take(numberOfOptions.bind)
+    <div>{ renderValidation(all(index)).bind }</div> //wrapping inside div necessary double nested binding dependency!!!
   }
 
   def runValidation() = {
@@ -145,11 +144,11 @@ case class CreatePollFormBuilder() extends ComponentBuilder {
   def runSubmit() = onSubmit(title, content, closingDate, options)
 
   private def validateUniqueOption(currentOption: String, currentOptionIndex: Int) = {
-      options
+    options
       .zipWithIndex
       .filter({ case (_, i) => i != currentOptionIndex })
-      .find({ case(option, _) => option.trim != "" && option.trim == currentOption })
-      .map({ case(_, i) =>  Error(s"This option was already added as option ${i + 1}") })
-      .getOrElse(Success(""))  
+      .find({ case (option, _) => option.trim != "" && option.trim == currentOption })
+      .map({ case (_, i) => Error(s"This option was already added as option ${i + 1}") })
+      .getOrElse(Success(""))
   }
 }
