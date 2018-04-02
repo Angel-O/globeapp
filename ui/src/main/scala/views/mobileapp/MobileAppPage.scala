@@ -39,18 +39,12 @@ object MobileAppPage {
       // component CUrrently it is done on both ...PICK one
       dispatch(FetchReviews(appId))
 
-      val topBar =
-      <div style={"display: flex; justify-content: space-between"}>
-        { appName.bind }
-        { actions.bind }
-      </div>
-
       val pageSkeleton =
         <div>
           <Tile isAncestor={true} children={Seq(
             <Tile isVertical={true} children={Seq(
               <Tile isParent={true} children={Seq(
-                <Tile isPrimary={true} content={topBar}/>
+                <Tile isPrimary={true} content={topBar.bind}/>
               )}/>,
               <Tile children={Seq(
                 <Tile width={5} children={Seq(
@@ -68,6 +62,15 @@ object MobileAppPage {
         </div>
 
       pageSkeleton
+    }
+
+    @dom
+    lazy val topBar =
+    {
+      <div style={"display: flex; justify-content: space-between"}>
+        { appName.bind }
+        { actions.bind }
+      </div>;
     }
 
     @dom
@@ -126,10 +129,12 @@ object MobileAppPage {
     val actions = {
 
       //TODO add icon to modal trigger ...icon={<Icon id="clipboard"/>}
-      val isOpen = pollPopUpIsOpen.bind //TODO not working
+      //val isOpen = pollPopUpIsOpen.bind//TODO not working
+      println("HELLO MATE")
+      val open = pollPopUpIsOpen.bind
       <div style={"display: flex"}>
         <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
-        <PageModal label={"create poll"} isOpen={isOpen} content={
+        <PageModal label={"create poll"} isOpen={open} content={
           <div>
             <CreatePollForm onSubmit={createPoll _}/> 
           </div>
@@ -166,6 +171,7 @@ object MobileAppPage {
                    options)
       )
 
+      pollPopUpIsOpen.value = true //workaround to trigger change TODO fix modal once for good!!
       pollPopUpIsOpen.value = false
       println("OP", pollPopUpIsOpen.value)
     }
