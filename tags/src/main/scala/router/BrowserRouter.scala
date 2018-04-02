@@ -5,11 +5,18 @@ import com.thoughtworks.binding.dom
 import com.thoughtworks.binding.Binding.Constants
 import components.core.ComponentBuilder
 
+case class Config(routes: BindingSeq[RouteBuilder],
+                  baseUrl: String,
+                  notFoundUrl: String)
+
 case class BrowserRouterBuilder() extends ComponentBuilder {
   def render = this
-  var routes: BindingSeq[RouteBuilder] = _
-  var baseUrl: String = _
-  private lazy val router = Router(baseUrl)
+
+  var config: Config = _
+
+  private lazy val routes = config.routes
+  private lazy val baseUrl = config.baseUrl
+  private lazy val router = Router(baseUrl, config.notFoundUrl)
 
   @dom def build = {
 
@@ -24,9 +31,10 @@ case class BrowserRouterBuilder() extends ComponentBuilder {
 
   private def registerRoutes(routes: Seq[RouteBuilder]) = {
     import DynamicRoute._
-    //TODO this enforces contraint of base url having at least one char...
+    //TODO this enforces constraint of base url having at least one char...
     routes.foreach(x => {
-      x.path = if (x.path != baseUrl.tail.toPath) baseUrl.tail / x.path else x.path
+      x.path =
+        if (x.path != baseUrl.tail.toPath) baseUrl.tail / x.path else x.path
       Router.registerRoute(x, router)
     })
   }

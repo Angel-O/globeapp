@@ -8,6 +8,7 @@ import navigation.URIs._
 import config._
 import appstate.{AuthSelector, VerifyToken, Logout, Connect, FetchAllMobileApps}
 import utils.Push
+import router.Config
 
 //case class Props(username: String, loggedIn: Boolean)
 
@@ -19,21 +20,21 @@ object App extends AuthSelector with Push {
 
   def main(args: Array[String]): Unit = {
 
-    val routes = RouteProvider.routes
-
     @dom def render = {
 
-      //TODO pass config object to router
+      val config = Config(baseUrl = HomePageURI,
+                          routes = RouteProvider.routes.bind,
+                          notFoundUrl = NotFoundPageURI)
+
       MainShell
-        .render(
-          <div><BrowserRouter baseUrl={HomePageURI} routes={routes.bind}/></div>,
-          loggedIn.bind,
-          username.bind,
-          navigateToLogin _,
-          doLogout _,
-          navigateToCatalog _,
-          navigateToPolls _,
-          navigate _)
+        .render(<div><BrowserRouter config={config}/></div>,
+                loggedIn.bind,
+                username.bind,
+                navigateToLogin _,
+                doLogout _,
+                navigateToCatalog _,
+                navigateToPolls _,
+                navigate _)
         .bind
     }
 

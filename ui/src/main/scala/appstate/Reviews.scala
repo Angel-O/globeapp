@@ -48,7 +48,7 @@ class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
 trait ReviewEffects {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import utils.api._, utils._
+  import utils.api._, utils.redirect._
   import diode.{Effect, NoAction}
   import config._
 
