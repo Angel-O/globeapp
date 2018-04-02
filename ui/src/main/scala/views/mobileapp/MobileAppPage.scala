@@ -171,9 +171,9 @@ object MobileAppPage {
 
       pollPopUpIsOpen.value = true //workaround to trigger change TODO fix modal once for good!!
       pollPopUpIsOpen.value = false
-      println("OP", pollPopUpIsOpen.value)
     }
 
+    override def redirectCondition = getMobileAppById(appId) == None
     connect(reviews.value = getReviewsByApp(appId))(reviewSelector)
   }
 }

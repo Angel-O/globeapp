@@ -111,7 +111,7 @@ trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
 
 object MobileAppsSelector extends ReadConnect[AppModel, Seq[MobileApp]]{
   def getMobileApps() = model.sortBy(_.name)
-  def getMobileAppById(id: String) = getMobileApps.find(_._id == Some(id))
+  def getMobileAppById(id: String) = getMobileApps.find(_._id == Some(id)) 
   
   val cursor = AppCircuit.mobileAppSelector
   val circuit = AppCircuit
