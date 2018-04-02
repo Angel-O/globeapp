@@ -30,9 +30,11 @@ case class CreatePoll(title: String,
                       closingDate: LocalDate,
                       options: Seq[String])
     extends Action
+case class CastVote(pollId: String, optionId: Int) extends Action
 
 // Secondary actions
 case class PollsFetched(polls: Seq[Poll]) extends Action
+//case class VoteCasted(pollId: String, optionId: Int) extends Action
 
 // Action handler
 class PollHandler[M](modelRW: ModelRW[M, Seq[Poll]])
@@ -54,6 +56,26 @@ class PollHandler[M](modelRW: ModelRW[M, Seq[Poll]])
                          createdBy,
                          closingDate,
                          options))
+    case CastVote(pollId, optionId) => {
+      
+      val Some((poll, pollIndex, pollOption)) = 
+        value
+        .zipWithIndex
+        .find({ case (p, _) => p._id == Some(pollId) })
+        .map({ case (p, i) => (p, i, p.options.find(_.id == optionId).get)})
+           
+      val votes = 
+      (for{
+        poll <- value.find(_._id == Some(pollId))
+        pollOption <- poll.options.find(_.id == optionId)
+      } yield(pollOption.votedBy :+ "dummyUserId")).get
+
+      updated(value.updated(
+          pollIndex, poll.copy(
+              options = poll
+              .options
+              .map(o => { if(o.id != optionId) o else o.copy(votedBy = votes) }))), castVoteEffect(pollId, optionId))
+    }
   }
 }
 
@@ -91,11 +113,18 @@ trait PollEffects {
         .map(_ => NoAction)
         .redirectOnFailure)
   }
+  
+  def castVoteEffect(pollId: String, optionId: Int) = {
+    Effect(
+      Put(url = s"$POLL_SERVER_ROOT/api/polls/$pollId/$optionId")
+        .map(_ => NoAction)
+        .redirectOnFailure)
+  }
 }
 
 // Selector
 object PollSelector extends ReadConnect[AppModel, Seq[Poll]] {
-  def getPolls() = model
+  def getPolls() = model.sortBy(_.closingDate)
   def getPollById(id: String) = getPolls.find(_._id == Some(id))
   def getPollsPartecipated(userId: String) =
     getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
@@ -105,13 +134,13 @@ object PollSelector extends ReadConnect[AppModel, Seq[Poll]] {
   //def onPollUpdate(connector: => Unit) = circuit.subscribe(cursor)(_ => connector)
 }
 
-trait PollSelector extends GenericConnect[AppModel, Seq[Poll]] {
-  def getPolls() = model
-  def getPollById(id: String) = getPolls.find(_._id == Some(id))
-  def getPollsPartecipated(userId: String) =
-    getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
+// trait PollSelector extends GenericConnect[AppModel, Seq[Poll]] {
+//   def getPolls() = model.sortBy(_.closingDate)
+//   def getPollById(id: String) = getPolls.find(_._id == Some(id))
+//   def getPollsPartecipated(userId: String) =
+//     getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
 
-  val cursor = AppCircuit.pollSelector
-  val circuit = AppCircuit
-  connect()
-}
+//   val cursor = AppCircuit.pollSelector
+//   val circuit = AppCircuit
+//   connect()
+// }

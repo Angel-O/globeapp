@@ -78,7 +78,7 @@ object ApiMiddleware {
   }
 
   def Put(url: String,
-          payload: Ajax.InputData,
+          payload: Ajax.InputData = null,
           contentHeader: (String, String) = JSON_CONTENT_HEADER) = {
     Ajax.put(
       url = url,

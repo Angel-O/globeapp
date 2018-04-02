@@ -12,6 +12,7 @@ import org.scalajs.dom.raw.Event
 import appstate.PollSelector._
 import appstate.MobileAppsSelector._
 import appstate.AppCircuit._
+import appstate.CastVote
 
 object PollsPage {
   def view() = new RoutingView() {
@@ -35,6 +36,7 @@ object PollsPage {
             targetPoll={ target } 
             appName={ app } 
             handleClose={ closeDialog _ }
+            castVote={ castVote _ }
           />
         </div>}
       </div>
@@ -60,6 +62,11 @@ object PollsPage {
     def update() = {
       appName.value = getAppName()
       polls.value = getPolls()
+      targetPoll.value.map(poll => targetPoll.value = getPollById(poll._id.get))
+    }
+    
+    def castVote(pollId: String, optionId: Int) = {
+      dispatch(CastVote(pollId, optionId))
     }
 
     // multi connect required now since auto unsubscribe has been implemented
