@@ -116,6 +116,11 @@ trait BulmaCssClasses {
   val `1/3` = "is-one-third"
   val `1/2` = "is-half"
   val `1/4`= "is-one-quarter"
+  val `1/5`= "is-one-fifth"
+  val `2/5`= "is-two-fifths"
+  val `3/5`= "is-three-fifths"
+  val `4/5`= "is-four-fifths"
+  val `1/6`= "is-one-sixth"
   val `2/3` = "is-two-thirds"
 
   // Note making this private would make compilation with fastOPTJS fail
