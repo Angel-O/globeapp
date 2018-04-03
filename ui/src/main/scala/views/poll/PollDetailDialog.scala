@@ -38,10 +38,12 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
               <span>{option.content}</span>,
               <div>
                 <Box sizes={Seq(`2/3`, `1/3`)} contents={Seq(
-                  <span style={"font-size: 0.8em"}>{s"${getVotesPercentage(option.votedBy.size, totalVotes)} %"}</span>,{unwrapElement(
+                  <span style={"font-size: 0.8em"}>
+                    {s"${getVotesPercentage(option.votedBy.size, totalVotes)} %"}
+                  </span>, { unwrapElement(
                   <span style={"cursor: pointer"} onclick={(_: Event) => castVote(poll._id.get, option.id)}>
                     <Icon id="thumbs-up"/>
-                  </span>, canVote).bind}
+                  </span>, canVote).bind }
                 )}/>
               </div> 
             )}/> 
