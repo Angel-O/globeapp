@@ -11,6 +11,7 @@ import appstate.{FetchPolls, FetchMobileApp}
 import org.scalajs.dom.raw.Event
 import appstate.PollSelector._
 import appstate.MobileAppsSelector._
+import appstate.AuthSelector._
 import appstate.AppCircuit._
 import appstate.CastVote
 
@@ -37,9 +38,17 @@ object PollsPage {
             appName={ app } 
             handleClose={ closeDialog _ }
             castVote={ castVote _ }
+            canVote={ canVote(target) }
           />
         </div>}
       </div>
+    }
+    
+    def canVote(maybePoll: Option[Poll]) = { 
+      (for{
+        poll <- maybePoll
+        pollOption <- poll.options.find(_.votedBy.contains(getUserId)) //TODO fix this...need the userId npt username
+      } yield (false)).getOrElse(true)
     }
 
     def openDialog(poll: Poll) = {

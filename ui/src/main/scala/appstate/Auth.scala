@@ -17,7 +17,8 @@ protected case class AuthParams(jwt: Option[String] = None,
                                 username: Option[String] = None,
                                 loggedIn: Option[Boolean] = None,
                                 isTokenExpired: Option[Boolean] = None,
-                                matchingUsernames: Pot[Int] = Pot.empty)
+                                matchingUsernames: Pot[Int] = Pot.empty,
+                                id: Option[String] = None)
 case class Auth(params: AuthParams)
 case object Auth {
   def apply() = new Auth(AuthParams())
@@ -39,9 +40,9 @@ case class VerifyUsernameAlreadyTaken(username: String) extends Action
 
 // Derived Actions
 case object UserLoggedOut extends Action
-case class UserLoggedIn(jwt: String, username: String) extends Action
+case class UserLoggedIn(jwt: String, username: String, id: String) extends Action
 case class LoginFailed(errorCode: Int) extends Action
-case class UserRegistered(jwt: String, username: String) extends Action
+case class UserRegistered(jwt: String, username: String, id: String) extends Action
 case object TokenExpired extends Action
 case object TokenValid extends Action
 case class StateRestored(state: PersistentState) extends Action
@@ -60,17 +61,19 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
     case Register(name, username, email, password, gender) =>
       effectOnly(registerEffect(name, username, email, password, gender))
     case Logout => effectOnly(logoutEffect())// + redirectEffect(HomePageURI))
-    case UserLoggedIn(token, username) =>
+    case UserLoggedIn(token, username, id) =>
       updated(AuthParams(jwt = Some(token),
                          username = Some(username),
                          loggedIn = Some(true),
-                         isTokenExpired = Some(false)),
+                         isTokenExpired = Some(false),
+                         id = Some(id)),
               storeTokenEffect(token) + redirectEffect(ROOT_PATH) + persistStorageEffect(username))
-    case UserRegistered(token, username) =>
+    case UserRegistered(token, username, id) =>
       updated(value.copy(jwt = Some(token),
                          username = Some(username),
                          loggedIn = Some(true),
-                         isTokenExpired = Some(false)),
+                         isTokenExpired = Some(false),
+                         id = Some(id)),
               storeTokenEffect(token) + redirectEffect(ROOT_PATH) + persistStorageEffect(username))
     case UserLoggedOut     => updated(AuthParams(), removeTokenEffect() + wipeStorageEffect())
     case LoginFailed(code) => updated(value.copy(errorCode = Some(code)))
@@ -107,14 +110,14 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   
   def loginEffect(username: String, password: String) = {
     Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(User(username = username, password = Some(password))))
-        .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username))
+        .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username, xhr.responseText))
         .recover({ case ex => LoginFailed(getErrorCode(ex)) }))
   }
   def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
     Effect(Post(
         url = s"$AUTH_SERVER_ROOT/auth/api/register", 
         payload = write(User(name = Some(name), username = username, email = Some(email), password = Some(password), gender = Some(gender))))
-      .map(xhr => UserRegistered(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username)))
+      .map(xhr => UserRegistered(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username, xhr.responseText)))
   }
   def logoutEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
@@ -176,6 +179,7 @@ object AuthSelector extends ReadConnect[AppModel, AuthParams] {
   def getToken() = model.jwt.getOrElse("UNSET")
   def getErrorCode() = model.errorCode
   def getUsername() = model.username.getOrElse(retrieve().username)
+  def getUserId() = model.id.getOrElse("")
   def getLoggedIn() = model.loggedIn.getOrElse(false)
   def getMatchingUsernamesCount() = model.matchingUsernames.state match{
     case PotReady => Some(model.matchingUsernames.get)

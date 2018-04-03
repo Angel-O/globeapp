@@ -20,6 +20,7 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
   var handleClose: () => Unit = _
   var appName: String = _
   var castVote: (String, Int) => Unit = _
+  var canVote: Boolean = _
 
   private val dateFormatter = DateTimeFormatter.ofPattern("dd LLLL yyyy");
 
@@ -36,10 +37,10 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
       val results = toBindingSeq(poll.options)
         .map(option => 
           <li>
-            <div style={"display: flex; justify-content: space-between"}> 
+            <div style={"display: flex; justify-content: space-between"}> {unwrapElement(
               <span style={"cursor: pointer"} onclick={(_: Event) => castVote(poll._id.get, option.id)}>
                 <Icon id="thumbs-up"/>
-              </span>
+              </span>, canVote).bind}
               <span>{option.content}</span> 
               <span>{s"${getVotesPercentage(option.votedBy.size)} %"}</span> 
             </div>

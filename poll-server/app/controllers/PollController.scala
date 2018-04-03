@@ -68,7 +68,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
       maybeVote <- castVote(maybePoll, req.user._id.get, optionId)
       httpResponse <- persistVoteResponse(maybeVote, validId) //TODO learn scalaZ to compose options and futures nicely
-    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
+    } yield (httpResponse)).logFailure.recover({ case ex: ForbiddenException => Forbidden case _ => BadRequest })
   }
 
   private def castVote(maybePoll: Option[Poll], userId: String, optionId: Int) = 
@@ -89,7 +89,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
     Future {
       maybePoll
         .flatMap(_.options.find(_.votedBy.contains(userId)))
-        .map(_ => throw new Exception(
+        .map(_ => throw new ForbiddenException(
           s"user(id = $userId) has already voted for " +
             s"poll with id = ${maybePoll.get._id}")) //calling get on the option is safe at this point
     }

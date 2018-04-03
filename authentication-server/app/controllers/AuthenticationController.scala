@@ -29,7 +29,7 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
                 case Some(user) => user.password == password match {
                   case true => {
                     val apiUser = User(_id = user._id, username = user.username)
-                    Ok.addingToJwtSession("user", toJson(apiUser))
+                    Ok(apiUser._id.get).addingToJwtSession("user", toJson(apiUser))
                   }
                   case false => Unauthorized
                 }
@@ -53,7 +53,7 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
           val id = newId
           repository.addOne(user.copy(_id = newId))
           val apiUser = User(_id = id, username = username)
-          Ok.addingToJwtSession("user", toJson(apiUser))
+          Ok(apiUser._id.get).addingToJwtSession("user", toJson(apiUser))
         }
       })
       .recover({ case ex => BadRequest(JsError.toJson(ex.errors)) })
