@@ -2,7 +2,7 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.user.User
+import apimodels.user.User, User._
 import javax.inject.Inject
 import pdi.jwt.JwtSession._
 import play.api.Logger
@@ -11,69 +11,49 @@ import play.api.libs.json.JsValue
 import play.api.libs.json.Json.toJson
 import play.api.mvc.Request
 import repos.UserRepository
-import utils.Bson.newId
+import utils.Bson._
+import utils.FutureImplicits._
+import utils.Json._
 
 class AuthenticationController @Inject() (repository: UserRepository, scc: SecuredControllerComponents)
   extends SecuredController(scc) {
 
-  def login = Action(parse.json).async { implicit request: Request[JsValue] =>
+  def login = Action(parse.json).async { implicit req =>
     Logger.info("Logging in")
-    val result = request.body
-      .validate[User]
-      .fold(
-        errors => Future { BadRequest(JsError.toJson(errors)) },
-        {
-          case User(_, _, username, password, _, _) =>
-            repository.getAll.map(_.find(_.username == username))
-              .map({
-                case Some(user) => user.password == password match {
-                  case true => {
-                    val apiUser = User(_id = user._id, username = user.username)
-                    Ok(apiUser._id.get).addingToJwtSession("user", toJson(apiUser))
-                  }
-                  case false => Unauthorized
-                }
-                case None => Unauthorized
-              })
-        })
-    result
+    (for {
+      User(_, _, username, Some(password), _, _) <- parsePayload(req) // assuming pwd is provided!!!
+      maybeUser <- repository.getApiUserByCredentials(username, password)
+      httpResponse <- Future {
+        maybeUser
+          .map(user => Ok(user._id.get).addingToJwtSession("user", toJson(toApiUser(user))))
+          .getOrElse(Unauthorized)
+      }
+    } yield (httpResponse)).logFailure.handleRecover
   }
 
   def logout = Action.async { implicit req =>
     Logger.info("Logging out")
-    Future { Ok.removingFromSession("user") }
+    Future { Ok.removingFromSession("user") } // safe op: no failure no recovery
   }
 
-  def register = Action(parse.json).async { implicit request: Request[JsValue] =>
+  def register = Action(parse.json).async { implicit req =>
     Logger.info("Registering user")
-    val result = request.body
-      .validate[User]
-      .map({
-        case user @ User(_, _, username, email, _, _) => { //TODO check if user already exists... (use email maybe...)
-          val id = newId
-          repository.addOne(user.copy(_id = newId))
-          val apiUser = User(_id = id, username = username)
-          Ok(apiUser._id.get).addingToJwtSession("user", toJson(apiUser))
-        }
-      })
-      .recover({ case ex => BadRequest(JsError.toJson(ex.errors)) })
-
-    Future { result.get }
+    (for {
+      user @ User(_, _, username, _, email, _) <- parsePayload(req) //TODO check if user already exists... (use email maybe...)
+      id <- repository.addOne(user.copy(_id = newId))
+      httpResponse <- Future.successful{ Ok(id).addingToJwtSession("user", toJson(toApiUser(id, username))) }
+    } yield (httpResponse)).logFailure.handleRecover
   }
 
   def verifyToken = Action.async { req =>
     Logger.info("Verifying token")
-
     Logger.info(req.jwtSession.claimData.toString)
-    val result = req.jwtSession.apply("user") match {
-      case Some(json) => {
-        Logger.info("All good")
-        Ok
-      }
-      case None => Unauthorized
+    
+    Future {
+      req.jwtSession.apply("user")
+        .map(_ => Ok)
+        .getOrElse(Unauthorized("Token expired")) // safe op: no failure no recovery
     }
-
-    Future { result }
   }
 
   def getAllUsernames = Action.async {
@@ -112,4 +92,7 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
       case None       => NotFound
     })
   }
+  
+  private def toApiUser(user: User) = User(_id = user._id, username = user.username)
+  private def toApiUser(id: String, username: String) = User(_id = Some(id), username = username)
 }

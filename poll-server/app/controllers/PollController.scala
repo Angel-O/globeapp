@@ -11,6 +11,7 @@ import repos.PollRepository
 import utils.Bson._
 import utils.FutureImplicits._
 import utils.Json._
+import exceptions.ServerException._
 
 class PollController @Inject()(scc: SecuredControllerComponents,
                                repository: PollRepository)
@@ -18,7 +19,8 @@ class PollController @Inject()(scc: SecuredControllerComponents,
 
   def getAll = AuthenticatedAction.async {
     Logger.info("Fetching polls")
-    repository.getAll.map(all => Ok(toJson(all)))
+    repository.getAll
+    .map(all => Ok(toJson(all))).logFailure.handleRecover
   }
 
   def getPoll(id: String) = AuthenticatedAction.async {
@@ -27,7 +29,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       validId <- parseId(id)
       maybePoll <- repository.getById(validId)
       httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
-    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
+    } yield (httpResponse)).logFailure.handleRecover
   }
   
   def postPoll = AuthenticatedAction.async(parse.json) { req =>
@@ -36,7 +38,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       validPayload <- parsePayload(req)
       id <- repository.addOne(validPayload.copy(_id = newId))
       httpResponse <- Future.successful { Ok(id) }
-    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
+    } yield (httpResponse)).logFailure.handleRecover
   }
 
   // TODO only admin should be allowed to delete
@@ -46,7 +48,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       validId <- parseId(id)
       maybePoll <- repository.deleteOne(id)
       httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
-    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
+    } yield (httpResponse)).logFailure.handleRecover
   }
 
   // admin endpoint
@@ -56,7 +58,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       (validId, validPayload) <- parseId(id) zip parsePayload(req)
       maybePoll <- repository.updateOne(validId, validPayload)
       httpResponse <- Future.successful { maybePoll.map(poll => Ok(toJson(poll))).getOrElse(NotFound) }
-    } yield (httpResponse)).logFailure.recover({ case ex => BadRequest })
+    } yield (httpResponse)).logFailure.handleRecover
   }
   
   def vote(pollId: String, optionId: Int) = AuthenticatedAction.async { req =>
@@ -68,7 +70,7 @@ class PollController @Inject()(scc: SecuredControllerComponents,
       _ <- userHasAlreadyVotedCheck(maybePoll, req.user._id.get)
       maybeVote <- castVote(maybePoll, req.user._id.get, optionId)
       httpResponse <- persistVoteResponse(maybeVote, validId) //TODO learn scalaZ to compose options and futures nicely
-    } yield (httpResponse)).logFailure.recover({ case ex: ForbiddenException => Forbidden case _ => BadRequest })
+    } yield (httpResponse)).logFailure.handleRecover
   }
 
   private def castVote(maybePoll: Option[Poll], userId: String, optionId: Int) = 
