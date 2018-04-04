@@ -18,53 +18,93 @@ import utils.Json._
 class AuthenticationController @Inject() (repository: UserRepository, scc: SecuredControllerComponents)
   extends SecuredController(scc) {
 
+  private val JWT_ID = "user"
+  
   def login = Action(parse.json).async { implicit req =>
     Logger.info("Logging in")
     (for {
-      User(_, _, username, Some(password), _, _) <- parsePayload(req) // assuming pwd is provided!!!
-      maybeUser <- repository.getApiUserByCredentials(username, password)
-      httpResponse <- Future {
-        maybeUser
-          .map(user => Ok(user._id.get).addingToJwtSession("user", toJson(toApiUser(user))))
-          .getOrElse(Unauthorized)
-      }
+      user <- parsePayload(req)
+      // parse payload ignores optional parameters: they need to 
+      // be processed separately if they are needed to complete to action
+      password <- Future{ user.password.get } failMessage "Missing password" 
+      maybeUser <- repository.getUserByCredentials(user.username, password)
+      httpResponse <- loginResponse(maybeUser) // // passes an api user (no sensitive info) to the request
     } yield (httpResponse)).logFailure.handleRecover
-  }
-
-  def logout = Action.async { implicit req =>
-    Logger.info("Logging out")
-    Future { Ok.removingFromSession("user") } // safe op: no failure no recovery
   }
 
   def register = Action(parse.json).async { implicit req =>
     Logger.info("Registering user")
     (for {
-      user @ User(_, _, username, _, email, _) <- parsePayload(req) //TODO check if user already exists... (use email maybe...)
+      user <- parsePayload(req)
+      email <- Future { user.email.get } failMessage "Missing email"
+      _ <- verifyUserAlreadyRegistered(email)
       id <- repository.addOne(user.copy(_id = newId))
-      httpResponse <- Future.successful{ Ok(id).addingToJwtSession("user", toJson(toApiUser(id, username))) }
+      httpResponse <- registerResponse(id, user.username) // passes an api user (no sensitive info) to the request
     } yield (httpResponse)).logFailure.handleRecover
+  }
+  
+  def logout = Action.async { implicit req =>
+    Logger.info("Logging out")
+    Future { Ok.removingFromSession(JWT_ID) } // safe op: no failure no recovery
   }
 
   def verifyToken = Action.async { req =>
-    Logger.info("Verifying token")
-    Logger.info(req.jwtSession.claimData.toString)
-    
+    Logger.info(s"Verifying token (claims: ${req.jwtSession.claimData.toString})") 
     Future {
-      req.jwtSession.apply("user")
+      req.jwtSession.apply(JWT_ID)
         .map(_ => Ok)
         .getOrElse(Unauthorized("Token expired")) // safe op: no failure no recovery
     }
   }
 
-  def getAllUsernames = Action.async {
-    Logger.info("Fetching usernames")
-    repository.getAll.map(all => Ok(toJson(all.map(_.username))))
+  // TODO change this to email...
+  def verifyUsernameAlreadyTaken = Action(parse.text).async { implicit req =>
+    Logger.info("Finding matching username")
+    (for {
+      (username, users) <- parseText zip repository.getAll 
+      maybeUser <- Future{ users.find(_.username == username) }
+      httpResponse <- Future{ Ok(toJson(maybeUser.size)) }
+    } yield(httpResponse)).logFailure.handleRecover
+  }
+  
+  def verifyUserAlreadyRegistered(email: String) = {
+    for {
+      maybeUser <- repository.getByEmail(email)
+      error <- Future { maybeUser.map(_ => throw new Exception("Email address already registered")) }
+    }
+    yield(error)
   }
 
-  def verifyUsernameAlreadyTaken = Action(parse.text).async { req =>
-    Logger.info("Finding matching username")
-    val username = req.body
-    repository.getAll.map(users => Ok(toJson(users.find(_.username == username).map(_ => 1).getOrElse(0))))
+  private def loginResponse(maybeUser: Option[User])(implicit req: Request[JsValue]) = {
+    Future {
+      maybeUser
+        // safe to call get since the user comes form the DB
+        .map(user => Ok(user._id.get).addingToJwtSession(JWT_ID, toJson(createApiUser(user))))
+        .getOrElse(Unauthorized)
+    }
+  }
+  private def registerResponse(id: String, username: String)(implicit req: Request[JsValue]) = {
+    Future.successful{ Ok(id).addingToJwtSession(JWT_ID, toJson(createApiUser(id, username))) }
+  }
+  private def createApiUser(user: User) = User(_id = user._id, username = user.username)
+  private def createApiUser(id: String, username: String) = User(_id = Some(id), username = username)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  // TO be FIXed or removeD
+  def getAllUsernames = Action.async {
+    Logger.info("Fetching usernames")
+    repository.getAll
+    .map(all => Ok(toJson(all.map(_.username)))).logFailure.handleRecover
   }
 
   def getAll = AuthenticatedAction.async {
@@ -92,7 +132,4 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
       case None       => NotFound
     })
   }
-  
-  private def toApiUser(user: User) = User(_id = user._id, username = user.username)
-  private def toApiUser(id: String, username: String) = User(_id = Some(id), username = username)
 }

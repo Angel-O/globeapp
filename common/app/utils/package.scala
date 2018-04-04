@@ -33,6 +33,10 @@ package object utils {
     def parsePayload[T <: Entity](req: Request[JsValue])(implicit read: Reads[T], ec: ExecutionContext) = {
       Future { req.body.validate[T].get } failMessage "Invalid payload"
     }
+    
+    def parseText[T <: Entity](implicit read: Reads[T], ec: ExecutionContext, req: Request[String]) = {
+      Future.successful { req.body } 
+    }
   }
   
   object FutureImplicits {

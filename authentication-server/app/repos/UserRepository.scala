@@ -24,10 +24,7 @@ class UserRepository @Inject()(implicit ec: ExecutionContext,
   def getByEmail(email: String): Future[Option[User]] =
     findOneBy(byEmail(email))
     
-  def getApiUserByCredentials(username: String, password: String) = {
-    for{
-      maybeUser <- findOneBy(byCredentials(username, password))
-      apiUser <- Future{ maybeUser.map(user => User(_id = user._id, username = user.username)) }
-    } yield(apiUser)
+  def getUserByCredentials(username: String, password: String) = {
+    findOneBy(byCredentials(username, password))
   }
 }
