@@ -98,7 +98,7 @@ object ReviewsSelector extends ReadConnect[AppModel, Seq[Review]] {
     model
     .filter(_.mobileAppId == mobileAppId)
     .find(_.author.userId == Some(userId))
-    .fold(false)(_ =>true)
+    .fold(false)(_ => true)
   }
 
   val cursor = AppCircuit.reviewSelector
