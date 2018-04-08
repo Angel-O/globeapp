@@ -65,8 +65,7 @@ object MobileAppPage {
     }
 
     @dom
-    lazy val topBar =
-    {
+    lazy val topBar = {
       <div style={"display: flex; justify-content: space-between"}>
         { appName.bind }
         { actions.bind }
@@ -89,7 +88,7 @@ object MobileAppPage {
     }
 
     @dom val summary = {
-      
+
       val totalReviews = reviews.bind.length
 
       val avgRating =
@@ -98,17 +97,19 @@ object MobileAppPage {
           reviews.value
             .foldLeft(0)((acc, curr) => acc + curr.rating) / totalReviews
 
-      val rating = <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
-      
+      val rating =
+        <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
+
       //Fetch mobile app from server otherwise if user refreshes page this will be None...
-      val genre = <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
+      val genre =
+        <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
 
       //NOTE: creating rating within this binding would prevent the whole div from
       // showing up when mounted in the Tile. Solutions:
       //1. wrap this binding inside an extra div (see Tiles above)
       //2. create a separate binding for the rating node (see uncommented code below)
       // TODO this issue needs to be investigated further
-      <div>{genre} {rating}</div> 
+      <div>{genre} {rating}</div>
     }
 
 //    @dom
@@ -128,9 +129,8 @@ object MobileAppPage {
     @dom
     val actions = {
 
-      //TODO add icon to modal trigger ...icon={<Icon id="clipboard"/>}
       val open = pollPopUpIsOpen.bind
-      val userReview = reviews.bind.find(_.author.userId == Some(getUserId()))
+      val userReview = reviews.bind.find(_.author.userId == getUserId())
       <div style={"display: flex"}>
         <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/> 
         {toBindingSeq(userReview).map(review => {
@@ -161,12 +161,11 @@ object MobileAppPage {
 
     def submitReview(title: String, content: String, rating: Int) = {
       dispatch(
-        CreateReview(
-          username = getUsername(),
-          title = title,
-          content = content,
-          rating = rating,
-          mobileAppId = appId))
+        CreateReview(username = getUsername(),
+                     title = title,
+                     content = content,
+                     rating = rating,
+                     mobileAppId = appId))
     }
 
     def createPoll(title: String,

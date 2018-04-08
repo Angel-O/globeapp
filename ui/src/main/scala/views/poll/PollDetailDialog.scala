@@ -19,6 +19,7 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
   var dialogIsOpen: Boolean = _
   var handleClose: () => Unit = _
   var appName: String = _
+  var appId: String = _
   var castVote: (String, Int) => Unit = _
   var canVote: Boolean = _
 
@@ -58,7 +59,7 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
             <Message header={popupHeader} isPrimary={true} 
             isMedium={true} style={"padding: 1em"} content={ 
               <div>
-                <h1> App: { appName } </h1> <br/>
+                <h1> App: <a href={s"#/globeapp/catalog/$appId"}>{ appName }</a> </h1> <br/>
                 <h1> Content: { poll.content } </h1> <br/>
                 <ul> { results } </ul>
               </div>}/>

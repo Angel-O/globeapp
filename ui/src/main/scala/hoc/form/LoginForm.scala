@@ -4,36 +4,44 @@ import components.core.Implicits._
 import components.core.ComponentBuilder
 import components.Components.Input
 import com.thoughtworks.binding.{dom, Binding}, Binding.Var
-import appstate.AuthSelector
+import appstate.AppCircuit._
+import appstate.AuthSelector._
 import common.FormValidators.validateRequiredField
 import common._, common.FormElements._, common.Styles
 import utils.nameOf._
 //import com.thoughtworks.binding.Route
 
-case class LoginFormBuilder() extends ComponentBuilder with AuthSelector {
+case class LoginFormBuilder() extends ComponentBuilder {
 
   def render = this
 
   var onSubmit: (String, String) => Unit = _
 
   private var username, password = ""
-  private val usernameValidation, passwordValidation, loginValidation: Var[ValidationResult] = Var(YetToBeValidated)
+  private val usernameValidation, passwordValidation,
+  loginValidation: Var[ValidationResult] = Var(YetToBeValidated)
 
   private val handleUsernameChange = (value: String) => {
     username = value.trim()
-    usernameValidation.value = validateRequiredField(username, nameOf(username), Some(s"Please provide a ${nameOf(username)}"))
+    usernameValidation.value = validateRequiredField(
+      username,
+      nameOf(username),
+      Some(s"Please provide a ${nameOf(username)}"))
     loginValidation.value = YetToBeValidated
   }
   private val handlePasswordChange = (value: String) => {
     password = value
-    passwordValidation.value = validateRequiredField(password, nameOf(password), Some(s"Please provide a ${nameOf(password)}"))
+    passwordValidation.value = validateRequiredField(
+      password,
+      nameOf(password),
+      Some(s"Please provide a ${nameOf(password)}"))
     loginValidation.value = YetToBeValidated
   }
-  private def setLoginValidation(codeOption: Option[Int]) = codeOption.map { 
-      case 401 => loginValidation.value = Error("Invalid username and password")
-      case _ => loginValidation.value = Error("Something went wrong")
+  private def setLoginValidation(codeOption: Option[Int]) = codeOption.map {
+    case 401 => loginValidation.value = Error("Invalid username and password")
+    case _   => loginValidation.value = Error("Something went wrong")
   }
-  
+
   @dom def build = {
     val form =
       <div>
@@ -63,11 +71,11 @@ case class LoginFormBuilder() extends ComponentBuilder with AuthSelector {
   }
 
   def runValidation() = {
-      handleUsernameChange(username)
-      handlePasswordChange(password)
+    handleUsernameChange(username)
+    handlePasswordChange(password)
   }
 
   def runSubmit() = onSubmit(username, password)
 
-  def connectWith() = setLoginValidation(getErrorCode())
+  connect(setLoginValidation(getErrorCode()))(authSelector)
 }

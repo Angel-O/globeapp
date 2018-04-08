@@ -13,18 +13,17 @@ import diode.Effect
 import diode.Action
 import utils.log
 import scalajs.js
-import upickle.default.{ReadWriter => RW, macroRW}
+//import upickle.default.{ReadWriter => RW, macroRW}
   
 import components.core.ComponentBuilder
 
-
 // Represents the portion of the state that will be serialized
 // in the location storage to be retrieved after a browser refresh
-case class PersistentState(username: String)
+case class PersistentState(user: User)
 case object PersistentState{
-  def apply(username: String) = new PersistentState(username)
-  def apply() = new PersistentState("") //TODO use option after finding out how to persist global state
-  implicit def rw: RW[PersistentState] = macroRW
+  //def apply(username: String, userId: String) = new PersistentState(username, userId)
+  //def apply() = new PersistentState("", "") //TODO use option after finding out how to persist global state
+  //implicit def rw: RW[PersistentState] = macroRW
 }
 
 // Global state tree
@@ -82,8 +81,11 @@ trait HelpConnect[M <: AnyRef] {
   // connect can be called from a routing view, each time the view is rendered: it's inefficient
   // therefore it is a good thing to unsubscribe first, then resubscribe
   def connect[T](connector: => Unit)(implicit cursor: ModelR[M, T] = circuit.globalSelector.root.asInstanceOf[ModelR[M, M]]) = {   
-    unsubscribe.map(handler => handler()) 
-    unsubscribe = Some(circuit.subscribe(cursor)(_ => connector))
+    //unsubscribe.map(handler => handler()) //TODO while the above is true(???)...it prevents 
+    // updates from being propagated...commented out for now (test loggedIn var in App.scala)
+    val h = circuit.subscribe(cursor)(_ => connector)
+    //println("HANDLER", h)
+    unsubscribe = Option(h)
   }
     
     

@@ -5,10 +5,11 @@ import components.core.ComponentBuilder
 import components.Components.Input
 import com.thoughtworks.binding.{ dom, Binding }, Binding.Var
 import common._, FormElements._, FormValidators._
-import appstate.AuthSelector
+import appstate.AppCircuit._
+import appstate.AuthSelector._
 
 
-case class RegistrationFormBuilder() extends ComponentBuilder with AuthSelector {
+case class RegistrationFormBuilder() extends ComponentBuilder {
    
   def render = this 
   
@@ -84,7 +85,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder with AuthSelector 
     }).getOrElse(Error("Something went wrong"))
   }
 
-  def connectWith() = validateUsernameAlreadyTaken(username.value)
+  connect(validateUsernameAlreadyTaken(username.value))(authSelector)
 
   @dom def build = {
     val form =

@@ -21,7 +21,11 @@ object PollsPage {
     val polls = Var[Seq[Poll]](Seq.empty)
     val targetPoll = Var[Option[Poll]](None)
     var dialogIsOpen = false
+
+    //Note app name and app go hand in hand together: there are different ways to approach this
+    //using a simle var and updating it when the Binding Var is updated is enough for now...
     var appName = Var("")
+    var appId = ""
 
     @dom
     override def element = {
@@ -36,6 +40,7 @@ object PollsPage {
             dialogIsOpen={ dialogIsOpen } 
             targetPoll={ target } 
             appName={ app } 
+            appId={ appId }
             handleClose={ closeDialog _ }
             castVote={ castVote _ }
             canVote={ canVote(target) }
@@ -43,11 +48,13 @@ object PollsPage {
         </div>}
       </div>
     }
-    
-    def canVote(maybePoll: Option[Poll]) = { 
-      (for{
+
+    def canVote(maybePoll: Option[Poll]) = {
+      (for {
         poll <- maybePoll
-        pollOption <- poll.options.find(_.votedBy.contains(getUserId)) //TODO fix this...need the userId npt username
+        userId <- getUserId
+        pollOption <- poll.options
+          .find(_.votedBy.contains(userId))
       } yield (false)).getOrElse(true)
     }
 
@@ -61,10 +68,12 @@ object PollsPage {
       dialogIsOpen = false
       targetPoll.value = None
       appName.value = ""
+      appId = ""
     }
 
     def getAppName() = {
       val targetPollAppId = targetPoll.value.map(_.mobileAppId).getOrElse("")
+      appId = targetPollAppId //Side effect kinda...
       getMobileAppById(targetPollAppId).map(_.name).getOrElse("")
     }
 
@@ -73,7 +82,7 @@ object PollsPage {
       polls.value = getPolls()
       targetPoll.value.map(poll => targetPoll.value = getPollById(poll._id.get))
     }
-    
+
     def castVote(pollId: String, optionId: Int) = {
       dispatch(CastVote(pollId, optionId))
     }

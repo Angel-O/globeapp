@@ -6,14 +6,15 @@ import components.core.Implicits._
 import components.Components.Router
 import navigation.URIs._
 import config._
-import appstate.{AuthSelector, VerifyToken, Logout, Connect, FetchAllMobileApps}
+import appstate.{VerifyToken, Logout, Connect, FetchAllMobileApps}
+import appstate.AuthSelector._
+import appstate.AppCircuit._
 import utils.Push
 import router.Config
 
 //case class Props(username: String, loggedIn: Boolean)
 
-object App extends AuthSelector with Push {
-
+object App extends Push {
   // keeping track of logged in status (children components are affected by it)
   val loggedIn: Var[Boolean] = Var(getLoggedIn())
   val username: Var[String] = Var(getUsername())
@@ -21,7 +22,6 @@ object App extends AuthSelector with Push {
   def main(args: Array[String]): Unit = {
 
     @dom def render = {
-
       val config = Config(baseUrl = HomePageURI,
                           routes = RouteProvider.routes.bind,
                           notFoundUrl = NotFoundPageURI)
@@ -54,8 +54,10 @@ object App extends AuthSelector with Push {
   def navigateToPolls() = push(PollsPageURI)
   def navigate() = push(s"$CatalogPageURI/55")
 
-  def connectWith = {
+  def update = {
     loggedIn.value = getLoggedIn()
     username.value = getUsername()
   }
+
+  connect(update)(authSelector)
 }

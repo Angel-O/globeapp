@@ -14,7 +14,7 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
   var onSubmit: (String, String, Int) => Unit = _
   var title, content = ""
   var rating: Int = _
-  
+
   var submitLabel: String = "Add review"
 
   private lazy val titleValidation = initValidation(title == "")
@@ -51,7 +51,7 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
     		    <div>
     		    	<SelectInput label={ "Rating" } onSelect={ value: String => handleRatingChange(value.toInt) } 
                 hasDefaultOption={true} defaultOptionText={""} leftIcon={ <Icon id="star"/>.build.bind } 
-                selectedOptions={Seq(rating - 1)} options={ Seq("1", "2", "3", "4", "5") }/>
+                selectedOptions={Seq(rating - 1)} options={ Seq("1", "2", "3", "4", "5") }/> <!-- TODO fix magic number...create component for select options-->
               { renderValidation(ratingValidation.bind).bind  }
     				</div>
     		)}/>  			

@@ -3,25 +3,27 @@ package appstate
 import diode.Action
 import diode.ModelRW
 import diode.ActionHandler
-import utils.{Push} //safe}
+import utils.Push
 import config._
 import navigation.URIs._
 
 import diode.data.Pot
 import diode.data.PotState._
 import diode.data.{Ready, Pending}
+import apimodels.user.User
+import diode.Effect
+
 
 // Model //TODO rename to AuthState
-protected case class AuthParams(jwt: Option[String] = None,
+protected case class AuthState(jwt: Option[String] = None,
                                 errorCode: Option[Int] = None,
-                                username: Option[String] = None,
+                                persistentState: Option[PersistentState] = None, //cannot be an option...
                                 loggedIn: Option[Boolean] = None,
                                 isTokenExpired: Option[Boolean] = None,
-                                matchingUsernames: Pot[Int] = Pot.empty,
-                                id: Option[String] = None)
-case class Auth(params: AuthParams)
+                                matchingUsernames: Pot[Int] = Pot.empty)
+case class Auth(params: AuthState)
 case object Auth {
-  def apply() = new Auth(AuthParams())
+  def apply() = new Auth(AuthState())
 }
 
 // Primary Actions
@@ -52,7 +54,7 @@ case object VerifyUsernameAlreadyTakenFailed extends Action
 
 
 // Action handler
-class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
+class AuthHandler[M](modelRW: ModelRW[M, AuthState])
     extends ActionHandler(modelRW)
     with AuthEffects {
   override def handle = {
@@ -60,22 +62,19 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
       effectOnly(loginEffect(username, password))
     case Register(name, username, email, password, gender) =>
       effectOnly(registerEffect(name, username, email, password, gender))
-    case Logout => effectOnly(logoutEffect())// + redirectEffect(HomePageURI))
-    case UserLoggedIn(token, username, id) =>
-      updated(AuthParams(jwt = Some(token),
-                         username = Some(username),
-                         loggedIn = Some(true),
-                         isTokenExpired = Some(false),
-                         id = Some(id)),
-              storeTokenEffect(token) + redirectEffect(ROOT_PATH) + persistStorageEffect(username))
-    case UserRegistered(token, username, id) =>
-      updated(value.copy(jwt = Some(token),
-                         username = Some(username),
-                         loggedIn = Some(true),
-                         isTokenExpired = Some(false),
-                         id = Some(id)),
-              storeTokenEffect(token) + redirectEffect(ROOT_PATH) + persistStorageEffect(username))
-    case UserLoggedOut     => updated(AuthParams(), removeTokenEffect() + wipeStorageEffect())
+    case Logout => effectOnly(logoutEffect()) // + redirectEffect(HomePageURI))
+    case UserLoggedIn(token, username, id) => {
+      val user = User(username = username, _id = Some(id))
+      val state = value.persistentState.map(state => state.copy(user = user))
+      .getOrElse(PersistentState(User(username = username, _id = Some(id))))
+      updated(AuthState(
+        jwt = Some(token),
+        persistentState = Some(state),
+        loggedIn = Some(true),
+        isTokenExpired = Some(false)),
+        storeTokenEffect(token) + persistStorageEffect(state) + redirectEffect(ROOT_PATH))
+    }
+    case UserLoggedOut     => updated(AuthState(), removeTokenEffect() + wipeStorageEffect())
     case LoginFailed(code) => updated(value.copy(errorCode = Some(code)))
     case VerifyToken       => effectOnly(verifyTokenEffect())
     case TokenExpired =>
@@ -84,7 +83,7 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthParams])
     case TokenValid =>
       updated(value.copy(loggedIn = Some(true)), restoreFromStorageEffect())
     case StateRestored(state) =>
-      updated(value.copy(username = Some(state.username)))
+      updated(value.copy(persistentState = Some(state)))
     case VerifyUsernameAlreadyTaken(username) =>
       // reset first
       val pendingResult = value.matchingUsernames.pending()
@@ -117,7 +116,7 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
     Effect(Post(
         url = s"$AUTH_SERVER_ROOT/auth/api/register", 
         payload = write(User(name = Some(name), username = username, email = Some(email), password = Some(password), gender = Some(gender))))
-      .map(xhr => UserRegistered(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username, xhr.responseText)))
+      .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username, xhr.responseText)))
   }
   def logoutEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
@@ -139,48 +138,95 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   }
   def verifyTokenEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/api/verify")
-    .map(xhr => {TokenValid})
+    .map(xhr => { TokenValid })
     .recover({ case _ => TokenExpired })) //TODO add status code to provide proper info
   }
-  def persistStorageEffect(username: String) = {
-    Effect(Future{ persist(PersistentState(username)) }.map(_ => NoAction) )
+  def persistStorageEffect(state: PersistentState) = {
+    Effect(Future{ persist(state) }.map(_ => NoAction) )
   }
   def wipeStorageEffect() = {
     Effect(Future{ wipe() }.map(_ => NoAction) )
   }
   def restoreFromStorageEffect() = {
-    Effect(Future{ retrieve() }.map(state => StateRestored(state)) )
+    //Future{ retrieve() }.map(state => state.map(s => StateRestored(s)))
+    Effect(
+      (for {
+        storageState <- Future { retrieve() }
+        action <- Future { storageState.map(state => StateRestored(state)) }
+      } yield (action).getOrElse(NoAction)))
   }
 }
 
 // Selector
-//@safe
-trait AuthSelector extends GenericConnect[AppModel, AuthParams] {
+//@safe this trait is necessary....to mix-in with objects..
+// trait AuthSelector extends GenericConnect[AppModel, AuthState] {
+
+//  import utils.persist._
+//  def getToken() = model.jwt.getOrElse("UNSET")
+//  def getErrorCode() = model.errorCode
+//  def getUsername() = {
+//    //TODO this does not work
+//     // (for {
+//     //   usernameFromAppState <- model.persistentState.map(_.user.username)
+//     //   usernameFromStorage <- retrieve().map(_.user.username)
+//     // } yield (
+//     //   if(usernameFromAppState.isEmpty) usernameFromStorage else usernameFromAppState 
+//     // )).getOrElse("")
+
+//     model.persistentState.map(_.user.username)
+//     .getOrElse(retrieve().map(_.user.username).getOrElse(""))
+//   }
+//   def getUserId() = {
+//     // (for {
+//     //   appState <- model.persistentState
+//     //   storageState <- retrieve()
+//     // } yield (Some(appState.user._id)
+//     //   .getOrElse(storageState.user._id)))
+//     //   .flatten
+
+//      model.persistentState.map(_.user._id.getOrElse(retrieve().map(_.user._id).getOrElse("")))
+//   }
+//  def getLoggedIn() = model.loggedIn.getOrElse(false)
+//  def getMatchingUsernamesCount() = model.matchingUsernames.state match{
+//    case PotReady => Some(model.matchingUsernames.get)
+//    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result
+//    case _ => None
+//  }
+
+//  val cursor = AppCircuit.authSelector
+//  val circuit = AppCircuit
+//  connect()
+// }
+
+object AuthSelector extends ReadConnect[AppModel, AuthState] {
 
   import utils.persist._
   def getToken() = model.jwt.getOrElse("UNSET")
   def getErrorCode() = model.errorCode
-  def getUsername() = model.username.getOrElse(retrieve().username)
-  def getLoggedIn() = model.loggedIn.getOrElse(false)
-  def getMatchingUsernamesCount() = model.matchingUsernames.state match{
-    case PotReady => Some(model.matchingUsernames.get)
-    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result
-    case _ => None
+  def getUsername() = {
+    //TODO is it correct??
+    // (for {
+    //   appState <- model.persistentState
+    //   storageState <- retrieve()
+    // } yield (Some(appState.user.username)
+    //   .getOrElse(storageState.user.username)))
+    //   .getOrElse("")
+
+    model.persistentState.map(_.user.username).getOrElse("")
+    //.getOrElse(retrieve().map(_.user.username).getOrElse(""))
   }
+  def getUserId() = {
+    // (for {
+    //   appState <- model.persistentState
+    //   storageState <- retrieve()
+    // } yield (Some(appState.user._id)
+    //   .getOrElse(storageState.user._id)))
+    //   .flatten
 
-  val cursor = AppCircuit.authSelector
-  val circuit = AppCircuit
-  connect()
-}
-
-object AuthSelector extends ReadConnect[AppModel, AuthParams] {
-
-  import utils.persist._
-  def getToken() = model.jwt.getOrElse("UNSET")
-  def getErrorCode() = model.errorCode
-  def getUsername() = model.username.getOrElse(retrieve().username)
-  def getUserId() = model.id.getOrElse("")
+     model.persistentState.map(_.user._id.getOrElse(retrieve().map(_.user._id).getOrElse("")))
+  }
   def getLoggedIn() = model.loggedIn.getOrElse(false)
+  
   def getMatchingUsernamesCount() = model.matchingUsernames.state match{
     case PotReady => Some(model.matchingUsernames.get)
     case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result
