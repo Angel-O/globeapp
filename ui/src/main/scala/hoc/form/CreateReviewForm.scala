@@ -12,9 +12,9 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
   def render = this
 
   var onSubmit: (String, String, Int) => Unit = _
-
   var title, content = ""
   var rating: Int = _
+  
   var submitLabel: String = "Add review"
 
   private lazy val titleValidation = initValidation(title == "")
@@ -27,12 +27,12 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
 
   private val handleContentChange = (value: String) => {
     content = value.trim()
-    contentValidation.value = validateRequiredField(value)
+    contentValidation.value = validateRequiredField(content.value)
   }
 
   private val handleTitleChange = (value: String) => {
     title = value.trim()
-    titleValidation.value = validateRequiredField(value)
+    titleValidation.value = validateRequiredField(title.value)
   }
 
   private val handleRatingChange = (value: Int) => {
@@ -63,7 +63,10 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
         { renderSubmitButton(label = submitLabel,
             isPrimary = true,
             runValidation = runValidation _, 
-            runSubmit = runSubmit _, contentValidation.bind).bind }
+            runSubmit = runSubmit _, 
+            titleValidation.bind, 
+            contentValidation.bind, 
+            ratingValidation.bind).bind }
       </div>
     </div>
   }
