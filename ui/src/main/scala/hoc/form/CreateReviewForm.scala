@@ -13,10 +13,12 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
 
   var onSubmit: (String, String, Int) => Unit = _
 
+  var title, content = ""
+  var rating: Int = _
+  var submitLabel: String = "Add review"
+
   private val titleValidation, contentValidation,
   ratingValidation: Var[ValidationResult] = Var(YetToBeValidated)
-  private var title, content = ""
-  private var rating: Int = _
 
   private val handleContentChange = (value: String) => {
     content = value.trim()
@@ -38,22 +40,22 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
     <div class={ NOTIFICATION }>
     		<Box sizes={Seq(`2/3`)} contents={Seq(
     		    <div>
-    		    	<TextInput label= { "Title" } onChange={handleTitleChange}/>
+    		    	<TextInput label= { "Title" } onChange={handleTitleChange} inputValue={title}/>
     		    	{ renderValidation(titleValidation.bind).bind  }
     		    </div>,
     		    <div>
     		    	<SelectInput label={ "Rating" } onSelect={ value: String => handleRatingChange(value.toInt) } 
-                hasDefaultOption={true} defaultOptionText={""} leftIcon={ <Icon id="star"/>.build.bind } options={ Seq(
-                 "1", "2", "3", "4", "5") }/>
+                hasDefaultOption={true} defaultOptionText={""} leftIcon={ <Icon id="star"/>.build.bind } 
+                selectedOptions={Seq(rating - 1)} options={ Seq("1", "2", "3", "4", "5") }/>
               { renderValidation(ratingValidation.bind).bind  }
     				</div>
     		)}/>  			
 			<div class={ FIELD }>
-      		<TextareaInput label={ "Content" } onChange={handleContentChange}/>
+      		<TextareaInput label={ "Content" } onChange={handleContentChange} inputValue={content}/>
         { renderValidation(contentValidation.bind).bind  }
       </div>
 			<div class={ FIELD }>
-        { renderSubmitButton(label = "Add review",
+        { renderSubmitButton(label = submitLabel,
             isPrimary = true,
             runValidation = runValidation _, 
             runSubmit = runSubmit _, contentValidation.bind).bind }

@@ -12,25 +12,40 @@ lazy val commonSettings = Seq(
     ensimeScalaVersion in ThisBuild := "2.12.3"
 )
 
-lazy val execScript0 = taskKey[Unit]("Execute ipt")
-lazy val execScript1 = taskKey[Unit]("Execute the shell script")
-lazy val execScript2 = taskKey[Unit]("Execute script")
-lazy val runall1 = inputKey[Unit]("run server in stage mode")
+//lazy val execScriptMaster = taskKey[Unit]("Execute script")
+lazy val execUi = taskKey[Unit]("run ui")
+lazy val execScript0 = taskKey[Unit]("run server")
+lazy val execScript1 = taskKey[Unit]("run server")
+lazy val execScript2 = taskKey[Unit]("run server")
+lazy val execScript3 = taskKey[Unit]("run server")
+lazy val all = inputKey[Unit]("run server in stage mode")
+execScript0 := { "authentication-server/target/universal/stage/bin/authentication-server -Dhttp.port=3000" !}
 execScript1 := { "app-server/target/universal/stage/bin/app-server -Dhttp.port=3001" !} 
-execScript2 := { "authentication-server/target/universal/stage/bin/authentication-server -Dhttp.port=3000" !}
+execScript2 := { "review-server/target/universal/stage/bin/review-server -Dhttp.port=3002" !}
+execScript3 := { "poll-server/target/universal/stage/bin/poll-server -Dhttp.port=3003" !} 
+
+
+//lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    .aggregate(ui, authenticationServer, appServer)
-    .dependsOn(ui)
+    //.aggregate(authenticationServer, appServer, pollServer, reviewServer)
+    .dependsOn(ui, authenticationServer, appServer, pollServer, reviewServer)
     .settings(
         commonSettings,
-        execScript0 := { "sbt ;clean ;stage" ! },
-        runall1 in Compile := {
+        //execScript0 := { "sbt ;clean ;stage" ! },
+        //execUi := { "sbt runui" !}, 
+        execUi := { "sbt runui" !}, 
+        all in Compile := {
+            //execScriptMaster.value
             execScript0.value
             execScript1.value
             execScript2.value
+            execScript3.value
+            //execUi.value
             //(run in Compile in server).evaluated
-        })
+            //(fastOptJS in Compile in ui).value
+        }
+    )
 
 lazy val authenticationServer = (project in file("authentication-server"))
     .dependsOn(sharedJVM, securityServer, common)
@@ -122,6 +137,15 @@ lazy val ui = (project in file("ui"))
 
 lazy val launchserver = taskKey[Unit]("launch server project")
 lazy val runus = inputKey[Unit]("run server and ui monitoring source files")
+
+commands += Command.command("runui") { state =>
+    //"project server" ::
+    //"package" ::
+    "project ui" ::
+    "~fastOptJS" ::
+    state
+  }
+
 
 commands += Command.command("lla") { state =>
     "project ui" ::

@@ -28,7 +28,7 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
       // be processed separately if they are needed to complete to action
       password <- Future{ user.password.get } failMessage "Missing password" 
       maybeUser <- repository.getUserByCredentials(user.username, password)
-      httpResponse <- loginResponse(maybeUser) // // passes an api user (no sensitive info) to the request
+      httpResponse <- loginResponse(maybeUser) // // passes an api user (no sensitive info) to the response
     } yield (httpResponse)).logFailure.handleRecover
   }
 
@@ -39,7 +39,7 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
       email <- Future { user.email.get } failMessage "Missing email"
       _ <- verifyUserAlreadyRegistered(email)
       id <- repository.addOne(user.copy(_id = newId))
-      httpResponse <- registerResponse(id, user.username) // passes an api user (no sensitive info) to the request
+      httpResponse <- registerResponse(id, user.username) // passes an api user (no sensitive info) to the response
     } yield (httpResponse)).logFailure.handleRecover
   }
   
@@ -62,8 +62,8 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
     Logger.info("Finding matching username")
     (for {
       (username, users) <- parseText zip repository.getAll 
-      maybeUser <- Future{ users.find(_.username == username) }
-      httpResponse <- Future{ Ok(toJson(maybeUser.size)) }
+      maybeUser <- Future { users.find(_.username == username) }
+      httpResponse <- Future { Ok(toJson(maybeUser.size)) }
     } yield(httpResponse)).logFailure.handleRecover
   }
   
@@ -78,7 +78,7 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
   private def loginResponse(maybeUser: Option[User])(implicit req: Request[JsValue]) = {
     Future {
       maybeUser
-        // safe to call get since the user comes form the DB
+        // safe to call get since the user comes from the DB
         .map(user => Ok(user._id.get).addingToJwtSession(JWT_ID, toJson(createApiUser(user))))
         .getOrElse(Unauthorized)
     }

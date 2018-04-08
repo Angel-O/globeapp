@@ -18,7 +18,8 @@ case class SelectInputBuilder() extends ComponentBuilder with InputBase with Lef
   var maxSize = 10
   var hasDefaultOption = true
   var defaultOptionText = "Please select"
-  var disabledOptions: Seq[Int] = Seq.empty
+  var disabledOptions: Seq[Int] = Seq.empty //TODO create child element with disabled property
+  var selectedOptions: Seq[Int] = Seq.empty //TODO create child element with selected property
   
   override protected val handleSelectionChange = (e: Event) => {
     val selectBox = e.currentTarget.asInstanceOf[HTMLSelectElement]
@@ -65,6 +66,9 @@ case class SelectInputBuilder() extends ComponentBuilder with InputBase with Lef
                           val option = <option>{ x.bind }</option>
                           if(disabledOptions.contains(options.indexOf(x))){
                             option.disabled = true
+                          }
+                          if(selectedOptions.contains(options.indexOf(x))){
+                            option.selected = true //TODO create child element with selected property
                           }
                           option
                         }) 

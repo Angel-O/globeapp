@@ -25,10 +25,13 @@ case class FetchReviews(mobileAppId: String) extends Action
 //case class FetchReview(reviewId: String) extends Action
 case class CreateReview(username: String, title: String, content: String, rating: Int, mobileAppId: String)
     extends Action
+case class UpdateReview(reviewId: String, title: String, content: String, rating: Int)
+    extends Action
 
 // Secondary actions
 case class ReviewsFetched(reviews: Seq[Review]) extends Action
 case class ReviewCreated(review: Review) extends Action
+case class ReviewUpdated(review: Review) extends Action
 
 // Action handler
 class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
@@ -41,6 +44,18 @@ class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
     case CreateReview(username, title, content, rating, mobileAppId) =>
       effectOnly(createReviewEffect(username, title, content, rating, mobileAppId))
     case ReviewCreated(review) => updated(review +: value) // or fetch again??...no userId...
+    case UpdateReview(reviewId, title, content, rating) => {
+      value.find(_._id == Some(reviewId))
+      .map(review => effectOnly(updateReviewEffect(review, title, content, rating)))
+      .getOrElse(noChange)
+    }
+    case ReviewUpdated(review) => { 
+      (for {
+        oldReview <- value.find(_._id == review._id)
+        index <- Some(value.indexOf(oldReview))
+      } yield(updated(value.updated(index, review))))
+      .getOrElse(noChange)
+    }
   }
 }
 
@@ -62,6 +77,13 @@ trait ReviewEffects {
     val review = Review(author = Author(name = username), title = title, content = content, rating = rating, mobileAppId = mobileAppId)
     Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
       .map(xhr => ReviewCreated(review.copy(_id = Some(xhr.responseText))))
+      .redirectOnFailure)
+  }
+
+  def updateReviewEffect(oldReview: Review, title: String, content: String, rating: Int) = {
+    val review = oldReview.copy(title = title, content = content, rating = rating) 
+    Effect(Put(url = s"$REVIEW_SERVER_ROOT/api/reviews/${oldReview._id.get}", payload = write(review))
+      .map(xhr => ReviewUpdated(read[Review](xhr.responseText)))
       .redirectOnFailure)
   }
 }

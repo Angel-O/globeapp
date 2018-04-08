@@ -3,7 +3,7 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.review.Review
+import apimodels.review.Review, Review._
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json._
@@ -11,6 +11,9 @@ import play.api.libs.json.Json._
 import repos.ReviewRepository
 import utils.Bson._
 import utils.Date._
+import utils.FutureImplicits._
+import utils.Json._
+import exceptions.ServerException._
 
 class ReviewController @Inject() (
   scc:        SecuredControllerComponents,
@@ -85,9 +88,19 @@ class ReviewController @Inject() (
            })
       .recover({ case ex => Logger.error(ex.getMessage); BadRequest }))
   }
+  
+  def updateReview(id: String) = AuthenticatedAction.async(parse.json) { req =>
+    Logger.info("Updating review")
+    (for {
+      (validId, payload) <- parseId(id) zip parsePayload(req)
+      //_ <- repository.getByIdAndUser(validId, req.user._id.get).map(_.get) // verify user is the one who created review
+      maybeUpdatedReview <- repository.updateOne(validId, payload)
+      httpResponse <- Future{ maybeUpdatedReview.map(review => Ok(toJson(review))).getOrElse(NotFound) }
+    } yield(httpResponse))
+  }
 
   // See deleteReview for an alternative on how to check that the user is the author
-  def updateReview(id: String) = AuthenticatedAction.async(parse.json) { req =>
+  def updateReviewOLD(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Updating review")
     req.body.validate[Review]
       .map(uploadModel =>
@@ -95,13 +108,13 @@ class ReviewController @Inject() (
           .flatMap(validId =>
             repository
               .getById(validId)
-              .map(maybeReview => maybeReview.map(review => Some(review.author.userId) == req.user._id))
+              .map(maybeReview => maybeReview.map(review => review.author.userId.get == req.user._id.get))
               .flatMap({
                 case None        => Future { NotFound }
                 case Some(false) =>
                   Future {
-                    Logger.warn(s"User (id: ${req.user._id}) trying to update someone" +
-                      s"else's review. (reviewId: ${validId})")
+                    Logger.warn(s"User (id: ${req.user._id}) trying to update " +
+                      s"someonelse's review. (reviewId: ${validId})")
                     Forbidden
                   }
                 case Some(true) =>

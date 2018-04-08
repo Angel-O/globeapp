@@ -13,7 +13,7 @@ import appstate.MobileAppsSelector._
 import appstate.ReviewsSelector._
 import appstate.AuthSelector._
 import apimodels.mobile.MobileApp
-import appstate.{CreateReview, FetchReviews, CreatePoll}
+import appstate.{CreateReview, FetchReviews, CreatePoll, UpdateReview}
 import apimodels.review.Review
 import appstate.ReviewsFetched
 import hoc.form.{CreateReviewForm, CreatePollForm}
@@ -130,8 +130,21 @@ object MobileAppPage {
 
       //TODO add icon to modal trigger ...icon={<Icon id="clipboard"/>}
       val open = pollPopUpIsOpen.bind
+      val userReview = reviews.bind.find(_.author.userId == Some(getUserId()))
       <div style={"display: flex"}>
-        <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/>
+        <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/> 
+        {toBindingSeq(userReview).map(review => {
+          def updateReview(title: String, content: String, rating: Int) = 
+          dispatch(UpdateReview(review._id.get, title, content, rating));
+
+        <div>
+          <PageModal label={"update review"} content={
+            <div>
+              <CreateReviewForm submitLabel={"Update review"} title={review.title} 
+              content={review.content} rating={review.rating} onSubmit={updateReview _}/> 
+            </div>
+          }/>
+        </div>}).all.bind}
         <PageModal label={"create poll"} isOpen={open} content={
           <div>
             <CreatePollForm onSubmit={createPoll _}/> 
