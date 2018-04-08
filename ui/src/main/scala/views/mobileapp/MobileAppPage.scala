@@ -50,7 +50,7 @@ object MobileAppPage {
                 <Tile width={5} children={Seq(
                   <Tile isParent={true} isVertical={true} children={Seq(
                     <Tile isInfo={true} content={<div>{summary.bind}</div>}/>,
-                    <Tile content={reviewForm.bind}/>
+                    <Tile content={bottomLeftPanel.bind}/>
                   )}/>
                 )}/>,
                 <Tile isParent={true} children={Seq(
@@ -130,7 +130,7 @@ object MobileAppPage {
     val actions = {
 
       val open = pollPopUpIsOpen.bind
-      val userReview = reviews.bind.find(_.author.userId == getUserId())
+      val userReview = reviews.bind.find(_.author.userId == Some(getUserId()))
       <div style={"display: flex"}>
         <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/> 
         {toBindingSeq(userReview).map(review => {
@@ -153,10 +153,19 @@ object MobileAppPage {
       </div>
     }
 
-    @dom def reviewForm() = {
-      <div> 
-        <CreateReviewForm onSubmit={submitReview _}/> 
-      </div>
+    @dom def bottomLeftPanel = {
+      if(getUserHasAlreadyVoted(getUserId(), appId.bind)){
+        similarAppsPanel.bind
+      }
+      else{
+        <div> 
+          <CreateReviewForm onSubmit={submitReview _}/> 
+        </div>
+      }
+    }
+
+    @dom def similarAppsPanel = {
+      <div>"Suggestions coming soon"</div>
     }
 
     def submitReview(title: String, content: String, rating: Int) = {

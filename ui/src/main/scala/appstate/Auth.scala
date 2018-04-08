@@ -203,7 +203,7 @@ object AuthSelector extends ReadConnect[AppModel, AuthState] {
   import utils.persist._
   def getToken() = model.jwt.getOrElse("UNSET")
   def getErrorCode() = model.errorCode
-  def getUsername() = {
+  def getUsername(): String = {
     //TODO is it correct??
     // (for {
     //   appState <- model.persistentState
@@ -215,7 +215,7 @@ object AuthSelector extends ReadConnect[AppModel, AuthState] {
     model.persistentState.map(_.user.username).getOrElse("")
     //.getOrElse(retrieve().map(_.user.username).getOrElse(""))
   }
-  def getUserId() = {
+  def getUserId(): String = {
     // (for {
     //   appState <- model.persistentState
     //   storageState <- retrieve()
@@ -223,7 +223,14 @@ object AuthSelector extends ReadConnect[AppModel, AuthState] {
     //   .getOrElse(storageState.user._id)))
     //   .flatten
 
-     model.persistentState.map(_.user._id.getOrElse(retrieve().map(_.user._id).getOrElse("")))
+    //     model.persistentState
+    //     .flatMap(state => state.user._id.getOrElse(retrieve().flatMap(_.user._id))).getOrElse("")
+    model.persistentState
+      .flatMap(state => state.user._id)
+      .getOrElse(
+        retrieve()
+          .flatMap(_.user._id)
+          .getOrElse(""))
   }
   def getLoggedIn() = model.loggedIn.getOrElse(false)
   

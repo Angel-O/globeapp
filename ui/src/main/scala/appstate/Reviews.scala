@@ -94,6 +94,12 @@ object ReviewsSelector extends ReadConnect[AppModel, Seq[Review]] {
   def getReviewById(id: String) = getReviews().find(_._id == Some(id))
   def getReviewsByApp(mobileAppId: String) = getReviews().filter(_.mobileAppId == mobileAppId)
   def getUserReviews(userId: String) = getReviews.find(_.author.userId == Some(userId))
+  def getUserHasAlreadyVoted(userId: String, mobileAppId: String) = { 
+    model
+    .filter(_.mobileAppId == mobileAppId)
+    .find(_.author.userId == Some(userId))
+    .fold(false)(_ =>true)
+  }
 
   val cursor = AppCircuit.reviewSelector
   val circuit = AppCircuit

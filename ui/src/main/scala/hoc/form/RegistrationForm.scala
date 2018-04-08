@@ -91,62 +91,59 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     val form =
       <div>
         <div class={ FIELD }>
-          <TextInput label={ "Name" } labelStyle={ Styles.labelStyle } onChange={ handleNameChange }/>
+          <TextInput label={ "Name" } onChange={ handleNameChange }/>
           { renderValidation(nameValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <TextInput label={ "Username" } labelStyle={ Styles.labelStyle } onChange={ handleUsernameChange }/>
+          <TextInput label={ "Username" } onChange={ handleUsernameChange }/>
           { renderValidation(usernameValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <EmailInput label={ "Email" } labelStyle={ Styles.labelStyle } onChange={ handleEmailChange } 
+          <EmailInput label={ "Email" } onChange={ handleEmailChange } 
           inputValue={ email.value }/>
           { renderValidation(emailValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <PasswordInput label={ "Password" } labelStyle={ Styles.labelStyle } onChange={ handlePasswordChange } 
+          <PasswordInput label={ "Password" } onChange={ handlePasswordChange } 
           inputValue={ password.value }/>
           { renderValidation(passwordValidation.bind).bind }
         </div>
         <div class={ FIELD }>
           { val pwdVal = passwordValidation.bind
-            <PasswordInput label={ "Confirm password" } labelStyle={ Styles.labelStyle } 
+            <PasswordInput label={ "Confirm password" } 
             onChange={ handleConfirmPasswordChange } 
             inputValue={ confirmPassword.value } isDisabled={ !pwdVal }/>.listen }
           { renderValidation(confirmPasswordValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <RadioInput options={ Seq("Male", "Female") } labelStyle={ Styles.labelStyle } 
+          <RadioInput options={ Seq("Male", "Female") } 
           name={ "gender" } onSelect={ handleGenderChange }/>
           { renderValidation(genderValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <RadioInput label={ "Subscription type" } labelStyle={ Styles.labelStyle } 
+          <RadioInput label={ "Subscription type" } 
           options={ Seq("Full", "Trial", "Limited") } name={ "subscription-type" } 
           onSelect={ handleSubscriptionTypeChange }/>
           { renderValidation(subscriptionTypeValidation.bind).bind }
         </div>
         <div class={ FIELD }>
           <SelectInput label={ "Where did you hear about us ?" } 
-          labelStyle={Styles.labelStyle}
           options={ Seq("News", "Facebook", "Twitter", "Instagram", "Friends") } 
           disabledOptions={ Seq(0, 2) } leftIcon={ <i class="fa fa-globe"/> } 
           onSelect={ handleWhereDidYouHearAboutUsChange }/>
           { renderValidation(whereDidYouHearAboutUsValidation.bind).bind }
         </div>
         <div class={ FIELD }>
-          <TextareaInput label={ "Additional info" } labelStyle={ Styles.labelStyle } 
+          <TextareaInput label={ "Additional info" } 
           onChange={ handleMessageChange } inputValue={ message.value }/>
           { renderValidation(messageValidation.bind).bind }
         </div>
         <div class={ FIELD }>
           <CheckboxInput label="Subscribe me to latest news from GlobeApp" 
-          labelStyle={ Styles.labelStyle } 
           onSelect={ handleSubscribeMeChange }/>
         </div>
         <div class={ FIELD }>
           <CheckboxInput label={ "Accept Terms & Conditions" } 
-          labelStyle={ Styles.labelStyle }
           onSelect={ handleAcceptTermsChange }/>
           { renderValidation(acceptTermsValidation.bind).bind }
         </div>

@@ -44,7 +44,7 @@ case class PageModalBuilder() extends {
       { unwrapElement(modalTrigger, showTrigger).bind }
       <div class={ modalClass } id={ targetId }>
         <div class="modal-background"></div>
-				<div class="modal-content" style={"background-color: white; padding: 1.5em"}> //TODO this is not flexible...
+				<div class="modal-content" style={"background-color: white; padding: 1.5em"}> <!--TODO this is not flexible... -->
     			{ content }
   			</div>
 				{ unwrapElement(closeButton, smartClose).bind }

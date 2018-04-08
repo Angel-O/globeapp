@@ -52,9 +52,8 @@ object PollsPage {
     def canVote(maybePoll: Option[Poll]) = {
       (for {
         poll <- maybePoll
-        userId <- getUserId
         pollOption <- poll.options
-          .find(_.votedBy.contains(userId))
+          .find(_.votedBy.contains(getUserId))
       } yield (false)).getOrElse(true)
     }
 
