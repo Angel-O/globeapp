@@ -17,8 +17,13 @@ case class CreateReviewFormBuilder() extends ComponentBuilder {
   var rating: Int = _
   var submitLabel: String = "Add review"
 
-  private val titleValidation, contentValidation,
-  ratingValidation: Var[ValidationResult] = Var(YetToBeValidated)
+  private lazy val titleValidation = initValidation(title == "")
+  private lazy val contentValidation = initValidation(content == "")
+  private lazy val ratingValidation = initValidation(rating == 0)
+
+  private def initValidation(condition: Boolean): Var[ValidationResult] = {
+    if (condition) Var(YetToBeValidated) else Var(Success(""))
+  }
 
   private val handleContentChange = (value: String) => {
     content = value.trim()

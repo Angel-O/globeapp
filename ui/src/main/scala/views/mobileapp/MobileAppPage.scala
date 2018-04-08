@@ -138,7 +138,7 @@ object MobileAppPage {
           dispatch(UpdateReview(review._id.get, title, content, rating));
 
         <div>
-          <PageModal label={"update review"} content={
+          <PageModal label={"update review"} isOpen={false} content={
             <div>
               <CreateReviewForm submitLabel={"Update review"} title={review.title} 
               content={review.content} rating={review.rating} onSubmit={updateReview _}/> 
