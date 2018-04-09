@@ -148,7 +148,6 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
     Effect(Future{ wipe() }.map(_ => NoAction) )
   }
   def restoreFromStorageEffect() = {
-    //Future{ retrieve() }.map(state => state.map(s => StateRestored(s)))
     Effect(
       (for {
         storageState <- Future { retrieve() }
@@ -203,40 +202,19 @@ object AuthSelector extends ReadConnect[AppModel, AuthState] {
   import utils.persist._
   def getToken() = model.jwt.getOrElse("UNSET")
   def getErrorCode() = model.errorCode
-  def getUsername(): String = {
-    //TODO is it correct??
-    // (for {
-    //   appState <- model.persistentState
-    //   storageState <- retrieve()
-    // } yield (Some(appState.user.username)
-    //   .getOrElse(storageState.user.username)))
-    //   .getOrElse("")
-
-    model.persistentState.map(_.user.username).getOrElse("")
-    //.getOrElse(retrieve().map(_.user.username).getOrElse(""))
-  }
+  def getUsername(): String = model.persistentState.map(_.user.username).getOrElse("")
   def getUserId(): String = {
-    // (for {
-    //   appState <- model.persistentState
-    //   storageState <- retrieve()
-    // } yield (Some(appState.user._id)
-    //   .getOrElse(storageState.user._id)))
-    //   .flatten
-
-    //     model.persistentState
-    //     .flatMap(state => state.user._id.getOrElse(retrieve().flatMap(_.user._id))).getOrElse("")
-    model.persistentState
-      .flatMap(state => state.user._id)
-      .getOrElse(
-        retrieve()
-          .flatMap(_.user._id)
-          .getOrElse(""))
+    (for {
+      appStateUserId <- model.persistentState.flatMap(state => state.user._id)
+      storageUserId <- retrieve().flatMap(state => state.user._id)
+    } yield (if (appStateUserId.isEmpty) storageUserId else appStateUserId))
+    .getOrElse("")
   }
   def getLoggedIn() = model.loggedIn.getOrElse(false)
   
   def getMatchingUsernamesCount() = model.matchingUsernames.state match{
     case PotReady => Some(model.matchingUsernames.get)
-    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result
+    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result. TODO add custom error codes
     case _ => None
   }
 

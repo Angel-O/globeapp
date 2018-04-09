@@ -14,6 +14,7 @@ lazy val commonSettings = Seq(
 
 //lazy val execScriptMaster = taskKey[Unit]("Execute script")
 lazy val execUi = taskKey[Unit]("run ui")
+lazy val stageAll = taskKey[Unit]("stage all server")
 lazy val execScript0 = taskKey[Unit]("run server")
 lazy val execScript1 = taskKey[Unit]("run server")
 lazy val execScript2 = taskKey[Unit]("run server")
@@ -28,15 +29,15 @@ execScript3 := { "poll-server/target/universal/stage/bin/poll-server -Dhttp.port
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    //.aggregate(authenticationServer, appServer, pollServer, reviewServer)
+    .aggregate(authenticationServer, appServer, pollServer, reviewServer)
     .dependsOn(ui, authenticationServer, appServer, pollServer, reviewServer)
     .settings(
         commonSettings,
-        //execScript0 := { "sbt ;clean ;stage" ! },
+        stageAll := { "sbt ;clean ;stage" ! },
         //execUi := { "sbt runui" !}, 
-        execUi := { "sbt runui" !}, 
+        //execUi := { "sbt runui" !}, 
         all in Compile := {
-            //execScriptMaster.value
+            //stageAll.value
             execScript0.value
             execScript1.value
             execScript2.value
