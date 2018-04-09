@@ -212,9 +212,9 @@ object AuthSelector extends ReadConnect[AppModel, AuthState] {
   }
   def getLoggedIn() = model.loggedIn.getOrElse(false)
   
-  def getMatchingUsernamesCount() = model.matchingUsernames.state match{
-    case PotReady => Some(model.matchingUsernames.get)
-    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result. TODO add custom error codes
+  def getMatchingUsernamesCount() = model.matchingUsernames match{
+    case Ready(count) => Some(count)
+    case Pending(_) => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result. TODO add custom error codes
     case _ => None
   }
 
