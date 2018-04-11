@@ -1,4 +1,5 @@
 import scala.concurrent.Future
+import scala.concurrent.duration._
 import reactivemongo.bson.BSONObjectID
 import java.time._
 import scala.concurrent.ExecutionContext
@@ -12,6 +13,7 @@ import play.api.Logger
 import scala.util.Success
 import exceptions.ServerException._
 import apimodels.common.Entity
+import play.api.libs.ws._
 
 package object utils {
 
@@ -37,6 +39,14 @@ package object utils {
     def parseText[T <: Entity](implicit read: Reads[T], ec: ExecutionContext, req: Request[String]) = {
       Future.successful { req.body } 
     }
+    
+    def parseResponse[T <: Entity](res: WSResponse)(implicit read: Reads[T], ec: ExecutionContext) = {
+      Future { res.json.validate[T].get } failMessage "Invalid payload (this should not happen)"
+    }
+    
+    def parseResponseAll[T <: Entity](res: WSResponse)(implicit read: Reads[T], ec: ExecutionContext) = {
+      Future { res.json.validate[Seq[T]].get } failMessage "Invalid payload (this should not happen)"
+    }
   }
   
   object FutureImplicits {
@@ -53,6 +63,16 @@ package object utils {
     implicit class RecoveryFuture(x: Future[Result]){
       def handleRecover(implicit ec: ExecutionContext) =
         x.recover({ case ex: ForbiddenException => Forbidden case _ => BadRequest })
+    }
+  }
+  
+  object ApiClient {
+    def Get(url: String)(implicit ws: WSClient) = {
+      val request: WSRequest = ws.url(url)
+      request
+        .addHttpHeaders("Accept" -> "application/json")
+        .withRequestTimeout(10000.millis)
+        .get()
     }
   }
 }

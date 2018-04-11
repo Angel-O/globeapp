@@ -12,8 +12,9 @@ import appstate.AppCircuit._
 import appstate.MobileAppsSelector._
 import appstate.ReviewsSelector._
 import appstate.AuthSelector._
+import appstate.SuggestionsSelector._
 import apimodels.mobile.MobileApp
-import appstate.{CreateReview, FetchReviews, CreatePoll, UpdateReview}
+import appstate.{CreateReview, FetchReviews, CreatePoll, UpdateReview, FetchRelatedApps}
 import apimodels.review.Review
 import appstate.ReviewsFetched
 import hoc.form.{CreateReviewForm, CreatePollForm}
@@ -26,8 +27,10 @@ object MobileAppPage {
     lazy val appId = routeParams(0)
     //lazy val app = Var[Option[MobileApp]](getMobileAppById(appId))
     val reviews = Var[Seq[Review]](Seq.empty)
+    val relatedApps = Var[Seq[MobileApp]](Seq.empty)
 
     val pollPopUpIsOpen = Var(false)
+    
 
     //TODO use pot data, fetch app by Id and store it in state
     // if fetching fails redirect to 404 or show error msg
@@ -50,7 +53,7 @@ object MobileAppPage {
                 <Tile width={5} children={Seq(
                   <Tile isParent={true} isVertical={true} children={Seq(
                     <Tile isInfo={true} content={<div>{summary.bind}</div>}/>,
-                    <Tile content={bottomLeftPanel.bind}/>
+                    <Tile content={<div>{bottomLeftPanel.bind}</div>}/>
                   )}/>
                 )}/>,
                 <Tile isParent={true} children={Seq(
@@ -154,18 +157,36 @@ object MobileAppPage {
     }
 
     @dom def bottomLeftPanel = {
-      if(getUserHasAlreadyVoted(getUserId(), appId.bind)){
-        similarAppsPanel.bind
+      
+      // note selector is not enough because does not use a binding...
+      // we neee to use a binding to update correctly...
+      val userHasVoted = reviews.bind.
+      find(review => review.author.userId == Some(getUserId()) && review.mobileAppId == appId)
+      .map(_ => true).getOrElse(false)
+
+      if(userHasVoted){
+        dispatch(FetchRelatedApps(appId))
       }
-      else{
-        <div> 
-          <CreateReviewForm onSubmit={submitReview _}/> 
-        </div>
-      }
+    
+      <div> { if(userHasVoted) { 
+        <div>
+        { relatedAppsPanel(relatedApps.bind).bind }
+        </div> } else {
+        <div>
+          <CreateReviewForm onSubmit={submitReview _}/>
+        </div> } }    
+      </div>
     }
 
-    @dom def similarAppsPanel = {
-      <div>"Suggestions coming soon"</div>
+    @dom def relatedAppsPanel(relatedApps: Seq[MobileApp]) = {
+      <div>
+        <h1>Related apps</h1>
+        <ul>{ toBindingSeq(relatedApps).map(app => 
+          <li>
+            <a href={s"#/globeapp/catalog/${app._id.get}"}>{ app.name }</a> 
+            <span> ({ app.store }) </span> </li>) }
+        </ul>
+      </div>
     }
 
     def submitReview(title: String, content: String, rating: Int) = {
@@ -194,7 +215,11 @@ object MobileAppPage {
       pollPopUpIsOpen.value = false
     }
 
+    def update() = {
+      reviews.value = getReviewsByApp(appId)
+      relatedApps.value = getSuggestedMobileApps
+    }
     override def redirectCondition = getMobileAppById(appId) == None
-    connect(reviews.value = getReviewsByApp(appId))(reviewSelector)
+    multiConnect(update())(reviewSelector, suggestionSelector)
   }
 }

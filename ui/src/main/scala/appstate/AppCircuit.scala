@@ -27,11 +27,11 @@ case object PersistentState{
 }
 
 // Global state tree
-case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls, reviews: Reviews)
+case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls, reviews: Reviews, suggestions: Suggestions)
 
 object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with GlobalSelector[AppModel] with HelpConnect[AppModel] {
 
-  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls(), Reviews())
+  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls(), Reviews(), Suggestions())
 
   def currentModel = zoom(identity).value
 
@@ -41,6 +41,7 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
   val mobileAppSelector = zoomTo(x => x.mobileApps.apps)
   val pollSelector = zoomTo(x => x.polls.polls)
   val reviewSelector = zoomTo(x => x.reviews.reviews)
+  val suggestionSelector = zoomTo(x => x.suggestions.state)
   
   implicit val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
   
@@ -54,7 +55,8 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
     new AuthHandler(authSelector),
     new MobileAppsHandler(mobileAppSelector),
     new PollHandler(pollSelector),
-    new ReviewHandler(reviewSelector)
+    new ReviewHandler(reviewSelector),
+    new SuggestionHandler(suggestionSelector)
   )
   
   val circuit = this
@@ -90,6 +92,14 @@ trait HelpConnect[M <: AnyRef] {
     
     
   def dispatch(action: Action) = circuit.apply(action)
+
+  // import scala.concurrent.Future
+  // import scala.concurrent.ExecutionContext.Implicits.global
+  // def dispatchAll(actions: Seq[Action]): Future[Unit] = actions match {
+  //   case h::t => Future { dispatchAll(Seq(h)) }.map( _ => dispatchAll(t) )
+  //   case h::Nil => Future { dispatchAll(Seq(h)) }
+  //   case _ => Future.unit
+  // }
 }
 
 class LoggingHandler[M](modelRW: ModelRW[M, AppModel])

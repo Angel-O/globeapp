@@ -74,7 +74,8 @@ trait ReviewEffects {
   }
 
   def createReviewEffect(username: String, title: String, content: String, rating: Int, mobileAppId: String) = {
-    val review = Review(author = Author(name = username), title = title, content = content, rating = rating, mobileAppId = mobileAppId)
+    val userId = AuthSelector.getUserId()
+    val review = Review(author = Author(name = username, userId = Some(userId)), title = title, content = content, rating = rating, mobileAppId = mobileAppId)
     Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
       .map(xhr => ReviewCreated(review.copy(_id = Some(xhr.responseText))))
       .redirectOnFailure)
