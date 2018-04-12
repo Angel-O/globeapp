@@ -19,6 +19,7 @@ import apimodels.review.Review
 import appstate.ReviewsFetched
 import hoc.form.{CreateReviewForm, CreatePollForm}
 import java.time.LocalDate
+import views.mobileapp.panels._
 
 object MobileAppPage {
 
@@ -47,17 +48,21 @@ object MobileAppPage {
           <Tile isAncestor={true} children={Seq(
             <Tile isVertical={true} children={Seq(
               <Tile isParent={true} children={Seq(
-                <Tile isPrimary={true} content={topBar.bind}/>
+                <Tile isPrimary={true} content={
+                  <div> {TopBar.panel(appId, pollPopUpIsOpen, reviews, createPoll _).bind } </div>
+                }/>
               )}/>,
               <Tile children={Seq(
                 <Tile width={5} children={Seq(
                   <Tile isParent={true} isVertical={true} children={Seq(
-                    <Tile isInfo={true} content={<div>{summary.bind}</div>}/>,
-                    <Tile content={<div>{bottomLeftPanel.bind}</div>}/>
+                    <Tile isInfo={true} content={<div> {Summary.panel(reviews, appId).bind} </div>}/>,
+                    <Tile content={
+                      <div> {ReviewFormAndRelatedApps.panel(reviews, relatedApps, appId, submitReview _).bind} </div>
+                    }/>
                   )}/>
                 )}/>,
                 <Tile isParent={true} children={Seq(
-                  <Tile isInfo={true} content={reviewArea.bind}/>
+                  <Tile isInfo={true} content={<div> {ReviewList.panel(reviews).bind} </div>}/>
                 )}/>
               )}/>
             )}/>
@@ -65,128 +70,6 @@ object MobileAppPage {
         </div>
 
       pageSkeleton
-    }
-
-    @dom
-    lazy val topBar = {
-      <div style={"display: flex; justify-content: space-between"}>
-        { appName.bind }
-        { actions.bind }
-      </div>;
-    }
-
-    @dom
-    val reviewArea =
-      <div>
-        Reviews: { toBindingSeq(reviews.bind).map(x =>
-        <div>
-          <b>{ x.title } - { x.author.name } - { x.dateCreated.map(_.toString).getOrElse("just now") }</b>
-          <p> { x.content }</p><br/>
-        </div>).all.bind }
-      </div>;
-
-    @dom lazy val appName = {
-      //Fetch mobile app from server otherwise if user refreshes page this will be None...
-      <div>{ getMobileAppById(appId).map(_.name).getOrElse("") }</div>
-    }
-
-    @dom val summary = {
-
-      val totalReviews = reviews.bind.length
-
-      val avgRating =
-        if (totalReviews == 0) totalReviews
-        else
-          reviews.value
-            .foldLeft(0)((acc, curr) => acc + curr.rating) / totalReviews
-
-      val rating =
-        <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
-
-      //Fetch mobile app from server otherwise if user refreshes page this will be None...
-      val genre =
-        <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
-
-      //NOTE: creating rating within this binding would prevent the whole div from
-      // showing up when mounted in the Tile. Solutions:
-      //1. wrap this binding inside an extra div (see Tiles above)
-      //2. create a separate binding for the rating node (see uncommented code below)
-      // TODO this issue needs to be investigated further
-      <div>{genre} {rating}</div>
-    }
-
-//    @dom
-//    val rating = {
-//
-//      val totalReviews = reviews.bind.length
-//
-//      val avgRating =
-//        if (totalReviews == 0) totalReviews
-//        else
-//          reviews.value
-//            .foldLeft(0)((acc, curr) => acc + curr.rating) / totalReviews
-//
-//      <div>{for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={"star"}/>.build.bind }}</div>
-//    }
-
-    @dom
-    val actions = {
-
-      val open = pollPopUpIsOpen.bind
-      val userReview = reviews.bind.find(_.author.userId == Some(getUserId()))
-      <div style={"display: flex"}>
-        <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/> 
-        {toBindingSeq(userReview).map(review => {
-          def updateReview(title: String, content: String, rating: Int) = 
-          dispatch(UpdateReview(review._id.get, title, content, rating));
-
-        <div>
-          <PageModal label={"update review"} isOpen={false} content={
-            <div>
-              <CreateReviewForm submitLabel={"Update review"} title={review.title} 
-              content={review.content} rating={review.rating} onSubmit={updateReview _}/> 
-            </div>
-          }/>
-        </div>}).all.bind}
-        <PageModal label={"create poll"} isOpen={open} content={
-          <div>
-            <CreatePollForm onSubmit={createPoll _}/> 
-          </div>
-        }/>
-      </div>
-    }
-
-    @dom def bottomLeftPanel = {
-      
-      // note selector is not enough because does not use a binding...
-      // we neee to use a binding to update correctly...
-      val userHasVoted = reviews.bind.
-      find(review => review.author.userId == Some(getUserId()) && review.mobileAppId == appId)
-      .map(_ => true).getOrElse(false)
-
-      if(userHasVoted){
-        dispatch(FetchRelatedApps(appId))
-      }
-    
-      <div> { if(userHasVoted) { 
-        <div>
-        { relatedAppsPanel(relatedApps.bind).bind }
-        </div> } else {
-        <div>
-          <CreateReviewForm onSubmit={submitReview _}/>
-        </div> } }    
-      </div>
-    }
-
-    @dom def relatedAppsPanel(relatedApps: Seq[MobileApp]) = {
-      <div>
-        <h1>Related apps</h1>
-        <ul>{ toBindingSeq(relatedApps).map(app => 
-          <li>
-            <a href={s"#/globeapp/catalog/${app._id.get}"}>{ app.name }</a> 
-            <span> ({ app.store }) </span> </li>) }
-        </ul>
-      </div>
     }
 
     def submitReview(title: String, content: String, rating: Int) = {

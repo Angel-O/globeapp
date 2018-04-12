@@ -39,8 +39,8 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
               <span>{option.content}</span>,
               <div>
                 <Box sizes={Seq(`2/3`, `1/3`)} contents={Seq(
-                  <span style={"font-size: 0.8em"}>
-                    {s"${getVotesPercentage(option.votedBy.size, totalVotes)} %"}
+                  <span style={"font-size: 0.6em"}>
+                    {formatPercentage(getVotesPercentage(option.votedBy.size, totalVotes))}
                   </span>, { unwrapElement(
                   <span style={"cursor: pointer"} onclick={(_: Event) => castVote(poll._id.get, option.id)}>
                     <Icon id="thumbs-up"/>
@@ -83,6 +83,10 @@ case class PollDetailDialogBuilder() extends ComponentBuilder with Color {
     case 0 => 0.0
     case _ => votes / totalVotes.toDouble * 100
   } 
+  
+  def formatPercentage(percentage: Double) = {
+    s"${"%.2f".format(percentage)} %"
+  }
 }
 
 //import com.thoughtworks.binding.Binding.BindingSeq
