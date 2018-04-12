@@ -52,7 +52,6 @@ class MobileAppsHandler[M](modelRW: ModelRW[M, Seq[MobileApp]])
 trait MobileAppsEffects extends Push {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import upickle.default._
   import utils.api._, utils.jwt._, utils.persist._
   import diode.{Effect, NoAction}
   import config._
@@ -63,13 +62,13 @@ trait MobileAppsEffects extends Push {
   
   def fetchMobileAppEffect(id: String) = {
     Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id")
-        .map(xhr => MobileAppFetched(parse(xhr.responseText).validate[MobileApp].get)))
+        .map(xhr => MobileAppFetched(read[MobileApp](xhr.responseText))))
   }
   
   def fetchMobileAppsEffect() = {
     Effect(
       Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
-        .map(xhr => MobileAppsFetched(parse(xhr.responseText).validate[Seq[MobileApp]].get)))
+        .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
   }
   
 //  def fetchMobileAppsEffect() = {

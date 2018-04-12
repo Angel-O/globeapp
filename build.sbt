@@ -19,11 +19,13 @@ lazy val execScript0 = taskKey[Unit]("run server")
 lazy val execScript1 = taskKey[Unit]("run server")
 lazy val execScript2 = taskKey[Unit]("run server")
 lazy val execScript3 = taskKey[Unit]("run server")
+lazy val execScript4 = taskKey[Unit]("run server")
 lazy val all = inputKey[Unit]("run server in stage mode")
 execScript0 := { "authentication-server/target/universal/stage/bin/authentication-server -Dhttp.port=3000" !}
 execScript1 := { "app-server/target/universal/stage/bin/app-server -Dhttp.port=3001" !} 
 execScript2 := { "review-server/target/universal/stage/bin/review-server -Dhttp.port=3002" !}
-execScript3 := { "poll-server/target/universal/stage/bin/poll-server -Dhttp.port=3003" !} 
+execScript3 := { "poll-server/target/universal/stage/bin/poll-server -Dhttp.port=3003" !}
+execScript4 := { "suggestion-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3004" !}
 
 
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
@@ -42,6 +44,7 @@ lazy val root = (project in file("."))
             execScript1.value
             execScript2.value
             execScript3.value
+            execScript4
             //execUi.value
             //(run in Compile in server).evaluated
             //(fastOptJS in Compile in ui).value
@@ -61,6 +64,10 @@ lazy val pollServer = (project in file("poll-server"))
     .disablePlugins(WorkbenchPlugin)
 
 lazy val reviewServer = (project in file("review-server"))
+    .dependsOn(sharedJVM, securityServer, common)
+    .disablePlugins(WorkbenchPlugin)
+
+lazy val suggestionServer = (project in file("suggestion-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
