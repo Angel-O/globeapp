@@ -5,9 +5,10 @@ import com.thoughtworks.binding.dom
 import components.core.Implicits._
 import components.Components.Modal
 import hoc.form.RegistrationForm
-import appstate.{Connect, Register, VerifyUsernameAlreadyTaken}
+import appstate.{Connect, Register, VerifyUserAlreadyRegistered}
 import appstate.AppCircuit._
 import navigation._, URIs._, Navigators._
+import apimodels.user.AppUser
 
 object RegistrationPage {
 
@@ -24,13 +25,13 @@ object RegistrationPage {
           {<div>
             <RegistrationForm 
               onSubmit={handleSubmit _}  
-              verifyUsernameAlreadyTaken={verifyUsernameAlreadyTaken _}/>
+              verifyEmailAlreadyTaken={verifyEmailAlreadyTaken _}/>
           </div>}/>
       </div>
       }
 
-      def verifyUsernameAlreadyTaken(username: String) = {
-        dispatch(VerifyUsernameAlreadyTaken(username))
+      def verifyEmailAlreadyTaken(email: String) = {
+        dispatch(VerifyUserAlreadyRegistered(email))
       }
 
       def handleSubmit(name: String,
@@ -38,7 +39,7 @@ object RegistrationPage {
                        email: String,
                        password: String,
                        gender: String) = {
-        dispatch(Register(name, username, email, password, gender))
+        dispatch(Register(name, username, email, password, gender, AppUser)) //TODO create page to register devuser
       }
     }
 }

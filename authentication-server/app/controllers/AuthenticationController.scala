@@ -14,6 +14,9 @@ import repos.UserRepository
 import utils.Bson._
 import utils.FutureImplicits._
 import utils.Json._
+import apimodels.user.Role
+import apimodels.user.AppUser
+import apimodels.user.AppDev
 
 class AuthenticationController @Inject() (repository: UserRepository, scc: SecuredControllerComponents)
   extends SecuredController(scc) {
@@ -26,20 +29,20 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
       user <- parsePayload(req)
       // parse payload ignores optional parameters: they need to 
       // be processed separately if they are needed to complete to action
-      password <- Future{ user.password.get } failMessage "Missing password" 
+      password <- Future { user.password.get } failMessage "Missing password" 
       maybeUser <- repository.getUserByCredentials(user.username, password)
       httpResponse <- loginResponse(maybeUser) // // passes an api user (no sensitive info) to the response
     } yield (httpResponse)).logFailure.handleRecover
   }
 
   def register = Action(parse.json).async { implicit req =>
-    Logger.info("Registering user")
+    Logger.info("Registering app user")
     (for {
       user <- parsePayload(req)
       email <- Future { user.email.get } failMessage "Missing email"
       _ <- verifyUserAlreadyRegistered(email)
       id <- repository.addOne(user.copy(_id = newId))
-      httpResponse <- registerResponse(id, user.username) // passes an api user (no sensitive info) to the response
+      httpResponse <- registerResponse(id, user.username, user.role) // passes an api user (no sensitive info) to the response
     } yield (httpResponse)).logFailure.handleRecover
   }
   
@@ -58,16 +61,16 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
   }
 
   // TODO change this to email...
-  def verifyUsernameAlreadyTaken = Action(parse.text).async { implicit req =>
-    Logger.info("Finding matching username")
+  def verifyEmailAlreadyTaken = Action(parse.text).async { implicit req =>
+    Logger.info("Finding matching email")
     (for {
-      (username, users) <- parseText zip repository.getAll 
-      maybeUser <- Future { users.find(_.username == username) }
+      (email, users) <- parseText zip repository.getAll 
+      maybeUser <- Future { users.find(_.email == Some(email)) }
       httpResponse <- Future { Ok(toJson(maybeUser.size)) }
     } yield(httpResponse)).logFailure.handleRecover
   }
   
-  def verifyUserAlreadyRegistered(email: String) = {
+  private def verifyUserAlreadyRegistered(email: String) = {
     for {
       maybeUser <- repository.getByEmail(email)
       error <- Future { maybeUser.map(_ => throw new Exception("Email address already registered")) }
@@ -83,11 +86,11 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
         .getOrElse(Unauthorized)
     }
   }
-  private def registerResponse(id: String, username: String)(implicit req: Request[JsValue]) = {
-    Future.successful{ Ok(id).addingToJwtSession(JWT_ID, toJson(createApiUser(id, username))) }
+  private def registerResponse(id: String, username: String, role: Role)(implicit req: Request[JsValue]) = {
+    Future.successful{ Ok(id).addingToJwtSession(JWT_ID, toJson(createApiUser(id, username, role))) }
   }
-  private def createApiUser(user: User) = User(_id = user._id, username = user.username)
-  private def createApiUser(id: String, username: String) = User(_id = Some(id), username = username)
+  private def createApiUser(user: User) = User(user.username, user.role, _id = user._id)
+  private def createApiUser(id: String, username: String, role: Role) = User(username, role, _id = Some(id))
   
   
   
@@ -101,35 +104,35 @@ class AuthenticationController @Inject() (repository: UserRepository, scc: Secur
   
   
   // TO be FIXed or removeD
-  def getAllUsernames = Action.async {
-    Logger.info("Fetching usernames")
-    repository.getAll
-    .map(all => Ok(toJson(all.map(_.username)))).logFailure.handleRecover
-  }
-
-  def getAll = AuthenticatedAction.async {
-    Logger.info("Fetching users")
-    repository.getAll.map(all => Ok(toJson(all.map(x => User(_id = x._id, username = x.username)))))
-  }
-
-  def deleteUser(id: String) = AuthenticatedAction.async(parse.json) { req =>
-    Logger.info("Deleting user")
-
-    //TODO parse id
-    repository.deleteOne(id).map({
-      case Some(user) => Ok(toJson(User(_id = user._id, username = user.username)))
-      case None       => NotFound
-    })
-  }
-
-  def updateUser(id: String) = AuthenticatedAction.async(parse.json) { req =>
-    Logger.info("Updating user")
-
-    //TODO parse id
-    val updated = req.body.validate[User].get
-    repository.updateOne(id, updated).map({
-      case Some(user) => Ok(toJson(User(_id = user._id, username = user.username)))
-      case None       => NotFound
-    })
-  }
+//  def getAllUsernames = Action.async {
+//    Logger.info("Fetching usernames")
+//    repository.getAll
+//    .map(all => Ok(toJson(all.map(_.username)))).logFailure.handleRecover
+//  }
+//
+//  def getAll = AuthenticatedAction.async {
+//    Logger.info("Fetching users")
+//    repository.getAll.map(all => Ok(toJson(all.map(x => User(_id = x._id, username = x.username)))))
+//  }
+//
+//  def deleteUser(id: String) = AuthenticatedAction.async(parse.json) { req =>
+//    Logger.info("Deleting user")
+//
+//    //TODO parse id
+//    repository.deleteOne(id).map({
+//      case Some(user) => Ok(toJson(User(_id = user._id, username = user.username)))
+//      case None       => NotFound
+//    })
+//  }
+//
+//  def updateUser(id: String) = AuthenticatedAction.async(parse.json) { req =>
+//    Logger.info("Updating user")
+//
+//    //TODO parse id
+//    val updated = req.body.validate[User].get
+//    repository.updateOne(id, updated).map({
+//      case Some(user) => Ok(toJson(User(_id = user._id, username = user.username)))
+//      case None       => NotFound
+//    })
+//  }
 }

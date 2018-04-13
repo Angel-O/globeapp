@@ -14,7 +14,7 @@ import utils.Json._
 import exceptions.ServerException._
 import play.api.libs.ws._
 
-// relatedapps by appid ===> look up genre, keywords (store suggestion, track by user)
+// relatedapps by appid ===> look up genre, keywords (store suggestion for later, track by user)
 // intersting apps ===> lookup user info (where did u hear about us...) (APP + USER)
 // new apps ==> TODO add new tag or createdDate field to apps 
 // most discussed apps ==> apps appearing in many polls (APP + POLL)

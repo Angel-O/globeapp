@@ -36,7 +36,7 @@ class UserHandler[M](modelRW: ModelRW[M, Seq[User]])
 // Effects
 object UserEffects {
   import scala.concurrent.ExecutionContext.Implicits.global
-  import utils.api._
+  import utils.api._, utils.json._
 
   def fetchUsersEffect() = {
     Effect(

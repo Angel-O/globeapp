@@ -31,8 +31,8 @@ execScript4 := { "suggestion-server/target/universal/stage/bin/suggestion-server
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    .aggregate(authenticationServer, appServer, pollServer, reviewServer)
-    .dependsOn(ui, authenticationServer, appServer, pollServer, reviewServer)
+    .aggregate(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
+    .dependsOn(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
     .settings(
         commonSettings,
         stageAll := { "sbt ;clean ;stage" ! },
@@ -44,7 +44,7 @@ lazy val root = (project in file("."))
             execScript1.value
             execScript2.value
             execScript3.value
-            execScript4
+            execScript4.value
             //execUi.value
             //(run in Compile in server).evaluated
             //(fastOptJS in Compile in ui).value

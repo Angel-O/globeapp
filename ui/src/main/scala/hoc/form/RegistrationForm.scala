@@ -14,7 +14,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   def render = this 
   
   var onSubmit: (String, String, String, String, String) => Unit = _
-  var verifyUsernameAlreadyTaken: String => Unit = _
+  var verifyEmailAlreadyTaken: String => Unit = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
   private var termsAccepted: Var[Boolean] = Var(false)
@@ -25,11 +25,11 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
   import FieldValidators._ 
-  private val handleUsernameChange = (value: String) => {   
-    username.value = value.trim()
-    val validationResult = validateUsername(username.value)
-    usernameValidation.value = validationResult
-    if(validationResult) verifyUsernameAlreadyTaken(username.value)
+  private val handleEmailChange = (value: String) => {   
+    email.value = value.trim()
+    val validationResult = validateEmail(email.value)
+    emailValidation.value = validationResult
+    if(validationResult) verifyEmailAlreadyTaken(email.value)
   } 
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
@@ -58,9 +58,9 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     subscriptionType.value = value
     subscriptionTypeValidation.value = validateSubscriptionType(subscriptionType.value)
   } 
-  private val handleEmailChange = (value: String) => {
-    email.value = value.trim()
-    emailValidation.value = validateEmail(email.value)
+  private val handleUsernameChange = (value: String) => {
+    username.value = value.trim()
+    usernameValidation.value = validateUsername(username.value)
   }
   private val handlePasswordChange = (value: String) => {
     password.value = value
@@ -77,15 +77,15 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   }
   
   // async validation
-  private def validateUsernameAlreadyTaken(username: String) = {
-    usernameValidation.value = getMatchingUsernamesCount().map({
-      case 0 => Success("Valid username")
-      case 1 => Error(s"Username $username already taken")
+  private def validateUserAlreadyReistered(email: String) = {
+    emailValidation.value = getMatchingEmailsCount().map({
+      case 0 => Success("Valid email")
+      case 1 => Error(s"Email address $email already taken")
       case _ => Success("........") //pending state
     }).getOrElse(Error("Something went wrong"))
   }
 
-  connect(validateUsernameAlreadyTaken(username.value))(authSelector)
+  connect(validateUserAlreadyReistered(email.value))(authSelector)
 
   @dom def build = {
     val form =

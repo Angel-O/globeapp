@@ -11,6 +11,8 @@ import play.api.libs.json.Json._
 import play.api.libs.json.Writes
 import play.api.libs.json.Reads
 import play.api.libs.json.JsValue
+import JsonMiddleware.toJsonValue
+import JwtMiddleware.{getToken => token}
 
 object ApiMiddleware {
 
@@ -23,13 +25,6 @@ object ApiMiddleware {
     // equivalent to reads.reads(parse(json)).get
     deserializer.reads(parse(json)).get //TODO make it safe if needed
   }
-
-  implicit def toJsonValue(responseText: String) = {
-    parse(responseText)
-  }
-  
-  private def token: String =
-    window.sessionStorage.getItem(AUTHORIZATION_HEADER_NAME)
     
   val headers: Map[String, String] = Map.empty
 

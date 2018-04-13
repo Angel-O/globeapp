@@ -16,22 +16,37 @@ case object Gender {
     .asOpt.getOrElse(throw new IllegalArgumentException("Invalid gender"))
 }
 
+sealed trait Role
+case object AppUser extends Role
+case object AppDev extends Role
+case object Admin extends Role
+case object Role {
+  import RoleFormat._
+  import scala.language.implicitConversions
+  implicit def asString(role: Role): String = writes(role).as[String]
+  implicit def asGender(role: String): Role = reads(JsString(role))
+    .asOpt.getOrElse(throw new IllegalArgumentException("Invalid role"))
+}
+
 case class User(
+  username: String,
+  role:     Role           = AppUser,
   _id:      Option[String] = None,
   name:     Option[String] = None,
-  username: String,
   password: Option[String] = None,
   email:    Option[String] = None,
   gender:   Option[Gender] = None) extends Entity
 
 case object User {
   implicit val genderFormat = GenderFormat
+  implicit val roleFormat = RoleFormat
   implicit val userFormat: OFormat[User] = Json.format[User]
   def apply(
+    username: String,
+    role:     Role           = AppUser,
     _id:      Option[String] = None,
     name:     Option[String] = None,
-    username: String,
     password: Option[String] = None,
     email:    Option[String] = None,
-    gender:   Option[Gender] = None) = new User(_id, name, username, password, email, gender)
+    gender:   Option[Gender] = None) = new User(username, role, _id, name, password, email, gender)
 }

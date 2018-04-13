@@ -1,5 +1,6 @@
 package object config {
   val AUTHORIZATION_HEADER_NAME = "Token"
+  val JWT_ID = "user"
   val AUTH_SERVER_ROOT = "http://localhost:3000"
   val MOBILEAPP_SERVER_ROOT = "http://localhost:3001"
   val REVIEW_SERVER_ROOT = "http://localhost:3002"
