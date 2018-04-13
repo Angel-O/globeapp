@@ -71,6 +71,10 @@ lazy val suggestionServer = (project in file("suggestion-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
+lazy val profileServer = (project in file("profile-server"))
+    .dependsOn(sharedJVM, securityServer, common)
+    .disablePlugins(WorkbenchPlugin)
+
 //TODO turn this into a library
 lazy val securityServer = (project in file("security-server"))
     .dependsOn(sharedJVM)
@@ -86,14 +90,14 @@ lazy val common = (project in file("common"))
 lazy val shared = (project in file("shared"))
     .settings(
         commonSettings,
-        libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
+        //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         libraryDependencies += "io.github.cquiroz" %% "scala-java-time" % "2.0.0-M13",
         libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.9")
 
 lazy val cross = (crossProject.crossType(CrossType.Full) in file("."))
     .settings(
         commonSettings,
-        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
+        //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
         libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M13",
         libraryDependencies += "com.typesafe.play" %%% "play-json" % "2.6.9",
         EclipseKeys.useProjectId := true

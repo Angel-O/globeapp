@@ -13,7 +13,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
    
   def render = this 
   
-  var onSubmit: (String, String, String, String, String) => Unit = _
+  var onSubmit: (String, String, String, String, String, String, String, Boolean) => Unit = _
   var verifyEmailAlreadyTaken: String => Unit = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
@@ -77,7 +77,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
   }
   
   // async validation
-  private def validateUserAlreadyReistered(email: String) = {
+  private def validateUserAlreadyRegistered(email: String) = {
     emailValidation.value = getMatchingEmailsCount().map({
       case 0 => Success("Valid email")
       case 1 => Error(s"Email address $email already taken")
@@ -85,7 +85,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     }).getOrElse(Error("Something went wrong"))
   }
 
-  connect(validateUserAlreadyReistered(email.value))(authSelector)
+  connect(validateUserAlreadyRegistered(email.value))(authSelector)
 
   @dom def build = {
     val form =
@@ -189,7 +189,10 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
              username.value,
              email.value,
              password.value,
-             gender.value)
+             gender.value,
+             whereDidYouHearAboutUs.value, 
+             message.value, 
+             subscribeMe)
   }
 }
 

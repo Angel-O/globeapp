@@ -37,8 +37,9 @@ object Summary {
       <div>{ for (i <- toBindingSeq(1 to avgRating)) yield { <Icon id={ "star" }/>.build.bind } }</div>
 
     //Fetch mobile app from server otherwise if user refreshes page this will be None...
-    val genre =
-      <div>Genre: { getMobileAppById(appId).map(_.genre).getOrElse("") }</div>;
+    val genre = toBindingSeq(getMobileAppById(appId)).map(app => {
+      <div>Genre: { app.genre }</div>
+    })
 
     //NOTE: creating rating within this binding would prevent the whole div from
     // showing up when mounted in the Tile. Solutions:

@@ -6,6 +6,7 @@ package object config {
   val REVIEW_SERVER_ROOT = "http://localhost:3002"
   val POLL_SERVER_ROOT = "http://localhost:3003"
   val SUGGESTIONS_SERVER_ROOT = "http://localhost:3004"
+  val USERPROFILE_SERVER_ROOT = "http://localhost:3005"
   val REQUEST_TIMEOUT = 9000
   val ROOT_PATH = "/globeapp"
   val RESPONSE_TYPE = "text"

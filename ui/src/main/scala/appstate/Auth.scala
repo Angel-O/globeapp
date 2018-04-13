@@ -10,7 +10,7 @@ import navigation.URIs._
 import diode.data.Pot
 import diode.data.PotState._
 import diode.data.{Ready, Pending}
-import apimodels.user.{User, Role}
+import apimodels.user.{User, Role, UserProfile}
 import diode.Effect
 
 
@@ -34,7 +34,10 @@ case class Register(name: String,
                     email: String,
                     password: String,
                     gender: String,
-                    role: String)
+                    role: String,
+                    whereDidYouHearAboutUs: String, 
+                    additionalInfo: String, 
+                    subscribed: Boolean)
     extends Action
 case object Logout extends Action
 case object VerifyToken extends Action
@@ -61,8 +64,8 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
   override def handle = {
     case Login(username, password) =>
       effectOnly(loginEffect(username, password))
-    case Register(name, username, email, password, gender, role) =>
-      effectOnly(registerEffect(name, username, email, password, gender, role))
+    case Register(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed) =>
+      effectOnly(registerEffect(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed))
     case Logout => effectOnly(logoutEffect()) // + redirectEffect(HomePageURI))
     case UserLoggedIn(token, user) => {
       val state = value.persistentState.map(state => state.copy(user = user))
@@ -87,8 +90,9 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
     case VerifyUserAlreadyRegistered(username) =>
       // reset first
       val pendingResult = value.matchingEmails.pending()
-      updated(value.copy(matchingEmails = pendingResult),
-              verifyEmailAlreadyTakenEffect(username))
+      updated(
+        value.copy(matchingEmails = pendingResult),
+        verifyEmailAlreadyTakenEffect(username))
     case MatchingEmailsCount(count) =>
       val readyResult = value.matchingEmails.ready(count)
       updated(value.copy(matchingEmails = readyResult))
@@ -114,12 +118,30 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
       loginAction <- decodeTokenAndLogin(xhr)
     } yield (loginAction)).recover({ case ex => LoginFailed(getErrorCode(ex)) }))
   }
-  def registerEffect(name: String, username: String, email: String, password: String, gender: String, role: String) = {
+  def registerEffect(
+    name:                   String,
+    username:               String,
+    email:                  String,
+    password:               String,
+    gender:                 String,
+    role:                   String,
+    whereDidYouHearAboutUs: String,
+    additionalInfo:         String,
+    subscribed:             Boolean) = {
     val user = User(username, role, name = Some(name), email = Some(email), password = Some(password), gender = Some(gender))
     Effect((for {
       xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(user))
-      loginAction <- decodeTokenAndLogin(xhr)
-    } yield (loginAction)).redirectOnFailure )
+      loginAction <- {
+        decodeTokenAndLogin(xhr)
+          .andThen { // andThen used for side effects...if it fails the error is not caught by redirectOnFailure
+            case _ => createUserProfile(xhr.responseText, whereDidYouHearAboutUs, additionalInfo, subscribed)
+          }
+      }
+    } yield (loginAction)).redirectOnFailure)
+  }
+  def createUserProfile(userId: String, wduhau: String, additionalInfo: String, subscribed: Boolean) = {
+    val userProfile = UserProfile(userId, wduhau, additionalInfo, subscribed)
+    Post(url = s"$USERPROFILE_SERVER_ROOT/api/userprofiles", payload = write(userProfile))
   }
   def logoutEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")

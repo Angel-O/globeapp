@@ -34,12 +34,18 @@ object RegistrationPage {
         dispatch(VerifyUserAlreadyRegistered(email))
       }
 
-      def handleSubmit(name: String,
-                       username: String,
-                       email: String,
-                       password: String,
-                       gender: String) = {
-        dispatch(Register(name, username, email, password, gender, AppUser)) //TODO create page to register devuser
+      def handleSubmit(
+        name:                   String,
+        username:               String,
+        email:                  String,
+        password:               String,
+        gender:                 String,
+        whereDidYouHearAboutUs: String,
+        additionalInfo:         String,
+        subscribed:             Boolean) = {
+        dispatch(Register(name, username, email, password, gender, AppUser, whereDidYouHearAboutUs,
+          additionalInfo,
+          subscribed)) //TODO create page to register devuser
       }
     }
 }
