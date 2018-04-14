@@ -2,12 +2,13 @@ package hoc.form
 
 import components.core.Implicits._
 import components.core.ComponentBuilder
-import components.Components.Input
+import components.core.Helpers._
+import components.Components.{ Input, Layout }
 import com.thoughtworks.binding.{ dom, Binding }, Binding.Var
-import common._, FormElements._, FormValidators._
+import common._, FormElements._, FormValidators._, common.Styles
 import appstate.AppCircuit._
 import appstate.AuthSelector._
-
+import apimodels.mobile.Genre.{values => appCategories, _}
 
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
@@ -84,7 +85,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
       case _ => Success("........") //pending state
     }).getOrElse(Error("Something went wrong"))
   }
-
+  
   connect(validateUserAlreadyRegistered(email.value))(authSelector)
 
   @dom def build = {
@@ -115,16 +116,20 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
             inputValue={ confirmPassword.value } isDisabled={ !pwdVal }/>.listen }
           { renderValidation(confirmPasswordValidation.bind).bind }
         </div>
-        <div class={ FIELD }>
-          <RadioInput options={ Seq("Male", "Female") } 
+        <div class={ FIELD } style={ "display: flex" }>
+        	  <label class={ "label" } style={ "margin-right: 2em" }> Gender </label>
+          <RadioInput style={ "margin-right: 2em" } options={ Seq("Male", "Female") } 
           name={ "gender" } onSelect={ handleGenderChange }/>
           { renderValidation(genderValidation.bind).bind }
         </div>
-        <div class={ FIELD }>
-          <RadioInput label={ "Subscription type" } 
-          options={ Seq("Full", "Trial", "Limited") } name={ "subscription-type" } 
-          onSelect={ handleSubscriptionTypeChange }/>
-          { renderValidation(subscriptionTypeValidation.bind).bind }
+        <div class={ FIELD }> 
+        		<label class={ "label" }> Favorite apps </label>
+        		<div style={Styles.checkBoxContainer}> { toBindingSeq(appCategories).map(category => 
+             <div style={Styles.checkBox}>
+          			<CheckboxInput label={ category.toString } 
+          				onSelect={ (_:Boolean) => {} }/>
+          		</div>)}
+        	  </div>
         </div>
         <div class={ FIELD }>
           <SelectInput label={ "Where did you hear about us ?" } 
@@ -168,7 +173,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
         </div>
       </div>
 
-    create(form, "registration-form")
+    create(<div><Message header="Registration form" content={ form } /></div>, "registration-form")
   }
 
   def runValidation() = {
