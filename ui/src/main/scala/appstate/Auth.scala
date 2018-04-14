@@ -37,7 +37,8 @@ case class Register(name: String,
                     role: String,
                     whereDidYouHearAboutUs: String, 
                     additionalInfo: String, 
-                    subscribed: Boolean)
+                    subscribed: Boolean,
+                    favoriteCategories: Seq[String])
     extends Action
 case object Logout extends Action
 case object VerifyToken extends Action
@@ -48,7 +49,12 @@ case class VerifyUserAlreadyRegistered(username: String) extends Action
 case object UserLoggedOut extends Action
 case class UserLoggedIn(jwt: String, user: User) extends Action
 case class LoginFailed(errorCode: Int) extends Action
-case class UserRegistered(jwt: String, username: String, id: String, role: String) extends Action
+case class CreateUserProfile(
+  userId:                 String,
+  whereDidYouHearAboutUs: String,
+  additionalInfo:         String,
+  subscribed:             Boolean,
+  favoriteCategories:     Seq[String]) extends Action
 case object TokenExpired extends Action
 case object TokenValid extends Action
 case class StateRestored(state: PersistentState) extends Action
@@ -64,11 +70,12 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
   override def handle = {
     case Login(username, password) =>
       effectOnly(loginEffect(username, password))
-    case Register(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed) =>
-      effectOnly(registerEffect(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed))
+    case Register(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories) =>
+      effectOnly(registerEffect(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories))
     case Logout => effectOnly(logoutEffect()) // + redirectEffect(HomePageURI))
     case UserLoggedIn(token, user) => {
-      val state = value.persistentState.map(state => state.copy(user = user))
+      val state = value.persistentState
+      .map(state => state.copy(user = user))
       .getOrElse(PersistentState(user))
       updated(AuthState(
         jwt = Some(token),
@@ -77,6 +84,8 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
         isTokenExpired = Some(false)),
         storeTokenEffect(token) + persistStorageEffect(state) + redirectEffect(ROOT_PATH))
     }
+//    case CreateUserProfile(userId, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories) => { println("HELLOWORLD")
+//      effectOnly(createUserProfileEffect(userId, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories))}
     case UserLoggedOut     => updated(AuthState(), removeTokenEffect() + wipeStorageEffect())
     case LoginFailed(code) => updated(value.copy(errorCode = Some(code)))
     case VerifyToken       => effectOnly(verifyTokenEffect())
@@ -105,6 +114,7 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
 trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extending Push: it causes compliation around imports...
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
+  //import scala.util.Try
   import apimodels.user.User
   import utils.api._, utils.jwt._, utils.persist._, utils.redirect._
   import diode.{Effect, NoAction}
@@ -112,10 +122,12 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   import org.scalajs.dom.raw.XMLHttpRequest
 
   def loginEffect(username: String, password: String) = {
-    val user = User(username, password = Some(password))
+    val payload = User(username, password = Some(password)) // no id
     Effect((for {
-      xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(user))
-      loginAction <- decodeTokenAndLogin(xhr)
+      xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(payload))
+      token <- readTokenFromResponse(xhr)
+      user <- decodeToken(token)
+      loginAction <- Future.successful { UserLoggedIn(token, user) }
     } yield (loginAction)).recover({ case ex => LoginFailed(getErrorCode(ex)) }))
   }
   def registerEffect(
@@ -127,21 +139,41 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
     role:                   String,
     whereDidYouHearAboutUs: String,
     additionalInfo:         String,
-    subscribed:             Boolean) = {
-    val user = User(username, role, name = Some(name), email = Some(email), password = Some(password), gender = Some(gender))
+    subscribed:             Boolean,
+    favoriteCategories:     Seq[String]) = {
+    val payload = User(
+      username,
+      role,
+      name = Some(name),
+      email = Some(email),
+      password = Some(password),
+      gender = Some(gender))
     Effect((for {
-      xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(user))
-      loginAction <- {
-        decodeTokenAndLogin(xhr)
-          .andThen { // andThen used for side effects...if it fails the error is not caught by redirectOnFailure
-            case _ => createUserProfile(xhr.responseText, whereDidYouHearAboutUs, additionalInfo, subscribed)
-          }
-      }
-    } yield (loginAction)).redirectOnFailure)
+      xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(payload))
+      token <- readTokenFromResponse(xhr)
+      user <- decodeToken(token) andThen { // andThen used for side effects...if it fails the error is not caught by redirectOnFailure
+          case user => createUserProfile(
+            user.get._id, // calling get on the Try ...this should not fail
+            whereDidYouHearAboutUs,
+            additionalInfo, 
+            subscribed, 
+            favoriteCategories)
+        }
+      loginAction <- Future.successful { UserLoggedIn(token, user) }
+    } yield (loginAction)).redirectOnFailure) 
   }
-  def createUserProfile(userId: String, wduhau: String, additionalInfo: String, subscribed: Boolean) = {
-    val userProfile = UserProfile(userId, wduhau, additionalInfo, subscribed)
-    Post(url = s"$USERPROFILE_SERVER_ROOT/api/userprofiles", payload = write(userProfile))
+  private def createUserProfile(
+    maybeId:                Option[String],
+    whereDidYouHearAboutUs: String,
+    additionalInfo:         String,
+    subscribed:             Boolean,
+    favoriteCategories:     Seq[String]) = {
+
+    maybeId.map(id => { 
+      import apimodels.mobile.Genre.asGenre
+      val userProfile = UserProfile(id, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories.map(asGenre))
+      Post(url = s"$USERPROFILE_SERVER_ROOT/api/userprofiles", payload = write(userProfile))
+    })
   }
   def logoutEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
@@ -179,12 +211,18 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
         action <- Future { storageState.map(state => StateRestored(state)) }
       } yield (action).getOrElse(NoAction)))
   }
-  private def decodeTokenAndLogin(xhr: XMLHttpRequest) = {
-    Future {
-      val token = xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME)
-      UserLoggedIn(token, read[User](decodeJWT(token)))
-    }
+  private def readTokenFromResponse(xhr: XMLHttpRequest) = {
+    Future { xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME) }
   }
+  private def decodeToken(token: String): Future[User] = {
+    Future { read[User](decodeJWT(token)) }
+  }
+  //  def createUserProfileEffect(userId: String, wduhau: String, additionalInfo: String, subscribed: Boolean, favoriteCategories: Seq[String]) = {
+//    import apimodels.mobile.Genre.asGenre
+//    favoriteCategories.map(asGenre).foreach(println)
+//    val userProfile = UserProfile(userId, wduhau, additionalInfo, subscribed, favoriteCategories.map(asGenre))
+//    Effect(Post(url = s"$USERPROFILE_SERVER_ROOT/api/userprofiles", payload = write(userProfile)).map(_ => NoAction))
+//  }
 }
 
 // Selector

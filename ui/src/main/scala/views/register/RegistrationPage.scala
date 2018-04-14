@@ -42,10 +42,19 @@ object RegistrationPage {
         gender:                 String,
         whereDidYouHearAboutUs: String,
         additionalInfo:         String,
-        subscribed:             Boolean) = {
-        dispatch(Register(name, username, email, password, gender, AppUser, whereDidYouHearAboutUs,
-          additionalInfo,
-          subscribed)) //TODO create page to register devuser
+        subscribed:             Boolean,
+        favoriteCategories:     Seq[String]) = {
+        dispatch(Register(
+            name, 
+            username, 
+            email, 
+            password, 
+            gender, 
+            AppUser, //TODO create page to register devuser
+            whereDidYouHearAboutUs,
+            additionalInfo,
+            subscribed,
+            favoriteCategories))
       }
     }
 }
