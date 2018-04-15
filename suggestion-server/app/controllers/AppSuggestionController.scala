@@ -3,7 +3,10 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.mobile.MobileApp, MobileApp._
+import apimodels.user.UserProfile
+import apimodels.mobile.MobileApp
+import apimodels.mobile.MobileApp._
+import apimodels.mobile.Genre
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json.toJson
@@ -28,23 +31,32 @@ import play.api.libs.ws._
 class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implicit ws: WSClient)
     extends SecuredController(scc) {
   
+  import Config._
+  
   def getRelatedApps(appId: String) = AuthenticatedAction.async {
-    Logger.info(s"Retrieving apps related to app with id $appId")
+    Logger.info(s"Retrieving apps related to app with id = $appId")
     (for {
       validId <- parseId(appId)
-      request <- Get(s"http://localhost:3001/api/apps")
-      mobileApps <- parseResponseAll(request)
+      request <- Get(s"$APPS_API_ROOT/apps")
+      mobileApps <- parseResponseAll[MobileApp](request)
       relatedApps <- findRelatedApps(mobileApps, appId)
     } yield ( Ok(toJson(relatedApps)) ))
     .logFailure.handleRecover
   }
   
-  // TODO create user-interest service...storing user interest on sign up
+  //TODO FIX 404 when getting profile....crazy...!
   def getInterestingApps = AuthenticatedAction.async { req =>
-    Logger.info(s"Retrieving apps of interest to user with id ${req.user._id}")
+    val userId = req.user._id.get
+    Logger.info(s"Retrieving apps of interest to user with id = ${userId}")
     (for {
-     httpResponse <- Future { Ok }
-    } yield (httpResponse)).logFailure.handleRecover
+      (userProfileRequest, mobileAppsRequest) <- 
+        Get(s"$PROFILES_API_ROOT/userprofiles/$userId") zip Get(s"$APPS_API_ROOT/apps")
+      (userProfile, mobileApps) <-
+        parseResponse[UserProfile](userProfileRequest) zip parseResponseAll[MobileApp](mobileAppsRequest)
+      appsByGenres <- 
+        findAppsByGenres(mobileApps, userProfile.favoriteCategories)
+    } yield (Ok(toJson(appsByGenres))))
+      .logFailure.handleRecover
   }
   
   // TODO (see main comments)
@@ -68,4 +80,19 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
       } yield (relatedApp)).distinct
     }
   }
+  
+  private def findAppsByGenres(mobileApps: Seq[MobileApp], genres: Seq[Genre]) = {
+    Future {
+      (for {
+        genre <- genres
+        apps <- mobileApps.filter(app => app.genre == genre)
+      } yield(apps)).distinct
+    }
+  }
+}
+
+object Config {
+  //TO do move this to config file
+  val APPS_API_ROOT = "http://localhost:3001/api"
+  val PROFILES_API_ROOT = "http://localhost:3005/api" 
 }

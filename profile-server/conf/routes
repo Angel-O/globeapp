@@ -9,6 +9,9 @@ GET     /                           controllers.HomeController.index
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
-GET		/api/userprofiles		controllers.UserProfileController.getUserProfile
+GET		/api/userprofiles/:userId   controllers.UserProfileController.getUserProfile(userId: String)
 
 POST		/api/userprofiles		controllers.UserProfileController.postUserProfile
+
+#TODO make it rest
+GET		/api/all					controllers.UserProfileController.getAll 

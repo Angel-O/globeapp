@@ -1,5 +1,6 @@
 package exceptions
 
 object ServerException{
-  class ForbiddenException(message: String) extends Exception(message)
+  case class ForbiddenException(message: String) extends Exception(message)
+  case class NotFoundException(message: String) extends Exception(message)
 }

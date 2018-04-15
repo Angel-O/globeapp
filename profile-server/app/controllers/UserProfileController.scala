@@ -17,11 +17,11 @@ class UserProfileController @Inject()(scc: SecuredControllerComponents,
                                repository: UserProfileRepository)
     extends SecuredController(scc) {
 
-  def getUserProfile = AuthenticatedAction.async { req => 
+  def getUserProfile(userId: String) = Action.async { 
     Logger.info("Fetching user profile")
     (for {
-      maybeProfile <- repository.getByUser(req.user._id.get)
-      httpResponse <- Future.successful { maybeProfile.map(profile => Ok(toJson(profile))).getOrElse(NotFound) }
+      maybeProfile <- repository.getByUser(userId)
+      httpResponse <- Future { maybeProfile.map(profile => Ok(toJson(profile))).getOrElse(throw NotFoundException("Profile not found")) }
     } yield (httpResponse)).logFailure.handleRecover
   }
   
@@ -36,4 +36,13 @@ class UserProfileController @Inject()(scc: SecuredControllerComponents,
       httpResponse <- Future.successful { Ok(id) }
     } yield (httpResponse)).logFailure.handleRecover
   }
+  
+  //TESTING
+  def getAll = AuthenticatedAction.async { req => 
+    Logger.info("Fetching user profile")
+    repository.getAll.map(profiles => Ok(toJson(profiles))).logFailure.handleRecover
+  }
+  
+  //TODO allow to update user profile (to save favorite apps, change favorite categories...)
+  //TODO endpoint to get favorite apps
 }

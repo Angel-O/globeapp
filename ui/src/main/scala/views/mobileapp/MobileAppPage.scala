@@ -31,6 +31,7 @@ object MobileAppPage {
     val relatedApps = Var[Seq[MobileApp]](Seq.empty)
 
     val pollPopUpIsOpen = Var(false)
+    val maxRelatedAppsToShow = 5
     
 
     //TODO use pot data, fetch app by Id and store it in state
@@ -100,7 +101,7 @@ object MobileAppPage {
 
     def update() = {
       reviews.value = getReviewsByApp(appId)
-      relatedApps.value = getSuggestedMobileApps
+      relatedApps.value = getSuggestedMobileApps(maxRelatedAppsToShow)
     }
     override def redirectCondition = getMobileAppById(appId) == None
     multiConnect(update())(reviewSelector, suggestionSelector)

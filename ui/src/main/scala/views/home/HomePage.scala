@@ -6,15 +6,24 @@ import components.Components.{Layout, Button}
 import router.RoutingView
 
 import org.scalajs.dom.raw.HTMLElement
-import com.thoughtworks.binding.dom
+import com.thoughtworks.binding.{dom, Binding}, Binding.Var
+import appstate.FetchInterestingApps
+import appstate.SuggestionsSelector._
+import appstate.AppCircuit._
+import apimodels.mobile.MobileApp
+import hoc.panel.AppsPanel
+import appstate.FetchAllMobileApps
 
 object HomePage {
 
   import navigation.Navigators._
   def view() = new RoutingView() {
+    
+    val interestingApps: Var[Seq[MobileApp]] = Var(Seq.empty)
+    val maxAmountOfInterestingAppsToShow = 7
 
     //TODO split into subtiles and create HomePage subpackage
-    @dom override def element =
+    @dom override def element = {
       <div>
         <Tile isAncestor={ true } children={Seq(
           <Tile isVertical={ true } width={ 8 } children={Seq(
@@ -64,13 +73,23 @@ object HomePage {
                 <p class="subtitle">With even more content</p>
                 <div class="content">
                   <Button label={ "click me or the whole tile" } 
-                    onClick={ navigateToRegister _ }/>
-                  <!-- Content -->
+                    onClick={ navigateToRegister _ }/> 
+                  { interestingAppsPanel.bind }
                 </div>
               </div>
             }/>)
           }/>)
         }/>
-      </div>.asInstanceOf[HTMLElement]
+      </div>
+    }
+    
+    @dom val interestingAppsPanel = {
+      val apps = interestingApps.bind
+      <div><AppsPanel header="You might want to check these out" apps={apps} isSuccess={ true }/></div>
+    }
+    
+    dispatch(FetchAllMobileApps)
+    dispatch(FetchInterestingApps)
+    connect(interestingApps.value = getInterestingMobileApps(maxAmountOfInterestingAppsToShow))(suggestionSelector)
   }
 }

@@ -40,12 +40,19 @@ package object utils {
       Future.successful { req.body } 
     }
     
+    //The data from this type of response comes from db...no need to validate... server 2 server communication...
     def parseResponse[T <: Entity](res: WSResponse)(implicit read: Reads[T], ec: ExecutionContext) = {
-      Future { res.json.validate[T].get } failMessage "Invalid payload (this should not happen)"
+      Future { if (res.status == 200) res.json.validate[T].get else handleResponseError(res) }
     }
     
     def parseResponseAll[T <: Entity](res: WSResponse)(implicit read: Reads[T], ec: ExecutionContext) = {
-      Future { res.json.validate[Seq[T]].get } failMessage "Invalid payload (this should not happen)"
+      Future { if (res.status == 200) res.json.validate[Seq[T]].get else handleResponseError(res) } 
+    }
+    
+    private def handleResponseError(response: WSResponse) = response.status match {
+      case 401 => throw ForbiddenException(response.statusText) // Should not be happening
+      case 404 => throw NotFoundException(response.statusText)
+      case _ => throw new Exception(response.statusText)
     }
   }
   
@@ -62,7 +69,10 @@ package object utils {
     
     implicit class RecoveryFuture(x: Future[Result]){
       def handleRecover(implicit ec: ExecutionContext) =
-        x.recover({ case ex: ForbiddenException => Forbidden case _ => BadRequest })
+        x.recover({ 
+          case ForbiddenException(_) => Forbidden 
+          case NotFoundException(_) => NotFound 
+          case _ => BadRequest })
     }
   }
   
@@ -71,7 +81,7 @@ package object utils {
       val request: WSRequest = ws.url(url)
       request
         .addHttpHeaders("Accept" -> "application/json")
-        .withRequestTimeout(10000.millis)
+        .withRequestTimeout(10000.millis) //TODO move to config
         .get()
     }
   }
