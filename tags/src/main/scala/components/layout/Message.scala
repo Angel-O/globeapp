@@ -24,15 +24,17 @@ case class MessageBuilder() extends ComponentBuilder with Color with Size {
 
   @dom def build = {
 
-    val definitiveColorclass = Option(colorClass).getOrElse(COLOR_CLASS)
-
+    val color = Option(colorClass).getOrElse(COLOR_CLASS)
+    
     val element =
-      <div class={getClassName(MESSAGE, definitiveColorclass, SIZE_CLASS)} style={style}>
-            <div class={MESSAGE_HEADER}>{ header }</div>
-            <div class={MESSAGE_BODY}>
-                { content }
-            </div>
-        </div>
+      <div class={getClassName(MESSAGE, color, SIZE_CLASS)} style={style}>
+    			<div class={MESSAGE_HEADER}>
+    			  { header }
+    			</div>
+    			<div class={MESSAGE_BODY}>
+    			  { content }
+    			</div>
+    	  </div>
 
     Option(style).foreach(css => element.style = css)
 

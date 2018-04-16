@@ -12,3 +12,5 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 GET		/api/relatedapps/:appId	controllers.AppSuggestionController.getRelatedApps(appId: String)
 
 GET		/api/interestingapps		controllers.AppSuggestionController.getInterestingApps
+
+GET		/api/mostdebatedapps/:amount		controllers.AppSuggestionController.getMostDebatedApps(amount: Int)

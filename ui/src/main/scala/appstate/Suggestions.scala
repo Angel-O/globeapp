@@ -13,9 +13,9 @@ import navigation.URIs._
 import apimodels.mobile.MobileApp
 import scala.concurrent.Promise
 
-case class SuggestionsState(relatedApps: Seq[MobileApp], interestingApps: Seq[MobileApp]) // TODO add more
+case class SuggestionsState(relatedApps: Seq[MobileApp], interestingApps: Seq[MobileApp], mostDebatedApps: Seq[MobileApp]) // TODO add more
 case object SuggestionsState {
-  def apply() = new SuggestionsState(relatedApps = Seq.empty, interestingApps = Seq.empty)
+  def apply() = new SuggestionsState(relatedApps = Seq.empty, interestingApps = Seq.empty, mostDebatedApps = Seq.empty)
 }
 case class Suggestions(state: SuggestionsState)
 case object Suggestions {
@@ -25,10 +25,12 @@ case object Suggestions {
 // Primary Actions
 case class FetchRelatedApps(appId: String) extends Action
 case object FetchInterestingApps extends Action
+case class FetchMostDeabatedApps(amount: Int) extends Action
 
 // Derived Actions
 case class RelatedAppsFetched(apps: Seq[MobileApp]) extends Action
 case class InterstingAppsFetched(apps: Seq[MobileApp]) extends Action
+case class MostDebatedAppsFetched(apps: Seq[MobileApp]) extends Action
 
 // Action handler
 class SuggestionHandler[M](modelRW: ModelRW[M, SuggestionsState])
@@ -39,6 +41,8 @@ class SuggestionHandler[M](modelRW: ModelRW[M, SuggestionsState])
     case RelatedAppsFetched(apps) => updated(value.copy(relatedApps = apps))
     case FetchInterestingApps => effectOnly(fetchInterestingAppsEffect())
     case InterstingAppsFetched(apps) => updated(value.copy(interestingApps = apps))
+    case FetchMostDeabatedApps(amount) => effectOnly(fetchMostDebatedAppsEffect(amount))
+    case MostDebatedAppsFetched(apps) => updated(value.copy(mostDebatedApps = apps))
   }
 }
 
@@ -64,14 +68,25 @@ trait SuggestionsEffects extends Push {
       Get(url = s"$SUGGESTIONS_SERVER_ROOT/api/interestingapps")
         .map(xhr => InterstingAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
   }
+  
+  def fetchMostDebatedAppsEffect(amount: Int) = {
+    Effect(
+      Get(url = s"$SUGGESTIONS_SERVER_ROOT/api/mostdebatedapps/$amount")
+        .map(xhr => MostDebatedAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
+  }
 }
 
 object SuggestionsSelector extends ReadConnect[AppModel, SuggestionsState] {
+  import scala.util.Random
+  
   def getSuggestedMobileApps(maxAmount: Int) =
-    model.relatedApps take (maxAmount) sortBy (_.name) 
+    Random shuffle model.relatedApps take (maxAmount) sortBy (_.store) 
     
   def getInterestingMobileApps(maxAmount: Int) = 
-    model.interestingApps take (maxAmount) sortBy (_.name)
+    Random shuffle model.interestingApps take (maxAmount) sortBy (_.store)
+    
+  def getMostDebatedMobileApps() = 
+    model.mostDebatedApps
 
   val cursor = AppCircuit.suggestionSelector
   val circuit = AppCircuit

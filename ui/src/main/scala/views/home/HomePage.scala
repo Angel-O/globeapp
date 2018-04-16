@@ -13,6 +13,7 @@ import appstate.AppCircuit._
 import apimodels.mobile.MobileApp
 import hoc.panel.AppsPanel
 import appstate.FetchAllMobileApps
+import appstate.FetchMostDeabatedApps
 
 object HomePage {
 
@@ -20,6 +21,7 @@ object HomePage {
   def view() = new RoutingView() {
     
     val interestingApps: Var[Seq[MobileApp]] = Var(Seq.empty)
+    val mostDebatedApps: Var[Seq[MobileApp]] = Var(Seq.empty)
     val maxAmountOfInterestingAppsToShow = 7
 
     //TODO split into subtiles and create HomePage subpackage
@@ -60,7 +62,7 @@ object HomePage {
                   <p class="title">Wide tile</p>
                   <p class="subtitle">Aligned with the right tile</p>
                   <div class="content">
-                    <!-- Content -->
+                    { mostDebatedAppsPanel.bind }
                   </div>
                 </div>
               }/>)
@@ -69,11 +71,8 @@ object HomePage {
           <Tile isParent={ true } children={Seq(
             <Tile isSuccess={ true } onClick={ navigateToRegister _ } content={
               <div class="content">
-                <p class="title">Tall tile</p>
-                <p class="subtitle">With even more content</p>
+                <p class="title">Check these out!</p>
                 <div class="content">
-                  <Button label={ "click me or the whole tile" } 
-                    onClick={ navigateToRegister _ }/> 
                   { interestingAppsPanel.bind }
                 </div>
               </div>
@@ -85,11 +84,22 @@ object HomePage {
     
     @dom val interestingAppsPanel = {
       val apps = interestingApps.bind
-      <div><AppsPanel header="You might want to check these out" apps={apps} isSuccess={ true }/></div>
+      <div><AppsPanel header="Recommended for you" apps={apps} isWarning={true}/></div>
+    }
+    
+    @dom val mostDebatedAppsPanel = {
+      val apps = mostDebatedApps.bind
+      <div><AppsPanel header="Hot apps" apps={apps} isInfo={true}/></div>
+    }
+    
+    def update() = {
+      mostDebatedApps.value = getMostDebatedMobileApps()
+      interestingApps.value = getInterestingMobileApps(maxAmountOfInterestingAppsToShow)
     }
     
     dispatch(FetchAllMobileApps)
     dispatch(FetchInterestingApps)
-    connect(interestingApps.value = getInterestingMobileApps(maxAmountOfInterestingAppsToShow))(suggestionSelector)
+    dispatch(FetchMostDeabatedApps(10))
+    connect(update())(suggestionSelector)
   }
 }

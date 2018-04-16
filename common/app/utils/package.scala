@@ -3,6 +3,7 @@ import scala.concurrent.duration._
 import reactivemongo.bson.BSONObjectID
 import java.time._
 import scala.concurrent.ExecutionContext
+import pdi.jwt.JwtSession._
 import play.api.mvc.Results._
 import play.api.mvc.Request
 import play.api.mvc.Result
@@ -14,6 +15,7 @@ import scala.util.Success
 import exceptions.ServerException._
 import apimodels.common.Entity
 import play.api.libs.ws._
+import play.api.mvc.AnyContent
 
 package object utils {
 
@@ -36,7 +38,7 @@ package object utils {
       Future { req.body.validate[T].get } failMessage "Invalid payload"
     }
     
-    def parseText[T <: Entity](implicit read: Reads[T], ec: ExecutionContext, req: Request[String]) = {
+    def parseText(implicit ec: ExecutionContext, req: Request[String]): Future[String] = {
       Future.successful { req.body } 
     }
     
@@ -50,7 +52,8 @@ package object utils {
     }
     
     private def handleResponseError(response: WSResponse) = response.status match {
-      case 401 => throw ForbiddenException(response.statusText) // Should not be happening
+      case 401 => throw UnauthorizedException(response.statusText) // Should not be happening
+      case 403 => throw ForbiddenException(response.statusText) 
       case 404 => throw NotFoundException(response.statusText)
       case _ => throw new Exception(response.statusText)
     }
@@ -70,6 +73,7 @@ package object utils {
     implicit class RecoveryFuture(x: Future[Result]){
       def handleRecover(implicit ec: ExecutionContext) =
         x.recover({ 
+          case UnauthorizedException(_) => Unauthorized
           case ForbiddenException(_) => Forbidden 
           case NotFoundException(_) => NotFound 
           case _ => BadRequest })
@@ -77,10 +81,12 @@ package object utils {
   }
   
   object ApiClient {
-    def Get(url: String)(implicit ws: WSClient) = {
-      val request: WSRequest = ws.url(url)
-      request
+    def Get(url: String)(implicit ws: WSClient, req: Request[_]): Future[WSResponse] = {
+      val token = req.jwtSession.serialize
+      val apiRequest: WSRequest = ws.url(url)
+      apiRequest
         .addHttpHeaders("Accept" -> "application/json")
+        .addHttpHeaders("Token" -> token)
         .withRequestTimeout(10000.millis) //TODO move to config
         .get()
     }

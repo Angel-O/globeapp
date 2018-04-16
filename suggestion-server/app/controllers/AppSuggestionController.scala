@@ -16,6 +16,10 @@ import utils.FutureImplicits._
 import utils.Json._
 import exceptions.ServerException._
 import play.api.libs.ws._
+import apimodels.poll.Poll
+import play.api.mvc.Request
+import play.api.libs.json.JsValue
+import play.api.mvc.AnyContent
 
 // relatedapps by appid ===> look up genre, keywords (store suggestion for later, track by user)
 // intersting apps ===> lookup user info (where did u hear about us...) (APP + USER)
@@ -33,29 +37,38 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
   
   import Config._
   
-  def getRelatedApps(appId: String) = AuthenticatedAction.async {
+  def getRelatedApps(appId: String) = AuthenticatedAction.async { implicit req =>
     Logger.info(s"Retrieving apps related to app with id = $appId")
     (for {
       validId <- parseId(appId)
-      request <- Get(s"$APPS_API_ROOT/apps")
-      mobileApps <- parseResponseAll[MobileApp](request)
+      jsonResponse <- Get(s"$APPS_API_ROOT/apps")
+      mobileApps <- parseResponseAll[MobileApp](jsonResponse)
       relatedApps <- findRelatedApps(mobileApps, appId)
     } yield ( Ok(toJson(relatedApps)) ))
     .logFailure.handleRecover
   }
   
-  //TODO FIX 404 when getting profile....crazy...!
-  def getInterestingApps = AuthenticatedAction.async { req =>
+  def getInterestingApps = AuthenticatedAction.async { implicit req =>
     val userId = req.user._id.get
     Logger.info(s"Retrieving apps of interest to user with id = ${userId}")
     (for {
-      (userProfileRequest, mobileAppsRequest) <- 
+      (userProfileJsonResponse, mobileAppsJsonResponse) <- 
         Get(s"$PROFILES_API_ROOT/userprofiles/$userId") zip Get(s"$APPS_API_ROOT/apps")
       (userProfile, mobileApps) <-
-        parseResponse[UserProfile](userProfileRequest) zip parseResponseAll[MobileApp](mobileAppsRequest)
+        parseResponse[UserProfile](userProfileJsonResponse) zip parseResponseAll[MobileApp](mobileAppsJsonResponse)
       appsByGenres <- 
         findAppsByGenres(mobileApps, userProfile.favoriteCategories)
     } yield (Ok(toJson(appsByGenres))))
+      .logFailure.handleRecover
+  }
+  
+  def getMostDebatedApps(amount: Int) = AuthenticatedAction.async { implicit req => 
+    Logger.info(s"Retrieving most debated apps")
+    (for {
+      (pollsJsonResponse, appsJsonResponse) <- Get(s"$POLLS_API_ROOT/polls") zip Get(s"$APPS_API_ROOT/apps")
+      (polls, apps) <- parseResponseAll[Poll](pollsJsonResponse) zip parseResponseAll[MobileApp](appsJsonResponse)
+      mostDebatedApps <- findMostDebatedApps(polls, apps, amount)
+    } yield (Ok(toJson(mostDebatedApps))))
       .logFailure.handleRecover
   }
   
@@ -65,6 +78,16 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
     (for {
      httpResponse <- Future { Ok }
     } yield (httpResponse)).logFailure.handleRecover
+  }
+  
+  private def findMostDebatedApps(polls: Seq[Poll], apps: Seq[MobileApp], amount: Int) = {
+    Future {
+      (polls.map(_.mobileAppId) groupBy identity).toSeq
+        .sortBy{ case (_, occurrences) => occurrences.size }
+        .map{ case (id, _) => id }
+        .take(amount)
+        .flatMap(id => apps.find(_._id == Some(id)))
+    }
   }
 
   private def findRelatedApps(mobileApps: Seq[MobileApp], appId: String) = {
@@ -95,4 +118,5 @@ object Config {
   //TO do move this to config file
   val APPS_API_ROOT = "http://localhost:3001/api"
   val PROFILES_API_ROOT = "http://localhost:3005/api" 
+  val POLLS_API_ROOT = "http://localhost:3003/api"
 }
