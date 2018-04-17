@@ -71,7 +71,7 @@ trait SuggestionsEffects extends Push {
   
   def fetchMostDebatedAppsEffect(amount: Int) = {
     Effect(
-      Get(url = s"$SUGGESTIONS_SERVER_ROOT/api/mostdebatedapps/$amount")
+      Get(url = s"$SUGGESTIONS_SERVER_ROOT/api/mostdebatedapps?amount=$amount")
         .map(xhr => MostDebatedAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
   }
 }
