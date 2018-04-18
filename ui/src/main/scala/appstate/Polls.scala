@@ -71,7 +71,7 @@ class PollHandler[M](modelRW: ModelRW[M, Seq[Poll]])
 trait PollEffects {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import utils.api._, utils.jwt._, utils.persist._, utils.redirect._
+  import utils.api._, utils.jwt._, utils.persist._, utils.redirect._, utils.json._
   import diode.{Effect, NoAction}
   import config._
 
@@ -111,7 +111,7 @@ trait PollEffects {
 }
 
 // Selector
-object PollSelector extends ReadConnect[AppModel, Seq[Poll]] {
+object PollSelector extends AppModelSelector[Seq[Poll]] {
   def getPolls() = model.sortBy(_.closingDate)
   def getPollById(id: String) = getPolls.find(_._id == Some(id))
   def getPollsPartecipated(userId: String) =
@@ -119,16 +119,4 @@ object PollSelector extends ReadConnect[AppModel, Seq[Poll]] {
 
   val cursor = AppCircuit.pollSelector
   val circuit = AppCircuit
-  //def onPollUpdate(connector: => Unit) = circuit.subscribe(cursor)(_ => connector)
 }
-
-// trait PollSelector extends GenericConnect[AppModel, Seq[Poll]] {
-//   def getPolls() = model.sortBy(_.closingDate)
-//   def getPollById(id: String) = getPolls.find(_._id == Some(id))
-//   def getPollsPartecipated(userId: String) =
-//     getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
-
-//   val cursor = AppCircuit.pollSelector
-//   val circuit = AppCircuit
-//   connect()
-// }

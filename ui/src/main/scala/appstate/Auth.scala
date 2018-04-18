@@ -10,7 +10,7 @@ import navigation.URIs._
 import diode.data.Pot
 import diode.data.PotState._
 import diode.data.{Ready, Pending}
-import apimodels.user.User
+import apimodels.user.{User, Role, UserProfile}
 import diode.Effect
 
 
@@ -20,7 +20,7 @@ protected case class AuthState(jwt: Option[String] = None,
                                 persistentState: Option[PersistentState] = None, //cannot be an option...
                                 loggedIn: Option[Boolean] = None,
                                 isTokenExpired: Option[Boolean] = None,
-                                matchingUsernames: Pot[Int] = Pot.empty)
+                                matchingEmails: Pot[Int] = Pot.empty)
 case class Auth(params: AuthState)
 case object Auth {
   def apply() = new Auth(AuthState())
@@ -33,23 +33,33 @@ case class Register(name: String,
                     username: String,
                     email: String,
                     password: String,
-                    gender: String)
+                    gender: String,
+                    role: String,
+                    whereDidYouHearAboutUs: String, 
+                    additionalInfo: String, 
+                    subscribed: Boolean,
+                    favoriteCategories: Seq[String])
     extends Action
 case object Logout extends Action
 case object VerifyToken extends Action
-case class VerifyUsernameAlreadyTaken(username: String) extends Action
+case class VerifyUserAlreadyRegistered(username: String) extends Action
 
 
 // Derived Actions
 case object UserLoggedOut extends Action
-case class UserLoggedIn(jwt: String, username: String, id: String) extends Action
+case class UserLoggedIn(jwt: String, user: User) extends Action
 case class LoginFailed(errorCode: Int) extends Action
-case class UserRegistered(jwt: String, username: String, id: String) extends Action
+case class CreateUserProfile(
+  userId:                 String,
+  whereDidYouHearAboutUs: String,
+  additionalInfo:         String,
+  subscribed:             Boolean,
+  favoriteCategories:     Seq[String]) extends Action
 case object TokenExpired extends Action
 case object TokenValid extends Action
 case class StateRestored(state: PersistentState) extends Action
-case class MatchingUsernamesCount(count: Int) extends Action
-case object VerifyUsernameAlreadyTakenFailed extends Action
+case class MatchingEmailsCount(count: Int) extends Action
+case object VerifyUserAlreadyRegisteredFailed extends Action
 
 
 
@@ -60,13 +70,13 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
   override def handle = {
     case Login(username, password) =>
       effectOnly(loginEffect(username, password))
-    case Register(name, username, email, password, gender) =>
-      effectOnly(registerEffect(name, username, email, password, gender))
+    case Register(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories) =>
+      effectOnly(registerEffect(name, username, email, password, gender, role, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories))
     case Logout => effectOnly(logoutEffect()) // + redirectEffect(HomePageURI))
-    case UserLoggedIn(token, username, id) => {
-      val user = User(username = username, _id = Some(id))
-      val state = value.persistentState.map(state => state.copy(user = user))
-      .getOrElse(PersistentState(User(username = username, _id = Some(id))))
+    case UserLoggedIn(token, user) => {
+      val state = value.persistentState
+      .map(state => state.copy(user = user))
+      .getOrElse(PersistentState(user))
       updated(AuthState(
         jwt = Some(token),
         persistentState = Some(state),
@@ -74,6 +84,8 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
         isTokenExpired = Some(false)),
         storeTokenEffect(token) + persistStorageEffect(state) + redirectEffect(ROOT_PATH))
     }
+//    case CreateUserProfile(userId, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories) => { println("HELLOWORLD")
+//      effectOnly(createUserProfileEffect(userId, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories))}
     case UserLoggedOut     => updated(AuthState(), removeTokenEffect() + wipeStorageEffect())
     case LoginFailed(code) => updated(value.copy(errorCode = Some(code)))
     case VerifyToken       => effectOnly(verifyTokenEffect())
@@ -84,15 +96,16 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
       updated(value.copy(loggedIn = Some(true)), restoreFromStorageEffect())
     case StateRestored(state) =>
       updated(value.copy(persistentState = Some(state)))
-    case VerifyUsernameAlreadyTaken(username) =>
+    case VerifyUserAlreadyRegistered(username) =>
       // reset first
-      val pendingResult = value.matchingUsernames.pending()
-      updated(value.copy(matchingUsernames = pendingResult),
-              verifyUsernameAlreadyTakenEffect(username))
-    case MatchingUsernamesCount(count) =>
-      val readyResult = value.matchingUsernames.ready(count)
-      updated(value.copy(matchingUsernames = readyResult))
-    case VerifyUsernameAlreadyTakenFailed => noChange //TODO mark as failed
+      val pendingResult = value.matchingEmails.pending()
+      updated(
+        value.copy(matchingEmails = pendingResult),
+        verifyEmailAlreadyTakenEffect(username))
+    case MatchingEmailsCount(count) =>
+      val readyResult = value.matchingEmails.ready(count)
+      updated(value.copy(matchingEmails = readyResult))
+    case VerifyUserAlreadyRegisteredFailed => noChange //TODO mark as failed
   }
 }
 
@@ -101,31 +114,75 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
 trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extending Push: it causes compliation around imports...
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
+  //import scala.util.Try
   import apimodels.user.User
-  import utils.api._, utils.jwt._, utils.persist._
+  import utils.api._, utils.jwt._, utils.persist._, utils.redirect._
   import diode.{Effect, NoAction}
   import config._
+  import org.scalajs.dom.raw.XMLHttpRequest
 
-  
   def loginEffect(username: String, password: String) = {
-    Effect(Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(User(username = username, password = Some(password))))
-        .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username, xhr.responseText))
-        .recover({ case ex => LoginFailed(getErrorCode(ex)) }))
+    val payload = User(username, password = Some(password)) // no id
+    Effect((for {
+      xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/login", payload = write(payload))
+      token <- readTokenFromResponse(xhr)
+      user <- decodeToken(token)
+      loginAction <- Future.successful { UserLoggedIn(token, user) }
+    } yield (loginAction)).recover({ case ex => LoginFailed(getErrorCode(ex)) }))
   }
-  def registerEffect(name: String, username: String, email: String, password: String, gender: String) = {
-    Effect(Post(
-        url = s"$AUTH_SERVER_ROOT/auth/api/register", 
-        payload = write(User(name = Some(name), username = username, email = Some(email), password = Some(password), gender = Some(gender))))
-      .map(xhr => UserLoggedIn(xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME), username, xhr.responseText)))
+  def registerEffect(
+    name:                   String,
+    username:               String,
+    email:                  String,
+    password:               String,
+    gender:                 String,
+    role:                   String,
+    whereDidYouHearAboutUs: String,
+    additionalInfo:         String,
+    subscribed:             Boolean,
+    favoriteCategories:     Seq[String]) = {
+    val payload = User(
+      username,
+      role,
+      name = Some(name),
+      email = Some(email),
+      password = Some(password),
+      gender = Some(gender))
+    Effect((for {
+      xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(payload))
+      token <- readTokenFromResponse(xhr)
+      user <- decodeToken(token) andThen { // andThen used for side effects...if it fails the error is not caught by redirectOnFailure
+          case user => createUserProfile(
+            user.get._id, // calling get on the Try ...this should not fail
+            whereDidYouHearAboutUs,
+            additionalInfo, 
+            subscribed, 
+            favoriteCategories)
+        }
+      loginAction <- Future.successful { UserLoggedIn(token, user) }
+    } yield (loginAction)).redirectOnFailure) 
+  }
+  private def createUserProfile(
+    maybeId:                Option[String],
+    whereDidYouHearAboutUs: String,
+    additionalInfo:         String,
+    subscribed:             Boolean,
+    favoriteCategories:     Seq[String]) = {
+
+    maybeId.map(id => { 
+      import apimodels.mobile.Genre.asGenre
+      val userProfile = UserProfile(id, whereDidYouHearAboutUs, additionalInfo, subscribed, favoriteCategories.map(asGenre))
+      Post(url = s"$USERPROFILE_SERVER_ROOT/api/userprofiles", payload = write(userProfile))
+    })
   }
   def logoutEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/auth/api/logout")
-        .map(_ => UserLoggedOut))
+      .map(_ => UserLoggedOut))
   }
-  def verifyUsernameAlreadyTakenEffect(username: String) = {
-    Effect(Post(url = s"$AUTH_SERVER_ROOT/api/usernames", payload = username, contentHeader = TEXT_CONTENT_HEADER)
-        .map(xhr => MatchingUsernamesCount(xhr.responseText.toInt))
-        .recover({ case _ => VerifyUsernameAlreadyTakenFailed }))
+  def verifyEmailAlreadyTakenEffect(email: String) = {
+    Effect(Post(url = s"$AUTH_SERVER_ROOT/api/emails", payload = email, contentHeader = TEXT_CONTENT_HEADER)
+      .map(xhr => MatchingEmailsCount(xhr.responseText.toInt))
+      .recover({ case _ => VerifyUserAlreadyRegisteredFailed }))
   }
   def redirectEffect(path: String) = {
     Effect(Future{ push(path) }.map(_ => NoAction))
@@ -138,14 +195,14 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   }
   def verifyTokenEffect() = {
     Effect(Get(url = s"$AUTH_SERVER_ROOT/api/verify")
-    .map(xhr => { TokenValid })
-    .recover({ case _ => TokenExpired })) //TODO add status code to provide proper info
+      .map(_ => TokenValid)
+      .recover({ case _ => TokenExpired })) //TODO add status code to provide proper info
   }
   def persistStorageEffect(state: PersistentState) = {
-    Effect(Future{ persist(state) }.map(_ => NoAction) )
+    Effect(Future { persist(state) }.map(_ => NoAction))
   }
   def wipeStorageEffect() = {
-    Effect(Future{ wipe() }.map(_ => NoAction) )
+    Effect(Future { wipe() }.map(_ => NoAction))
   }
   def restoreFromStorageEffect() = {
     Effect(
@@ -154,53 +211,25 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
         action <- Future { storageState.map(state => StateRestored(state)) }
       } yield (action).getOrElse(NoAction)))
   }
+  private def readTokenFromResponse(xhr: XMLHttpRequest) = {
+    Future { xhr.getResponseHeader(AUTHORIZATION_HEADER_NAME) }
+  }
+  private def decodeToken(token: String): Future[User] = {
+    Future { read[User](decodeJWT(token)) }
+  }
+  //  def createUserProfileEffect(userId: String, wduhau: String, additionalInfo: String, subscribed: Boolean, favoriteCategories: Seq[String]) = {
+//    import apimodels.mobile.Genre.asGenre
+//    favoriteCategories.map(asGenre).foreach(println)
+//    val userProfile = UserProfile(userId, wduhau, additionalInfo, subscribed, favoriteCategories.map(asGenre))
+//    Effect(Post(url = s"$USERPROFILE_SERVER_ROOT/api/userprofiles", payload = write(userProfile)).map(_ => NoAction))
+//  }
 }
 
 // Selector
-//@safe this trait is necessary....to mix-in with objects..
-// trait AuthSelector extends GenericConnect[AppModel, AuthState] {
-
-//  import utils.persist._
-//  def getToken() = model.jwt.getOrElse("UNSET")
-//  def getErrorCode() = model.errorCode
-//  def getUsername() = {
-//    //TODO this does not work
-//     // (for {
-//     //   usernameFromAppState <- model.persistentState.map(_.user.username)
-//     //   usernameFromStorage <- retrieve().map(_.user.username)
-//     // } yield (
-//     //   if(usernameFromAppState.isEmpty) usernameFromStorage else usernameFromAppState 
-//     // )).getOrElse("")
-
-//     model.persistentState.map(_.user.username)
-//     .getOrElse(retrieve().map(_.user.username).getOrElse(""))
-//   }
-//   def getUserId() = {
-//     // (for {
-//     //   appState <- model.persistentState
-//     //   storageState <- retrieve()
-//     // } yield (Some(appState.user._id)
-//     //   .getOrElse(storageState.user._id)))
-//     //   .flatten
-
-//      model.persistentState.map(_.user._id.getOrElse(retrieve().map(_.user._id).getOrElse("")))
-//   }
-//  def getLoggedIn() = model.loggedIn.getOrElse(false)
-//  def getMatchingUsernamesCount() = model.matchingUsernames.state match{
-//    case PotReady => Some(model.matchingUsernames.get)
-//    case PotPending => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result
-//    case _ => None
-//  }
-
-//  val cursor = AppCircuit.authSelector
-//  val circuit = AppCircuit
-//  connect()
-// }
-
-object AuthSelector extends ReadConnect[AppModel, AuthState] {
+object AuthSelector extends AppModelSelector[AuthState] {
 
   import utils.persist._
-  def getToken() = model.jwt.getOrElse("UNSET")
+  def getToken() = model.jwt
   def getErrorCode() = model.errorCode
   def getUsername(): String = model.persistentState.map(_.user.username).getOrElse("")
   def getUserId(): String = {
@@ -210,9 +239,10 @@ object AuthSelector extends ReadConnect[AppModel, AuthState] {
     } yield (if (appStateUserId.isEmpty) storageUserId else appStateUserId))
     .getOrElse("")
   }
-  def getLoggedIn() = model.loggedIn.getOrElse(false)
+  def getLoggedIn(): Boolean = model.loggedIn.getOrElse(false)
+  def getRole(): Option[Role] = model.persistentState.map(_.user.role)
   
-  def getMatchingUsernamesCount() = model.matchingUsernames match{
+  def getMatchingEmailsCount() = model.matchingEmails match{
     case Ready(count) => Some(count)
     case Pending(_) => Some(-1) //dummy value useful to display spinner or similar to ui while waiting for result. TODO add custom error codes
     case _ => None

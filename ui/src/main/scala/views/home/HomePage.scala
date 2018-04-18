@@ -6,15 +6,26 @@ import components.Components.{Layout, Button}
 import router.RoutingView
 
 import org.scalajs.dom.raw.HTMLElement
-import com.thoughtworks.binding.dom
+import com.thoughtworks.binding.{dom, Binding}, Binding.Var
+import appstate.FetchInterestingApps
+import appstate.SuggestionsSelector._
+import appstate.AppCircuit._
+import apimodels.mobile.MobileApp
+import hoc.panel.AppsPanel
+import appstate.FetchAllMobileApps
+import appstate.FetchMostDeabatedApps
 
 object HomePage {
 
   import navigation.Navigators._
   def view() = new RoutingView() {
+    
+    val interestingApps: Var[Seq[MobileApp]] = Var(Seq.empty)
+    val mostDebatedApps: Var[Seq[MobileApp]] = Var(Seq.empty)
+    val maxAmountOfInterestingAppsToShow = 7
 
     //TODO split into subtiles and create HomePage subpackage
-    @dom override def element =
+    @dom override def element = {
       <div>
         <Tile isAncestor={ true } children={Seq(
           <Tile isVertical={ true } width={ 8 } children={Seq(
@@ -48,10 +59,9 @@ object HomePage {
             <Tile isParent={ true } children={Seq(
               <Tile isDanger={ true } content={
                 <div>
-                  <p class="title">Wide tile</p>
-                  <p class="subtitle">Aligned with the right tile</p>
+                  <p class="subtitle">Hot area</p>
                   <div class="content">
-                    <!-- Content -->
+                    { mostDebatedAppsPanel.bind }
                   </div>
                 </div>
               }/>)
@@ -60,17 +70,35 @@ object HomePage {
           <Tile isParent={ true } children={Seq(
             <Tile isSuccess={ true } onClick={ navigateToRegister _ } content={
               <div class="content">
-                <p class="title">Tall tile</p>
-                <p class="subtitle">With even more content</p>
+                <p class="title">Check these out!</p>
                 <div class="content">
-                  <Button label={ "click me or the whole tile" } 
-                    onClick={ navigateToRegister _ }/>
-                  <!-- Content -->
+                  { interestingAppsPanel.bind }
                 </div>
               </div>
             }/>)
           }/>)
         }/>
-      </div>.asInstanceOf[HTMLElement]
+      </div>
+    }
+    
+    @dom val interestingAppsPanel = {
+      val apps = interestingApps.bind
+      <div><AppsPanel header="Recommended for you" apps={apps} isWarning={true}/></div>
+    }
+    
+    @dom val mostDebatedAppsPanel = {
+      val apps = mostDebatedApps.bind
+      <div><AppsPanel header="People are talking about these" apps={apps} isInfo={true}/></div>
+    }
+    
+    def update() = {
+      mostDebatedApps.value = getMostDebatedMobileApps()
+      interestingApps.value = getInterestingMobileApps(maxAmountOfInterestingAppsToShow)
+    }
+    
+    dispatch(FetchAllMobileApps)
+    dispatch(FetchInterestingApps)
+    dispatch(FetchMostDeabatedApps(10))
+    connect(update())(suggestionSelector)
   }
 }

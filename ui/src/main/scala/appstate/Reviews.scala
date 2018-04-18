@@ -63,7 +63,7 @@ class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
 trait ReviewEffects {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import utils.api._, utils.redirect._
+  import utils.api._, utils.redirect._, utils.json._
   import diode.{Effect, NoAction}
   import config._
 
@@ -90,7 +90,7 @@ trait ReviewEffects {
 }
 
 // Selector
-object ReviewsSelector extends ReadConnect[AppModel, Seq[Review]] {
+object ReviewsSelector extends AppModelSelector[Seq[Review]] {
   def getReviews() = model.sortBy(_.dateCreated.map(identity))
   def getReviewById(id: String) = getReviews().find(_._id == Some(id))
   def getReviewsByApp(mobileAppId: String) = getReviews().filter(_.mobileAppId == mobileAppId)

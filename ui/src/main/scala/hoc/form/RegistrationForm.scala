@@ -2,34 +2,37 @@ package hoc.form
 
 import components.core.Implicits._
 import components.core.ComponentBuilder
-import components.Components.Input
+import components.core.Helpers._
+import components.Components.{ Input, Layout }
 import com.thoughtworks.binding.{ dom, Binding }, Binding.Var
-import common._, FormElements._, FormValidators._
+import common._, FormElements._, FormValidators._, common.Styles
 import appstate.AppCircuit._
 import appstate.AuthSelector._
-
+import apimodels.mobile.Genre.{values => appCategories, _}
+import apimodels.mobile.Genre
 
 case class RegistrationFormBuilder() extends ComponentBuilder {
    
   def render = this 
   
-  var onSubmit: (String, String, String, String, String) => Unit = _
-  var verifyUsernameAlreadyTaken: String => Unit = _
+  var onSubmit: (String, String, String, String, String, String, String, Boolean, Seq[String]) => Unit = _
+  var verifyEmailAlreadyTaken: String => Unit = _
   
   private var subscribeMe: Boolean = false // no need to use Var as there is no need to reload (no validation happening)
+  private var favoriteCategories: Set[String] = Set.empty
   private var termsAccepted: Var[Boolean] = Var(false)
   private val name, username, email, message, whereDidYouHearAboutUs, gender, 
-  subscriptionType, password, confirmPassword: Var[String] = Var("")
+  password, confirmPassword: Var[String] = Var("")
   private val nameValidation, emailValidation, messageValidation, whereDidYouHearAboutUsValidation, 
-  genderValidation, usernameValidation, subscriptionTypeValidation, passwordValidation,
+  genderValidation, usernameValidation, passwordValidation,
   acceptTermsValidation, confirmPasswordValidation: Var[ValidationResult] = Var(YetToBeValidated)
   
   import FieldValidators._ 
-  private val handleUsernameChange = (value: String) => {   
-    username.value = value.trim()
-    val validationResult = validateUsername(username.value)
-    usernameValidation.value = validationResult
-    if(validationResult) verifyUsernameAlreadyTaken(username.value)
+  private val handleEmailChange = (value: String) => {   
+    email.value = value.trim()
+    val validationResult = validateEmail(email.value)
+    emailValidation.value = validationResult
+    if(validationResult) verifyEmailAlreadyTaken(email.value)
   } 
   private val handleNameChange = (value: String) => {   
     name.value = value.trim()
@@ -54,13 +57,9 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     gender.value = value
     genderValidation.value = validateGender(gender.value)
   }
-  private val handleSubscriptionTypeChange = (value: String) => {
-    subscriptionType.value = value
-    subscriptionTypeValidation.value = validateSubscriptionType(subscriptionType.value)
-  } 
-  private val handleEmailChange = (value: String) => {
-    email.value = value.trim()
-    emailValidation.value = validateEmail(email.value)
+  private val handleUsernameChange = (value: String) => {
+    username.value = value.trim()
+    usernameValidation.value = validateUsername(username.value)
   }
   private val handlePasswordChange = (value: String) => {
     password.value = value
@@ -75,17 +74,23 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     confirmPassword.value = value
     confirmPasswordValidation.value = validateConfirmPassword(password.value, confirmPassword.value)
   }
+  private val handleFavoriteCategorySelected = (value: String) => {
+    favoriteCategories = favoriteCategories + value
+  }
+  private val handleFavoriteCategoryDeselected = (value: String) => {
+    favoriteCategories = favoriteCategories - value
+  }
   
   // async validation
-  private def validateUsernameAlreadyTaken(username: String) = {
-    usernameValidation.value = getMatchingUsernamesCount().map({
-      case 0 => Success("Valid username")
-      case 1 => Error(s"Username $username already taken")
+  private def validateUserAlreadyRegistered(email: String) = {
+    emailValidation.value = getMatchingEmailsCount().map({
+      case 0 => Success("Valid email")
+      case 1 => Error(s"Email address $email already taken")
       case _ => Success("........") //pending state
     }).getOrElse(Error("Something went wrong"))
   }
-
-  connect(validateUsernameAlreadyTaken(username.value))(authSelector)
+  
+  connect(validateUserAlreadyRegistered(email.value))(authSelector)
 
   @dom def build = {
     val form =
@@ -115,16 +120,21 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
             inputValue={ confirmPassword.value } isDisabled={ !pwdVal }/>.listen }
           { renderValidation(confirmPasswordValidation.bind).bind }
         </div>
-        <div class={ FIELD }>
-          <RadioInput options={ Seq("Male", "Female") } 
+        <div class={ FIELD } style={ "display: flex" }>
+        	  <label class={ "label" } style={ "margin-right: 2em" }> Gender </label>
+          <RadioInput style={ "margin-right: 2em" } options={ Seq("Male", "Female") } 
           name={ "gender" } onSelect={ handleGenderChange }/>
           { renderValidation(genderValidation.bind).bind }
         </div>
-        <div class={ FIELD }>
-          <RadioInput label={ "Subscription type" } 
-          options={ Seq("Full", "Trial", "Limited") } name={ "subscription-type" } 
-          onSelect={ handleSubscriptionTypeChange }/>
-          { renderValidation(subscriptionTypeValidation.bind).bind }
+        <div class={ FIELD }> 
+        		<label class={ "label" }> Favorite apps </label> 
+        		<div style={Styles.checkBoxContainer}> { toBindingSeq(appCategories).map(category => 
+             <div style={Styles.checkBox}>
+          			<CheckboxInput label={ asString(category) } 
+          				onSelectValue={ handleFavoriteCategorySelected }
+          				onDeselectValue={ handleFavoriteCategoryDeselected }/>
+          		</div>)}
+        	  </div>
         </div>
         <div class={ FIELD }>
           <SelectInput label={ "Where did you hear about us ?" } 
@@ -160,7 +170,6 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
                 messageValidation.bind,
                 whereDidYouHearAboutUsValidation.bind,
                 genderValidation.bind,
-                subscriptionTypeValidation.bind,
                 passwordValidation.bind,
                 acceptTermsValidation.bind,
                 confirmPasswordValidation.bind).bind }
@@ -168,7 +177,7 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
         </div>
       </div>
 
-    create(form, "registration-form")
+    create(<div><Message header="Registration form" content={ form } /></div>, "registration-form")
   }
 
   def runValidation() = {
@@ -181,7 +190,6 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
     if(!genderValidation.value) handleGenderChange(gender.value)
     if(!passwordValidation.value) handlePasswordChange(password.value)
     if(!confirmPasswordValidation.value) handleConfirmPasswordChange(confirmPassword.value)
-    if(!subscriptionTypeValidation.value) handleSubscriptionTypeChange(subscriptionType.value)
   }
 
   def runSubmit() = {
@@ -189,7 +197,11 @@ case class RegistrationFormBuilder() extends ComponentBuilder {
              username.value,
              email.value,
              password.value,
-             gender.value)
+             gender.value,
+             whereDidYouHearAboutUs.value, 
+             message.value, 
+             subscribeMe,
+             favoriteCategories.toSeq)
   }
 }
 
@@ -220,9 +232,6 @@ object FieldValidators{
         customErrorMessage = Some("Terms & Conditions must be accepted to proceed"))
   }
   def validateGender(value: String) = {
-    validateRequiredField(fieldValue = value)
-  }
-  def validateSubscriptionType(value: String) = {
     validateRequiredField(fieldValue = value)
   }
   def validateEmail(value: String) = {

@@ -25,6 +25,7 @@ case class RadioInputBuilder()
   var options: Seq[String] = Seq.empty
   val inputType = RadioInput
   var name: String = _ // Server name...TODO do I need this???
+  var style: String = _
 
   override protected val handleSelectionChange = (e: Event) => {
     val radioButton = e.currentTarget.asInstanceOf[HTMLInputElement]
@@ -40,7 +41,7 @@ case class RadioInputBuilder()
 
     val labelItem = unwrapElement(labelElement.bind, label != null)
 
-    <div class={ fieldClassName }>
+    <div class={ fieldClassName } style={ style }>
       <div class="control">
 				{ labelItem.bind }
         {

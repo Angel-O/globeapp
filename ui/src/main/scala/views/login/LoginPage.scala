@@ -9,6 +9,7 @@ import appstate.{Login, Connect}
 import appstate.AppCircuit._
 import org.scalajs.dom.raw.Event
 import navigation.Navigators._
+import apimodels.user.AppUser
 
 //TODO extract custom styling
 //TODO make routing view a trait

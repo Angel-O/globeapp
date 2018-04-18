@@ -20,23 +20,24 @@ lazy val execScript1 = taskKey[Unit]("run server")
 lazy val execScript2 = taskKey[Unit]("run server")
 lazy val execScript3 = taskKey[Unit]("run server")
 lazy val execScript4 = taskKey[Unit]("run server")
+lazy val execScript5 = taskKey[Unit]("run server")
 lazy val all = inputKey[Unit]("run server in stage mode")
 execScript0 := { "authentication-server/target/universal/stage/bin/authentication-server -Dhttp.port=3000" !}
 execScript1 := { "app-server/target/universal/stage/bin/app-server -Dhttp.port=3001" !} 
 execScript2 := { "review-server/target/universal/stage/bin/review-server -Dhttp.port=3002" !}
 execScript3 := { "poll-server/target/universal/stage/bin/poll-server -Dhttp.port=3003" !}
 execScript4 := { "suggestion-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3004" !}
+execScript5 := { "profile-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3005" !}
 
 
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    .aggregate(authenticationServer, appServer, pollServer, reviewServer)
-    .dependsOn(ui, authenticationServer, appServer, pollServer, reviewServer)
+    .aggregate(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
+    .dependsOn(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
     .settings(
         commonSettings,
         stageAll := { "sbt ;clean ;stage" ! },
-        //execUi := { "sbt runui" !}, 
         //execUi := { "sbt runui" !}, 
         all in Compile := {
             //stageAll.value
@@ -44,7 +45,8 @@ lazy val root = (project in file("."))
             execScript1.value
             execScript2.value
             execScript3.value
-            execScript4
+            //execScript4.value
+            //execScript5.value
             //execUi.value
             //(run in Compile in server).evaluated
             //(fastOptJS in Compile in ui).value
@@ -71,6 +73,10 @@ lazy val suggestionServer = (project in file("suggestion-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
+lazy val profileServer = (project in file("profile-server"))
+    .dependsOn(sharedJVM, securityServer, common)
+    .disablePlugins(WorkbenchPlugin)
+
 //TODO turn this into a library
 lazy val securityServer = (project in file("security-server"))
     .dependsOn(sharedJVM)
@@ -86,14 +92,14 @@ lazy val common = (project in file("common"))
 lazy val shared = (project in file("shared"))
     .settings(
         commonSettings,
-        libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
+        //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1",
         libraryDependencies += "io.github.cquiroz" %% "scala-java-time" % "2.0.0-M13",
         libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.9")
 
 lazy val cross = (crossProject.crossType(CrossType.Full) in file("."))
     .settings(
         commonSettings,
-        libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
+        //libraryDependencies += "com.lihaoyi" %%% "upickle" % "0.5.1",
         libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M13",
         libraryDependencies += "com.typesafe.play" %%% "play-json" % "2.6.9",
         EclipseKeys.useProjectId := true

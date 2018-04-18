@@ -13,10 +13,10 @@ GET		/auth/api/logout				controllers.AuthenticationController.logout
 
 POST 	/auth/api/register			controllers.AuthenticationController.register
 
-GET		/api/users					controllers.AuthenticationController.getAll
+#GET		/api/users					controllers.AuthenticationController.getAll
 
-GET		/api/usernames				controllers.AuthenticationController.getAllUsernames
+#GET		/api/usernames				controllers.AuthenticationController.getAllUsernames
 
 GET		/api/verify					controllers.AuthenticationController.verifyToken
 
-POST		/api/usernames				controllers.AuthenticationController.verifyUsernameAlreadyTaken
+POST		/api/emails					controllers.AuthenticationController.verifyEmailAlreadyTaken

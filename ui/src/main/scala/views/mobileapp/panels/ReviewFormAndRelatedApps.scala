@@ -25,6 +25,7 @@ import apimodels.review.Review
 import appstate.ReviewsFetched
 import hoc.form.{CreateReviewForm, CreatePollForm}
 import java.time.LocalDate
+import hoc.panel.AppsPanel
 
 object ReviewFormAndRelatedApps {
 
@@ -60,22 +61,9 @@ object ReviewFormAndRelatedApps {
 
   def relatedAppsPanel(relatedApps: Seq[MobileApp]) = {
 
-    @dom
-    val panel =
-      <div>
-    		  <Message header={"Related apps"} content={
-    				<div>
-    					<h1>Related apps</h1>
-                <ul>{ toBindingSeq(relatedApps).map(app => 
-                  <li>
-                    <a href={s"#/globeapp/catalog/${app._id.get}"}>{ app.name }</a> 
-                    <span> ({ app.store }) </span> 
-                  </li>) }
-                </ul>
-            </div>
-          }/>
-      </div>
-
+    @dom val panel = 
+    	<AppsPanel apps={relatedApps} header="Related apps"/>
+    
     panel
   }
 }
