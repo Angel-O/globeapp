@@ -90,7 +90,7 @@ trait ReviewEffects {
 }
 
 // Selector
-object ReviewsSelector extends ReadConnect[AppModel, Seq[Review]] {
+object ReviewsSelector extends AppModelSelector[Seq[Review]] {
   def getReviews() = model.sortBy(_.dateCreated.map(identity))
   def getReviewById(id: String) = getReviews().find(_._id == Some(id))
   def getReviewsByApp(mobileAppId: String) = getReviews().filter(_.mobileAppId == mobileAppId)

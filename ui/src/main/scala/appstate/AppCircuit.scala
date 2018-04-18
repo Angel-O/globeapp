@@ -4,7 +4,6 @@ import diode.Circuit
 import diode.ActionHandler
 import diode.ModelRW
 import apimodels.user.User
-import ApiCalls._
 import diode.Dispatcher
 import diode.ModelR
 import diode.data.PotState._
@@ -206,8 +205,6 @@ abstract class ReadWriteConnectBase[M <: AnyRef, T] {
 }
 
 trait ReadConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
-  import utils.localDateOrdering
-  implicit val ordering = localDateOrdering // made available to all selectors...TODO find a better way..this shouldn't depend on utils
   protected def model = cursor.value
   protected def initialModel = circuit.initialModel
 }
@@ -218,4 +215,9 @@ trait WriteConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
 }
 
 trait RWConnect[M <: AnyRef, T] extends ReadConnect[M, T] with WriteConnect[M, T]
+
+trait AppModelSelector[T] extends ReadConnect[AppModel, T]{
+  import apimodels.common.localDateOrdering
+  implicit val ordering = localDateOrdering
+}
 

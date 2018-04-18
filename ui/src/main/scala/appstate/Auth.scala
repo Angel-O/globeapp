@@ -226,7 +226,7 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
 }
 
 // Selector
-object AuthSelector extends ReadConnect[AppModel, AuthState] {
+object AuthSelector extends AppModelSelector[AuthState] {
 
   import utils.persist._
   def getToken() = model.jwt

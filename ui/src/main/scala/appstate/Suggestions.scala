@@ -76,7 +76,7 @@ trait SuggestionsEffects extends Push {
   }
 }
 
-object SuggestionsSelector extends ReadConnect[AppModel, SuggestionsState] {
+object SuggestionsSelector extends AppModelSelector[SuggestionsState] {
   import scala.util.Random
   
   def getSuggestedMobileApps(maxAmount: Int) =

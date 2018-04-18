@@ -70,7 +70,17 @@ trait MobileAppsEffects extends Push {
       Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
         .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
   }
+}
+
+// Selector
+object MobileAppsSelector extends AppModelSelector[Seq[MobileApp]]{
+  def getMobileApps() = model.sortBy(_.name)
+  def getMobileAppById(id: String) = getMobileApps.find(_._id == Some(id)) 
   
+  val cursor = AppCircuit.mobileAppSelector
+  val circuit = AppCircuit
+}
+
 //  def fetchMobileAppsEffect() = {
 //    Effect(
 //      Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
@@ -95,25 +105,3 @@ trait MobileAppsEffects extends Push {
   //   }
   //   p.future
   // }
-}
-
-// Selector
-trait MobileAppsSelector extends GenericConnect[AppModel, Seq[MobileApp]] {
-
-  def getAllApps() = MobileAppsSelector.getMobileApps()
-  def getAppById(id: String) = MobileAppsSelector.getMobileAppById(id)
-
-  val cursor = AppCircuit.mobileAppSelector
-  val circuit = AppCircuit
-  connect()
-}
-
-object MobileAppsSelector extends ReadConnect[AppModel, Seq[MobileApp]]{
-  def getMobileApps() = model.sortBy(_.name)
-  def getMobileAppById(id: String) = getMobileApps.find(_._id == Some(id)) 
-  
-  val cursor = AppCircuit.mobileAppSelector
-  val circuit = AppCircuit
-  
-  //def onMobileAppUpdate(connector: => Unit) = circuit.subscribe(cursor)(_ => connector)
-}

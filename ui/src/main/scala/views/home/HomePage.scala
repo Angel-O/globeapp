@@ -59,8 +59,7 @@ object HomePage {
             <Tile isParent={ true } children={Seq(
               <Tile isDanger={ true } content={
                 <div>
-                  <p class="title">Wide tile</p>
-                  <p class="subtitle">Aligned with the right tile</p>
+                  <p class="subtitle">Hot area</p>
                   <div class="content">
                     { mostDebatedAppsPanel.bind }
                   </div>
@@ -89,7 +88,7 @@ object HomePage {
     
     @dom val mostDebatedAppsPanel = {
       val apps = mostDebatedApps.bind
-      <div><AppsPanel header="Hot apps" apps={apps} isInfo={true}/></div>
+      <div><AppsPanel header="People are talking about these" apps={apps} isInfo={true}/></div>
     }
     
     def update() = {
