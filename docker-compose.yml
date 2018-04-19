@@ -1,0 +1,44 @@
+version: "3"
+services:
+  auth:
+    image: authentication-server:0.1-SNAPSHOT
+    container_name: auth
+    ports:
+      - "3000:9000"
+  app:
+    image: app-server:0.1-SNAPSHOT
+    container_name: app      
+    ports:
+      - "3001:9000"
+  review:
+    image: review-server:0.1-SNAPSHOT
+    container_name: review   
+    ports:
+      - "3002:9000"
+  poll:
+    image: poll-server:0.1-SNAPSHOT
+    container_name: poll
+    ports:
+      - "3003:9000"
+  profile:
+    image: profile-server:0.1-SNAPSHOT
+    container_name: profile
+    ports:
+      - "3004:9000"
+  suggestion:
+    image: suggestion-server:0.1-SNAPSHOT
+    container_name: suggestion
+    ports:
+      - "3005:9000"
+  db:
+    image: mongo:latest
+    container_name: db
+#    command: mongod
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-data:/usr/local/var/mongodb
+ 
+ 
+
+
