@@ -211,6 +211,16 @@ commands += Command.command("runall") { state =>
     state
 }
 
+commands += Command.command("createimages") { state =>
+    "project authenticationServer" :: "docker:publishLocal" ::
+    "project appServer" :: "docker:publishLocal" ::
+    "project reviewServer" :: "docker:publishLocal" ::
+    "project pollServer" :: "docker:publishLocal" ::
+    "project profileServer" :: "docker:publishLocal" ::
+    "project suggestionServer" :: "docker:publishLocal" ::
+    state
+}
+
 //lazy val runall = inputKey[Unit]("run all servers")
 //commands += Command.command("go1") { state =>
 //    ";project appServer; clean ; stage; runit" :: 

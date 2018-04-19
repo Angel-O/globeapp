@@ -32,8 +32,8 @@ services:
       - "3005:9000"
   db:
     image: mongo:latest
-    container_name: db
-#    command: mongod
+    container_name: mongodb
+    command: mongod
     ports:
       - "27017:27017"
     volumes:

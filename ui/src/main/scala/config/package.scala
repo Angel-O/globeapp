@@ -36,5 +36,5 @@ object Network{
   val USERPROFILE_SERVER_HOST = "profile"
   val USERPROFILE_SERVER_PORT = 3005
   
-  def makeEndpoint(host: String, port: Int) = s"http://$host:$port"
+  def makeEndpoint(host: String, port: Int) = s"http://localhost:$port" //s"http://$host:$port"
 }
