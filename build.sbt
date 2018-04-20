@@ -33,8 +33,8 @@ execScript5 := { "profile-server/target/universal/stage/bin/suggestion-server -D
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    .aggregate(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
-    .dependsOn(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
+    .aggregate(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
+    .dependsOn(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
     .settings(
         commonSettings,
         stageAll := { "sbt ;clean ;stage" ! },
@@ -218,8 +218,11 @@ commands += Command.command("createimages") { state =>
     "project pollServer" :: "docker:publishLocal" ::
     "project profileServer" :: "docker:publishLocal" ::
     "project suggestionServer" :: "docker:publishLocal" ::
+    "project root" ::
     state
 }
+
+dockerExposedPorts := Seq(9000, 9001, 9002, 9003, 9004, 9005)
 
 //lazy val runall = inputKey[Unit]("run all servers")
 //commands += Command.command("go1") { state =>
