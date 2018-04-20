@@ -28,8 +28,6 @@ services:
   suggestion:
     image: suggestion-server:0.1-SNAPSHOT
     container_name: suggestion
-    links:
-      - app
     ports:
       - "3005:9000"
   db:
