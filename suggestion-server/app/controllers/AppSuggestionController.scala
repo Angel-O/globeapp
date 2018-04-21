@@ -3,24 +3,19 @@ package controllers
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import apimodels.user.UserProfile
 import apimodels.mobile.MobileApp
 import apimodels.mobile.MobileApp._
-import apimodels.mobile.Genre
+import apimodels.poll.Poll
+import apimodels.user.UserProfile
 import javax.inject.Inject
 import play.api.Logger
 import play.api.libs.json.Json.toJson
+import play.api.libs.ws.WSClient
+import services.AppDiscovery._
 import utils.ApiClient._
 import utils.Bson._
 import utils.FutureImplicits._
 import utils.Json._
-import exceptions.ServerException._
-import play.api.libs.ws._
-import apimodels.poll.Poll
-import play.api.mvc.Request
-import play.api.libs.json.JsValue
-import play.api.mvc.AnyContent
-import services.AppDiscovery._
 
 // relatedapps by appid ===> look up genre, keywords (store suggestion for later, track by user)
 // intersting apps ===> lookup user info (where did u hear about us...) (APP + USER)
@@ -54,9 +49,11 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
     Logger.info(s"Retrieving apps of interest to user with id = ${userId}")
     (for {
       (userProfileJsonResponse, mobileAppsJsonResponse) <- 
-        Get(s"$PROFILES_API_ROOT/userprofiles/$userId") zip Get(s"$APPS_API_ROOT/apps") 
+        Get(s"$PROFILES_API_ROOT/userprofiles/$userId") zip 
+        Get(s"$APPS_API_ROOT/apps") 
       (userProfile, mobileApps) <-
-        parseResponse[UserProfile](userProfileJsonResponse) zip parseResponseAll[MobileApp](mobileAppsJsonResponse) 
+        parseResponse[UserProfile](userProfileJsonResponse) zip 
+        parseResponseAll[MobileApp](mobileAppsJsonResponse) 
       appsByGenres <- 
         findAppsByGenres(mobileApps, userProfile.favoriteCategories)
     } yield ( Ok(toJson(appsByGenres)) ))
@@ -66,8 +63,12 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
   def getMostDebatedApps(amount: Int) = AuthenticatedAction.async { implicit req => 
     Logger.info(s"Retrieving most debated apps")
     (for {
-      (pollsJsonResponse, appsJsonResponse) <- Get(s"$POLLS_API_ROOT/polls") zip Get(s"$APPS_API_ROOT/apps")
-      (polls, apps) <- parseResponseAll[Poll](pollsJsonResponse) zip parseResponseAll[MobileApp](appsJsonResponse)
+      (pollsJsonResponse, appsJsonResponse) <- 
+        Get(s"$POLLS_API_ROOT/polls") zip 
+        Get(s"$APPS_API_ROOT/apps")
+      (polls, apps) <- 
+        parseResponseAll[Poll](pollsJsonResponse) zip 
+        parseResponseAll[MobileApp](appsJsonResponse)
       mostDebatedApps <- findMostDebatedApps(polls, apps, amount)
     } yield ( Ok(toJson(mostDebatedApps)) ))
       .logFailure.handleRecover
