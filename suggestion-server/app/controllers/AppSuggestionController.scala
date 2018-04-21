@@ -95,13 +95,32 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
       .find(_._id == Some(appId))
       .map(_.keywords)
       .getOrElse(Seq.empty)
-
-    Future {
-      (for {
-        keyword <- keywords
-        relatedApp <- mobileApps.filter(app => app.keywords.contains(keyword) && app._id != Some(appId))
-      } yield (relatedApp)).distinct
+      
+    def isRelated(app: MobileApp, appId: String, relatedApps: Seq[MobileApp]) = {
+      app.keywords.exists(keywords.contains) && 
+      app._id != Some(appId) && 
+      !relatedApps.contains(app)
     }
+
+    def findRelatedAppsRecursively(
+      mobileApps:  Seq[MobileApp],
+      appId:       String,
+      keywords:    Seq[String],
+      relatedApps: Seq[MobileApp] = Seq.empty): Seq[MobileApp] = {
+
+      mobileApps match {
+        case Nil => relatedApps
+        case app +: rest =>
+          findRelatedAppsRecursively(
+            rest,
+            appId,
+            keywords,
+            if (isRelated(app, appId, relatedApps)) relatedApps :+ app
+            else relatedApps)
+      }
+    }
+
+    Future{ findRelatedAppsRecursively(mobileApps, appId, keywords) }
   }
   
   private def findAppsByGenres(mobileApps: Seq[MobileApp], genres: Seq[Genre]) = {
@@ -112,4 +131,18 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
       } yield(apps)).distinct
     }
   }
+  
+//  private def findRelatedApps2(mobileApps: Seq[MobileApp], appId: String) = {
+//    val keywords = mobileApps
+//      .find(_._id == Some(appId))
+//      .map(_.keywords)
+//      .getOrElse(Seq.empty)
+//
+//    Future {
+//      (for {
+//        keyword <- keywords
+//        relatedApp <- mobileApps.filter(app => app.keywords.contains(keyword) && app._id != Some(appId))
+//      } yield (relatedApp)).distinct
+//    }
+//  }
 }
