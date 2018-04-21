@@ -20,6 +20,7 @@ import apimodels.poll.Poll
 import play.api.mvc.Request
 import play.api.libs.json.JsValue
 import play.api.mvc.AnyContent
+import services.AppDiscovery._
 
 // relatedapps by appid ===> look up genre, keywords (store suggestion for later, track by user)
 // intersting apps ===> lookup user info (where did u hear about us...) (APP + USER)
@@ -45,7 +46,7 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
       mobileApps <- parseResponseAll[MobileApp](jsonResponse)
       relatedApps <- findRelatedApps(mobileApps, appId)
     } yield ( Ok(toJson(relatedApps)) ))
-    .handleRecover
+    .logFailure.handleRecover
   }
   
   def getInterestingApps = AuthenticatedAction.async { implicit req =>
@@ -58,8 +59,8 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
         parseResponse[UserProfile](userProfileJsonResponse) zip parseResponseAll[MobileApp](mobileAppsJsonResponse) 
       appsByGenres <- 
         findAppsByGenres(mobileApps, userProfile.favoriteCategories)
-    } yield (Ok(toJson(appsByGenres))))
-      .handleRecover
+    } yield ( Ok(toJson(appsByGenres)) ))
+      .logFailure.handleRecover
   }
   
   def getMostDebatedApps(amount: Int) = AuthenticatedAction.async { implicit req => 
@@ -68,8 +69,8 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
       (pollsJsonResponse, appsJsonResponse) <- Get(s"$POLLS_API_ROOT/polls") zip Get(s"$APPS_API_ROOT/apps")
       (polls, apps) <- parseResponseAll[Poll](pollsJsonResponse) zip parseResponseAll[MobileApp](appsJsonResponse)
       mostDebatedApps <- findMostDebatedApps(polls, apps, amount)
-    } yield (Ok(toJson(mostDebatedApps))))
-      .handleRecover
+    } yield ( Ok(toJson(mostDebatedApps)) ))
+      .logFailure.handleRecover
   }
   
   // TODO (see main comments)
@@ -77,72 +78,7 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
     Logger.info(s"Retrieving new apps")
     (for {
      httpResponse <- Future { Ok }
-    } yield (httpResponse)).logFailure.handleRecover
+    } yield (httpResponse))
+    .logFailure.handleRecover
   }
-  
-  private def findMostDebatedApps(polls: Seq[Poll], apps: Seq[MobileApp], amount: Int) = {
-    Future {
-      (polls.map(_.mobileAppId) groupBy identity).toSeq
-        .sortBy{ case (_, occurrences) => occurrences.size }
-        .map{ case (id, _) => id }
-        .take(amount)
-        .flatMap(id => apps.find(_._id == Some(id)))
-    }
-  }
-
-  private def findRelatedApps(mobileApps: Seq[MobileApp], appId: String) = {
-    val keywords = mobileApps
-      .find(_._id == Some(appId))
-      .map(_.keywords)
-      .getOrElse(Seq.empty)
-      
-    def isRelated(app: MobileApp, appId: String, relatedApps: Seq[MobileApp]) = {
-      app.keywords.exists(keywords.contains) && 
-      app._id != Some(appId) && 
-      !relatedApps.contains(app)
-    }
-
-    def findRelatedAppsRecursively(
-      mobileApps:  Seq[MobileApp],
-      appId:       String,
-      keywords:    Seq[String],
-      relatedApps: Seq[MobileApp] = Seq.empty): Seq[MobileApp] = {
-
-      mobileApps match {
-        case Nil => relatedApps
-        case app +: rest =>
-          findRelatedAppsRecursively(
-            rest,
-            appId,
-            keywords,
-            if (isRelated(app, appId, relatedApps)) relatedApps :+ app
-            else relatedApps)
-      }
-    }
-
-    Future{ findRelatedAppsRecursively(mobileApps, appId, keywords) }
-  }
-  
-  private def findAppsByGenres(mobileApps: Seq[MobileApp], genres: Seq[Genre]) = {
-    Future {
-      (for {
-        genre <- genres
-        apps <- mobileApps.filter(app => app.genre == genre)
-      } yield(apps)).distinct
-    }
-  }
-  
-//  private def findRelatedApps2(mobileApps: Seq[MobileApp], appId: String) = {
-//    val keywords = mobileApps
-//      .find(_._id == Some(appId))
-//      .map(_.keywords)
-//      .getOrElse(Seq.empty)
-//
-//    Future {
-//      (for {
-//        keyword <- keywords
-//        relatedApp <- mobileApps.filter(app => app.keywords.contains(keyword) && app._id != Some(appId))
-//      } yield (relatedApp)).distinct
-//    }
-//  }
 }
