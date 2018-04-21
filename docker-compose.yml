@@ -38,6 +38,9 @@ services:
       - "27017:27017"
     volumes:
       - ./mongo-data:/usr/local/var/mongodb
+      
+
+# mongorestore -h localhost:27017 -d globeapp ./dump/globeapp
  
  
 

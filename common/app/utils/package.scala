@@ -16,6 +16,8 @@ import exceptions.ServerException._
 import apimodels.common.Entity
 import play.api.libs.ws._
 import play.api.mvc.AnyContent
+import scala.util.Try
+import play.api.mvc.Flash
 
 package object utils {
 
@@ -51,6 +53,7 @@ package object utils {
       Future { if (res.status == 200) res.json.validate[Seq[T]].get else handleResponseError(res) } 
     }
     
+    // this will be returned to the client, no need to add anything apart from status text
     private def handleResponseError(response: WSResponse) = response.status match {
       case 401 => throw UnauthorizedException(response.statusText) // Should not be happening
       case 403 => throw ForbiddenException(response.statusText) 
@@ -67,21 +70,34 @@ package object utils {
     
     implicit class LogErrorFuture[A](x: Future[A]){
       def logFailure(implicit ec: ExecutionContext) =
-        x.andThen({ case Failure(ex) => Logger.error(ex.getMessage, ex) })
+        x.andThen({ case Failure(ex) => Logger.error(ex.getMessage, ex.getCause) })
     }
     
-    implicit class RecoveryFuture(x: Future[Result]){
+    implicit class LogResponseFuture(x: Future[WSResponse]){
+      def logResponseError(implicit ec:ExecutionContext) = 
+        x.andThen({
+          case maybeResponse: Try[WSResponse] =>
+            maybeResponse.map(response => response.header("error").map(err => Logger.error(err)))
+        })
+    }
+
+    // TODO investigate: why can't the andThen be extracted into
+    // it's own implicit class like LogErrorFuture??
+    // TODO avoid returning the error to the ui client maybe add error to the session
+    implicit class RecoveryFuture(x: Future[Result]) {
       def handleRecover(implicit ec: ExecutionContext) =
-        x.recover({ 
-          case UnauthorizedException(_) => Unauthorized
-          case ForbiddenException(_) => Forbidden 
-          case NotFoundException(_) => NotFound 
-          case _ => BadRequest })
+        x.recover({
+          case UnauthorizedException(msg) => Unauthorized.withHeaders(("error" -> msg)) 
+          case ForbiddenException(msg)    => Forbidden.withHeaders(("error" -> msg))
+          case NotFoundException(msg)     => NotFound.withHeaders(("error" -> msg))
+          case _                          => BadRequest
+        })
     }
   }
   
   object ApiClient {
-    def Get(url: String)(implicit ws: WSClient, req: Request[_]): Future[WSResponse] = {
+    import FutureImplicits._
+    def Get(url: String)(implicit ws: WSClient, req: Request[_], ec:ExecutionContext): Future[WSResponse] = {
       val token = req.jwtSession.serialize
       val apiRequest: WSRequest = ws.url(url)
       apiRequest
@@ -89,6 +105,7 @@ package object utils {
         .addHttpHeaders("Token" -> token)
         .withRequestTimeout(10000.millis) //TODO move to config
         .get()
+        .logResponseError      
     }
   }
 }

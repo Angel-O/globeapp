@@ -45,7 +45,7 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
       mobileApps <- parseResponseAll[MobileApp](jsonResponse)
       relatedApps <- findRelatedApps(mobileApps, appId)
     } yield ( Ok(toJson(relatedApps)) ))
-    .logFailure.handleRecover
+    .handleRecover
   }
   
   def getInterestingApps = AuthenticatedAction.async { implicit req =>
@@ -53,13 +53,13 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
     Logger.info(s"Retrieving apps of interest to user with id = ${userId}")
     (for {
       (userProfileJsonResponse, mobileAppsJsonResponse) <- 
-        Get(s"$PROFILES_API_ROOT/userprofiles/$userId") zip Get(s"$APPS_API_ROOT/apps")
+        Get(s"$PROFILES_API_ROOT/userprofiles/$userId") zip Get(s"$APPS_API_ROOT/apps") 
       (userProfile, mobileApps) <-
-        parseResponse[UserProfile](userProfileJsonResponse) zip parseResponseAll[MobileApp](mobileAppsJsonResponse)
+        parseResponse[UserProfile](userProfileJsonResponse) zip parseResponseAll[MobileApp](mobileAppsJsonResponse) 
       appsByGenres <- 
         findAppsByGenres(mobileApps, userProfile.favoriteCategories)
     } yield (Ok(toJson(appsByGenres))))
-      .logFailure.handleRecover
+      .handleRecover
   }
   
   def getMostDebatedApps(amount: Int) = AuthenticatedAction.async { implicit req => 
@@ -69,7 +69,7 @@ class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implic
       (polls, apps) <- parseResponseAll[Poll](pollsJsonResponse) zip parseResponseAll[MobileApp](appsJsonResponse)
       mostDebatedApps <- findMostDebatedApps(polls, apps, amount)
     } yield (Ok(toJson(mostDebatedApps))))
-      .logFailure.handleRecover
+      .handleRecover
   }
   
   // TODO (see main comments)
