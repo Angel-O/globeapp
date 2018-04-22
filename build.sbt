@@ -26,8 +26,8 @@ execScript0 := { "authentication-server/target/universal/stage/bin/authenticatio
 execScript1 := { "app-server/target/universal/stage/bin/app-server -Dhttp.port=3001" !} 
 execScript2 := { "review-server/target/universal/stage/bin/review-server -Dhttp.port=3002" !}
 execScript3 := { "poll-server/target/universal/stage/bin/poll-server -Dhttp.port=3003" !}
-execScript4 := { "suggestion-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3004" !}
-execScript5 := { "profile-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3005" !}
+execScript4 := { "profile-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3004" !}
+execScript5 := { "suggestion-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3005" !}
 
 
 //lazy val all = taskKey[Unit]("compile and then scalastyle")

@@ -47,7 +47,7 @@ class PollSuggestionController @Inject()(scc: SecuredControllerComponents)(impli
   // TODO rename to polls of interest (...favorite polls comis soon...)
   def getInterestingPolls = AuthenticatedAction.async { implicit req =>
     val userId = req.user._id.get
-    Logger.info("Retrieving intersting polls")
+    Logger.info(s"Retrieving polls of interest to user with id = ${userId}")
     (for {
       ((userProfileJsonResponse, mobileAppsJsonResponse), pollsJsonResponse) <- 
         Get(s"$PROFILES_API_ROOT/userprofiles/$userId") zip 

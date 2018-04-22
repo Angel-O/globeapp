@@ -12,6 +12,3 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 GET		/api/userprofiles/:userId   controllers.UserProfileController.getUserProfile(userId: String)
 
 POST		/api/userprofiles		controllers.UserProfileController.postUserProfile
-
-#TODO make it rest
-GET		/api/all					controllers.UserProfileController.getAll 
