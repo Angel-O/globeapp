@@ -26,15 +26,15 @@ execScript0 := { "authentication-server/target/universal/stage/bin/authenticatio
 execScript1 := { "app-server/target/universal/stage/bin/app-server -Dhttp.port=3001" !} 
 execScript2 := { "review-server/target/universal/stage/bin/review-server -Dhttp.port=3002" !}
 execScript3 := { "poll-server/target/universal/stage/bin/poll-server -Dhttp.port=3003" !}
-execScript4 := { "suggestion-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3004" !}
-execScript5 := { "profile-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3005" !}
+execScript4 := { "profile-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3004" !}
+execScript5 := { "suggestion-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3005" !}
 
 
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    .aggregate(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
-    .dependsOn(authenticationServer, appServer, pollServer, reviewServer, suggestionServer)
+    .aggregate(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
+    .dependsOn(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
     .settings(
         commonSettings,
         stageAll := { "sbt ;clean ;stage" ! },
@@ -210,6 +210,19 @@ commands += Command.command("runall") { state =>
     "project ui" :: "~fastOptJS" ::
     state
 }
+
+commands += Command.command("createimages") { state =>
+    "project authenticationServer" :: "docker:publishLocal" ::
+    "project appServer" :: "docker:publishLocal" ::
+    "project reviewServer" :: "docker:publishLocal" ::
+    "project pollServer" :: "docker:publishLocal" ::
+    "project profileServer" :: "docker:publishLocal" ::
+    "project suggestionServer" :: "docker:publishLocal" ::
+    "project root" ::
+    state
+}
+
+dockerExposedPorts := Seq(9000, 9001, 9002, 9003, 9004, 9005)
 
 //lazy val runall = inputKey[Unit]("run all servers")
 //commands += Command.command("go1") { state =>

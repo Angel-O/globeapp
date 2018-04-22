@@ -38,8 +38,11 @@ case class User(
   gender:   Option[Gender] = None) extends Entity
 
 case object User {
-  implicit val genderFormat = GenderFormat
+  // looks like the order of this format is important
+  // swapping role format and gender format has the effect
+  // of a compiliation failure
   implicit val roleFormat = RoleFormat
+  implicit val genderFormat = GenderFormat
   implicit val userFormat: OFormat[User] = Json.format[User]
   def apply(
     username: String,

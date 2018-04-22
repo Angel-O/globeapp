@@ -10,7 +10,7 @@ libraryDependencies += guice
 
 lazy val execScript = taskKey[Unit]("Execute the shell script")
 lazy val runit = inputKey[Unit]("run server in stage mode")
-execScript := { s"${name.value}/target/universal/stage/bin/${name.value} -Dhttp.port=3005" !}
+execScript := { s"${name.value}/target/universal/stage/bin/${name.value} -Dhttp.port=3004" !}
 runit in Compile := { execScript.value }
         
 

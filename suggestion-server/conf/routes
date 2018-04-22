@@ -14,3 +14,5 @@ GET		/api/relatedapps/:appId	controllers.AppSuggestionController.getRelatedApps(
 GET		/api/interestingapps		controllers.AppSuggestionController.getInterestingApps
 
 GET		/api/mostdebatedapps		controllers.AppSuggestionController.getMostDebatedApps(amount: Int)
+
+GET		/api/interestingpolls	controllers.PollSuggestionController.getInterestingPolls
