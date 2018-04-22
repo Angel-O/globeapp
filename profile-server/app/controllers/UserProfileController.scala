@@ -26,7 +26,8 @@ class UserProfileController @Inject()(scc: SecuredControllerComponents,
   def getUserProfile(userId: String) = Action.async { 
     Logger.info(s"Fetching user profile (userId = $userId)")
     (for {
-      userProfile <- fetchUserProfile(userId)
+      validId <- parseId(userId) // not neccessary, but it provides a useful error msg
+      userProfile <- fetchUserProfile(validId)
       httpResponse <- Future.successful { Ok(toJson(userProfile)) }
     } yield (httpResponse))
     .logFailure.handleRecover

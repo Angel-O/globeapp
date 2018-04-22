@@ -26,11 +26,11 @@ case object PersistentState{
 }
 
 // Global state tree
-case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls, reviews: Reviews, suggestions: Suggestions)
+case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls, reviews: Reviews, suggestions: Suggestions, uiUser: UiUser)
 
 object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with GlobalSelector[AppModel] with HelpConnect[AppModel] {
 
-  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls(), Reviews(), Suggestions())
+  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls(), Reviews(), Suggestions(), UiUser())
 
   def currentModel = zoom(identity).value
 
@@ -41,6 +41,7 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
   val pollSelector = zoomTo(x => x.polls.polls)
   val reviewSelector = zoomTo(x => x.reviews.reviews)
   val suggestionSelector = zoomTo(x => x.suggestions.state)
+  val uiUserSelector = zoomTo(x => x.uiUser.state)
   
   implicit val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
   
@@ -55,7 +56,8 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
     new MobileAppsHandler(mobileAppSelector),
     new PollHandler(pollSelector),
     new ReviewHandler(reviewSelector),
-    new SuggestionHandler(suggestionSelector)
+    new SuggestionHandler(suggestionSelector),
+    new UiUserHandler(uiUserSelector)
   )
   
   val circuit = this

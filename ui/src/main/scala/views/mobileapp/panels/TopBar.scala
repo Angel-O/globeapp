@@ -14,7 +14,7 @@ import appstate.ReviewsSelector._
 import appstate.AuthSelector._
 import appstate.SuggestionsSelector._
 import apimodels.mobile.MobileApp
-import appstate.{CreateReview, FetchReviews, CreatePoll, UpdateReview, FetchRelatedApps}
+import appstate.{CreateReview, FetchReviews, CreatePoll, UpdateReview, FetchRelatedApps, AddAppToFavorites}
 import apimodels.review.Review
 import appstate.ReviewsFetched
 import hoc.form.{CreateReviewForm, CreatePollForm}
@@ -35,10 +35,12 @@ object TopBar {
       //Fetch mobile app from server otherwise if user refreshes page this will be None...
       val appName = getMobileAppById(appId).map(_.name).getOrElse("")
       
+      def addtoFavorites() = dispatch(AddAppToFavorites(appId))
+      
       <div style={"display: flex; justify-content: space-between"}>
         <div> { appName } </div>
         <div style={"display: flex"}>
-          <SimpleButton icon={<Icon id="heart"/>} label={"favorite"}/> 
+          <SimpleButton icon={<Icon solid={Some(false)} id="heart"/>} label={"favorite"} onClick={addtoFavorites _}/> 
           {toBindingSeq(userReview).map(review => {
             def updateReview(title: String, content: String, rating: Int) = 
             dispatch(UpdateReview(review._id.get, title, content, rating));
