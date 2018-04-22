@@ -13,17 +13,20 @@ import utils.FutureImplicits._
 import utils.Json._
 import utils.ApiClient._
 import exceptions.ServerException._
+import config.AppConfig
+import play.api.libs.ws.WSClient
+import apimodels.mobile.MobileApp
 
 class UserProfileController @Inject()(scc: SecuredControllerComponents,
-                               repository: UserProfileRepository)
+                               repository: UserProfileRepository)(implicit appConfig: AppConfig, ws: WSClient)
     extends SecuredController(scc) {
+  
+  import appConfig.Api._
 
   def getUserProfile(userId: String) = Action.async { 
-    Logger.info("Fetching user profile")
+    Logger.info(s"Fetching user profile (userId = $userId)")
     (for {
-      userProfile <- 
-        repository.getByUser(userId) map 
-        { _.getOrElse(throw NotFoundException("Profile not found")) }
+      userProfile <- fetchUserProfile(userId)
       httpResponse <- Future.successful { Ok(toJson(userProfile)) }
     } yield (httpResponse))
     .logFailure.handleRecover
@@ -42,45 +45,47 @@ class UserProfileController @Inject()(scc: SecuredControllerComponents,
   }
   
   def addAppToFavorites(appId: String) = AuthenticatedAction.async { req =>
+    val userId = req.user._id.get
     Logger.info(s"Saving favorite app (id = $appId)")
     (for {
       validId <- parseId(appId)
-      userProfile <- 
-        repository.getByUser(req.user._id.get) map 
-        { _.getOrElse(throw new NotFoundException("Profile not found")) }
+      userProfile <- fetchUserProfile(userId)
       updated <- repository.updateOne(userProfile._id.get, userProfile.addFavoriteApp(appId))
       httpResponse <- Future.successful { Ok(toJson(updated)) }
-    } yield(httpResponse))
+    } yield (httpResponse))
     .logFailure.handleRecover
   }
   
   def removeAppFromFavorites(appId: String) = AuthenticatedAction.async { req =>
+    val userId = req.user._id.get
     Logger.info(s"Removing favorite app (id = $appId)")
     (for {
       validId <- parseId(appId)
-      userProfile <- 
-        repository.getByUser(req.user._id.get) map 
-        { _.getOrElse(throw new NotFoundException("Profile not found")) }
+      userProfile <- fetchUserProfile(userId)
       updated <- repository.updateOne(userProfile._id.get, userProfile.removeFromFavoriteApps(appId))
       httpResponse <- Future.successful { Ok(toJson(updated)) }
-    } yield(httpResponse))
+    } yield (httpResponse))
     .logFailure.handleRecover
   }
   
-  //TODO finish this afer moving endpoint to common config file...
-  def getFavoriteApps = AuthenticatedAction.async { req => 
+  def getFavoriteApps = AuthenticatedAction.async { implicit req => 
     val userId = req.user._id.get
     Logger.info(s"Fetching favorite apps (user id = $userId)")
     (for {
-      userProfile <- 
-        repository.getByUser(userId) map 
-        { _.getOrElse(throw new NotFoundException("Profile not found")) }
-      
-      apps <- Future{} // Get()
-      
-    } yield (???))
+      (userProfile, jsonResponse) <- 
+        fetchUserProfile(userId) zip
+        Get(s"$APPS_API_ROOT/apps")
+      apps <- parseResponseAll[MobileApp](jsonResponse)
+      // favoriteApps <- Future { apps.filter(app => app._id.map(userProfile.favoriteApps.contains).getOrElse(false)) } //INEFFICIENT 
+      favoriteApps <- Future { userProfile.favoriteApps.flatMap(appId => apps.find(_._id == Some(appId))) }
+    } yield ( Ok(toJson(favoriteApps)) ))
+    .logFailure.handleRecover
+  }
+  
+  private def fetchUserProfile(userId: String) = {
+    repository.getByUser(userId) map 
+    { _.getOrElse(throw new NotFoundException("Profile not found")) }
   }
   
   //TODO allow to update user profile (to save favorite apps, change favorite categories...)
-  //TODO endpoint to get favorite apps
 }

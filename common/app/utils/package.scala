@@ -17,10 +17,19 @@ import apimodels.common.Entity
 import play.api.libs.ws._
 import play.api.mvc.AnyContent
 import scala.util.Try
-import play.api.mvc.Flash
+import com.github.dwickern.macros.NameOf
+import com.github.dwickern.macros.NameOf._
+import javax.inject.Inject
+import javax.inject.Singleton
+import play.api.Configuration
+import config.AppConfig
+
+//import com.google.inject.Inject
 
 package object utils {
-
+ 
+  val nameOf = NameOf
+  
   object Bson {
     import FutureImplicits._
     def parseId(id: String)(implicit ec: ExecutionContext) = {
@@ -97,13 +106,14 @@ package object utils {
   
   object ApiClient {
     import FutureImplicits._
-    def Get(url: String)(implicit ws: WSClient, req: Request[_], ec:ExecutionContext): Future[WSResponse] = {
+    def Get(url: String)(implicit ws: WSClient, req: Request[_], ec:ExecutionContext, config: AppConfig): Future[WSResponse] = {
       val token = req.jwtSession.serialize
       val apiRequest: WSRequest = ws.url(url)
+      import config.Api._
       apiRequest
-        .addHttpHeaders("Accept" -> "application/json")
-        .addHttpHeaders("Token" -> token)
-        .withRequestTimeout(10000.millis) //TODO move to config
+        .addHttpHeaders("Accept" -> s"$CONTENT")
+        .addHttpHeaders(s"$TOKEN_HEADER" -> token)
+        .withRequestTimeout(REQUEST_TIMEOUT.millis)
         .get()
         .logResponseError      
     }

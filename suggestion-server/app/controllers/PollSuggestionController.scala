@@ -16,6 +16,7 @@ import services.AppDiscovery._
 import utils.ApiClient._
 import utils.FutureImplicits._
 import utils.Json._
+import config.AppConfig
 
 // relatedapps by appid ===> look up genre, keywords (store suggestion for later, track by user)
 // intersting apps ===> lookup user info (where did u hear about us...) (APP + USER)
@@ -28,10 +29,10 @@ import utils.Json._
 
 //TODO store info on db ===> track if user creates a poll or leaves a review based on suggestion
 
-class PollSuggestionController @Inject()(scc: SecuredControllerComponents)(implicit ws: WSClient)
+class PollSuggestionController @Inject()(scc: SecuredControllerComponents)(implicit ws: WSClient, appConfig: AppConfig)
     extends SecuredController(scc) {
   
-  import Config._
+  import appConfig.Api._
   
   // TODO rename to about to close polls...
   def getRecentPolls = AuthenticatedAction.async { implicit req =>

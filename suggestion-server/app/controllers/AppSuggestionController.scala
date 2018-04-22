@@ -8,6 +8,7 @@ import apimodels.mobile.MobileApp._
 import apimodels.poll.Poll
 import apimodels.user.UserProfile
 import javax.inject.Inject
+import play.api.Configuration
 import play.api.Logger
 import play.api.libs.json.Json.toJson
 import play.api.libs.ws.WSClient
@@ -16,6 +17,7 @@ import utils.ApiClient._
 import utils.Bson._
 import utils.FutureImplicits._
 import utils.Json._
+import config.AppConfig
 
 // relatedapps by appid ===> look up genre, keywords (store suggestion for later, track by user)
 // intersting apps ===> lookup user info (where did u hear about us...) (APP + USER)
@@ -28,10 +30,10 @@ import utils.Json._
 
 //TODO store info on db ===> track if user creates a poll or leaves a review based on suggestion
 
-class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implicit ws: WSClient)
+class AppSuggestionController @Inject()(scc: SecuredControllerComponents)(implicit ws: WSClient, appConfig: AppConfig)
     extends SecuredController(scc) {
   
-  import Config._
+  import appConfig.Api._
   
   def getRelatedApps(appId: String) = AuthenticatedAction.async { implicit req =>
     Logger.info(s"Retrieving apps related to app with id = $appId")
