@@ -1,0 +1,22 @@
+version: "3"
+services:
+  profile:
+    image: profile-server:0.1-SNAPSHOT
+    container_name: profile-api
+    ports:
+      - "3004:9000"
+  db:
+    image: mongo:latest
+    container_name: profile-db
+    command: mongod
+    ports:
+      - "37014:27017"
+    volumes:
+      - ./mongo-data:/usr/local/var/mongodb
+      
+
+# mongorestore -h localhost:37017 -d globeapp ./dump/globeapp
+ 
+ 
+
+

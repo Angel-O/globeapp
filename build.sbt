@@ -7,6 +7,7 @@ import scala.sys.process._
 lazy val commonSettings = Seq(
     organization := "com.Angelo",
     scalaVersion := "2.12.3",
+    // version in Docker := "latest",
     version      := "0.1.0-SNAPSHOT",
     scalacOptions ++= Seq("-feature", "-deprecation"),
     ensimeScalaVersion in ThisBuild := "2.12.3"
@@ -30,11 +31,18 @@ execScript4 := { "profile-server/target/universal/stage/bin/suggestion-server -D
 execScript5 := { "suggestion-server/target/universal/stage/bin/suggestion-server -Dhttp.port=3005" !}
 
 
+//lazy val dcuScript = taskKey[Unit]("docker compose up")
+//lazy val dcu = inputKey[Unit]("run docker container")
+//dcuScript := { "docker-compose up"! }
+//dcu in Compile := { dcuScript.value }
+commands += Command.command("dcu") { state => "sbt ; dcu" :: state }
+
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
     .aggregate(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
     .dependsOn(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
+    .enablePlugins(DockerPlugin)
     .settings(
         commonSettings,
         stageAll := { "sbt ;clean ;stage" ! },
@@ -222,6 +230,7 @@ commands += Command.command("createimages") { state =>
     state
 }
 
+dockerUpdateLatest := true
 dockerExposedPorts := Seq(9000, 9001, 9002, 9003, 9004, 9005)
 
 //lazy val runall = inputKey[Unit]("run all servers")

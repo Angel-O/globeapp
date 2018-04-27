@@ -1,0 +1,22 @@
+version: "3"
+services:
+  suggestion:
+    image: suggestion-server:0.1-SNAPSHOT
+    container_name: suggestion-api
+    ports:
+      - "3005:9000"
+  db:
+    image: mongo:latest
+    container_name: suggestion-db
+    command: mongod
+    ports:
+      - "37015:27017"
+    volumes:
+      - ./mongo-data:/usr/local/var/mongodb
+      
+
+# mongorestore -h localhost:37017 -d globeapp ./dump/globeapp
+ 
+ 
+
+

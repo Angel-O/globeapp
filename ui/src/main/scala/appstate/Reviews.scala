@@ -69,23 +69,36 @@ trait ReviewEffects {
 
   import play.api.libs.json.Json._
 
+  import AuthSelector.getUserId
+
   def fetchReviewsEffect(reviewId: String) = {
-    Effect(Get(url = s"$REVIEW_SERVER_ROOT/api/reviews").map(xhr => ReviewsFetched(read[Seq[Review]](xhr.responseText))))
+    Effect(
+        Get(url = s"$REVIEW_SERVER_ROOT/api/reviews") map 
+        { xhr => ReviewsFetched(read[Seq[Review]](xhr.responseText)) })
   }
 
   def createReviewEffect(username: String, title: String, content: String, rating: Int, mobileAppId: String) = {
-    val userId = AuthSelector.getUserId()
-    val review = Review(author = Author(name = username, userId = Some(userId)), title = title, content = content, rating = rating, mobileAppId = mobileAppId)
-    Effect(Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
-      .map(xhr => ReviewCreated(review.copy(_id = Some(xhr.responseText))))
-      .redirectOnFailure)
+    val review = Review(
+      author = Author(name = username),
+      title = title,
+      content = content,
+      rating = rating,
+      mobileAppId = mobileAppId)
+    Effect(
+        Post(url = s"$REVIEW_SERVER_ROOT/api/reviews", payload = write(review))
+        .map { xhr => ReviewCreated(
+          review.copy(
+            author = review.author.copy(userId = Some(getUserId)),
+            _id = Some(xhr.responseText))) }
+        .redirectOnFailure)
   }
 
   def updateReviewEffect(oldReview: Review, title: String, content: String, rating: Int) = {
     val review = oldReview.copy(title = title, content = content, rating = rating) 
-    Effect(Put(url = s"$REVIEW_SERVER_ROOT/api/reviews/${oldReview._id.get}", payload = write(review))
-      .map(xhr => ReviewUpdated(read[Review](xhr.responseText)))
-      .redirectOnFailure)
+    Effect(
+        Put(url = s"$REVIEW_SERVER_ROOT/api/reviews/${oldReview._id.get}", payload = write(review))
+        .map(xhr => ReviewUpdated(read[Review](xhr.responseText)))
+        .redirectOnFailure)
   }
 }
 
@@ -103,5 +116,4 @@ object ReviewsSelector extends AppModelSelector[Seq[Review]] {
   }
 
   val cursor = AppCircuit.reviewSelector
-  val circuit = AppCircuit
 }

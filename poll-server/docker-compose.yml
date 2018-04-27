@@ -1,0 +1,22 @@
+version: "3"
+services:
+  poll:
+    image: poll-server:0.1-SNAPSHOT
+    container_name: poll-api
+    ports:
+      - "3003:9000"
+  db:
+    image: mongo:latest
+    container_name: poll-db
+    command: mongod
+    ports:
+      - "37013:27017"
+    volumes:
+      - ./mongo-data:/usr/local/var/mongodb
+      
+
+# mongorestore -h localhost:37017 -d globeapp ./dump/globeapp
+ 
+ 
+
+

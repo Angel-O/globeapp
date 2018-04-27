@@ -22,6 +22,7 @@ object MainShell extends BulmaCssClasses {
              logout: () => Unit,
              navigateToCatalog: () => Unit,
              navigateToPolls: () => Unit,
+             navigateToFavoriteApps: () => Unit,
              navigate: () => Unit) = {
 
     val logo =
@@ -92,7 +93,7 @@ object MainShell extends BulmaCssClasses {
             isHoverable={true}
             dropdownItems={Seq(
                 <a href={s"#$ROOT_PATH"}>Your reviews</a>, 
-                <a href={s"#$ROOT_PATH"}>Favourite apps</a>, 
+                <a href={s"#$ROOT_PATH/favoriteapps"}>Favourite apps</a>, 
 							  <a href={s"#$ROOT_PATH"}>Stats</a>, 
                 <a href={s"#$ROOT_PATH"}>Contact us</a>, <hr/>, 
                 <a href={s"#$ROOT_PATH"}>Manage account</a>,

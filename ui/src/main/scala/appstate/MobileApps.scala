@@ -22,14 +22,10 @@ case object MobileApps {
 case object FetchAllMobileApps extends Action
 case object FetchFavoriteMobileApps extends Action // no need for id parameter, using jwt Token for identification...
 case class FetchMobileApp(mobileAppId: String) extends Action
-case class AddMobileAppToFavorites(mobileAppId: String) extends Action
-case class RemoveMobileAppFromFavorites(mobileAppId: String) extends Action
 
 // Derived Actions
 case class MobileAppsFetched(apps: Seq[MobileApp]) extends Action
 case class MobileAppFetched(app: MobileApp) extends Action
-case class MobileAppAddedToFavorites(mobileAppId: String) extends Action //TODO do I need an id here ??
-case class MobileAppRemovedFromFavorites(mobileAppId: String) extends Action //TODO do I need an id here ??
 
 // Action handler
 class MobileAppsHandler[M](modelRW: ModelRW[M, Seq[MobileApp]])
@@ -37,13 +33,9 @@ class MobileAppsHandler[M](modelRW: ModelRW[M, Seq[MobileApp]])
     with MobileAppsEffects {
   override def handle = {
     case FetchAllMobileApps                         => effectOnly(fetchMobileAppsEffect())
-    case FetchFavoriteMobileApps                    => ???
-    case AddMobileAppToFavorites                    => ???
-    case RemoveMobileAppFromFavorites               => ???
+    case FetchFavoriteMobileApps                    => effectOnly(fetchFavoriteMobileAppsEffect())
     case FetchMobileApp(id: String)                 => effectOnly(fetchMobileAppEffect(id))
     case MobileAppsFetched(apps)                    => updated(apps)
-    case MobileAppAddedToFavorites(mobileAppId)     => ???
-    case MobileAppRemovedFromFavorites(mobileAppId) => ???
     case MobileAppFetched(app)                      => updated(Seq(app)) //THIS IS NOT RIGHT
   }
 }
@@ -52,14 +44,15 @@ class MobileAppsHandler[M](modelRW: ModelRW[M, Seq[MobileApp]])
 trait MobileAppsEffects extends Push {
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.Future
-  import utils.api._, utils.jwt._, utils.persist._, utils.json._
+  import utils.api._, utils.jwt._, utils.persist._, utils.json._, utils.redirect._
   import diode.{Effect, NoAction}
   import config._
   
   import play.api.libs.json.Json._
   import play.api.libs.json._
   
-  
+  def userId = AuthSelector.getUserId
+
   def fetchMobileAppEffect(id: String) = {
     Effect(Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps/$id")
         .map(xhr => MobileAppFetched(read[MobileApp](xhr.responseText))))
@@ -68,7 +61,14 @@ trait MobileAppsEffects extends Push {
   def fetchMobileAppsEffect() = {
     Effect(
       Get(url = s"$MOBILEAPP_SERVER_ROOT/api/apps")
-        .map(xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText))))
+        .map{ xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText)) })
+  }
+
+  def fetchFavoriteMobileAppsEffect() = {
+    Effect(
+      Get(url = s"$USERPROFILE_SERVER_ROOT/api/userprofiles/$userId/favoriteapps")
+      .map { xhr => MobileAppsFetched(read[Seq[MobileApp]](xhr.responseText)) }
+      .redirectOnFailure)
   }
 }
 
@@ -77,8 +77,7 @@ object MobileAppsSelector extends AppModelSelector[Seq[MobileApp]]{
   def getMobileApps() = model.sortBy(_.name)
   def getMobileAppById(id: String) = getMobileApps.find(_._id == Some(id)) 
   
-  val cursor = AppCircuit.mobileAppSelector
-  val circuit = AppCircuit
+  val cursor = circuit.mobileAppSelector
 }
 
 //  def fetchMobileAppsEffect() = {

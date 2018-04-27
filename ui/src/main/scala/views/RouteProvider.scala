@@ -13,6 +13,7 @@ import home._
 import catalog._
 import poll._
 import mobileapp._
+import favoriteapps._
 import error._
 
 object RouteProvider {
@@ -31,6 +32,7 @@ object RouteProvider {
       CatalogPageURI.tail.toPath -> CatalogPage.view _,
       PollsPageURI.tail.toPath -> PollsPage.view _,
       MobileAppDetailPageURI -> MobileAppPage.view _,
+      FavoriteAppsPageURI.tail.toPath -> FavoriteAppsPage.view _,
       UnavailablePageURI.tail.toPath -> ErrorPage.unavailable _,
       NotFoundPageURI.tail.toPath -> ErrorPage.notFound _
       //UserPostURI -> UserEditPage.view _

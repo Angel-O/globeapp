@@ -116,7 +116,6 @@ object PollSelector extends AppModelSelector[Seq[Poll]] {
   def getPollById(id: String) = getPolls.find(_._id == Some(id))
   def getPollsPartecipated(userId: String) =
     getPolls.filter(_.options.exists(_.votedBy.contains(userId)))
-
-  val cursor = AppCircuit.pollSelector
-  val circuit = AppCircuit
+    
+  val cursor = circuit.pollSelector
 }

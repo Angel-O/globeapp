@@ -18,8 +18,10 @@ import components.core.ComponentBuilder
 
 // Represents the portion of the state that will be serialized
 // in the location storage to be retrieved after a browser refresh
-case class PersistentState(user: User)
+case class PersistentState(user: Option[User] = None, favoriteAppsIds: Seq[String] = Seq.empty)
 case object PersistentState{
+  import utils.persist._
+  def apply() = retrieve()
   //def apply(username: String, userId: String) = new PersistentState(username, userId)
   //def apply() = new PersistentState("", "") //TODO use option after finding out how to persist global state
   //implicit def rw: RW[PersistentState] = macroRW
@@ -101,6 +103,13 @@ trait HelpConnect[M <: AnyRef] {
   //   case h::Nil => Future { dispatchAll(Seq(h)) }
   //   case _ => Future.unit
   // }
+}
+
+trait AppModelSelector[T] extends ReadConnect[AppModel, T]{
+  import apimodels.common.localDateOrdering
+  import AppCircuit._
+  implicit val ordering = localDateOrdering
+  val circuit = AppCircuit
 }
 
 class LoggingHandler[M](modelRW: ModelRW[M, AppModel])
@@ -202,13 +211,13 @@ trait SilentConnect[M <: AnyRef,T] extends GenericConnect[M,T]{
 //////// TODO improve this: the goal is to allow to connect to multiple selectors 
 
 abstract class ReadWriteConnectBase[M <: AnyRef, T] {
-  val cursor: ModelR[M, T]
   val circuit: Circuit[M] with ModelLens[M]
+  val cursor: ModelR[M, T]
 }
 
 trait ReadConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
-  protected def model = cursor.value
   protected def initialModel = circuit.initialModel
+  protected def model = cursor.value
 }
 
 trait WriteConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
@@ -218,8 +227,4 @@ trait WriteConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
 
 trait RWConnect[M <: AnyRef, T] extends ReadConnect[M, T] with WriteConnect[M, T]
 
-trait AppModelSelector[T] extends ReadConnect[AppModel, T]{
-  import apimodels.common.localDateOrdering
-  implicit val ordering = localDateOrdering
-}
 

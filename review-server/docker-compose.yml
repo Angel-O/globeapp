@@ -1,0 +1,22 @@
+version: "3"
+services:
+  review:
+    image: review-server:0.1-SNAPSHOT
+    container_name: review-api   
+    ports:
+      - "3002:9000"
+  db:
+    image: mongo:latest
+    container_name: review-db
+    command: mongod
+    ports:
+      - "37012:27017"
+    volumes:
+      - ./mongo-data:/usr/local/var/mongodb
+      
+
+# mongorestore -h localhost:37017 -d globeapp ./dump/globeapp
+ 
+ 
+
+

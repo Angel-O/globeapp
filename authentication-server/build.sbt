@@ -19,3 +19,10 @@ commands += Command.command("go") { state =>
     state
 }
 
+lazy val dcuScript = taskKey[Unit]("docker compose up")
+lazy val runDcu = inputKey[Unit]("run docker container")
+dcuScript := { "sudo chmod +x /usr/local/bin/sbt" #| s"./${name.value} docker-compose up" ! }
+runDcu in Compile := { dcuScript.value }
+commands += Command.command("dcu") { state => "; runDcu" :: state }
+
+
