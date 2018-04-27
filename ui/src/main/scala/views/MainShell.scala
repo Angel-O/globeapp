@@ -44,26 +44,19 @@ object MainShell extends BulmaCssClasses {
           item={<SimpleButton isInfo={true} 
           icon={ <Icon id="mobile"/> } 
           label="catalog" onClick={navigateToCatalog}/>}/>,
-         <NavbarItem 
+        <NavbarItem 
           item={<SimpleButton isInfo={true} 
           icon={ <Icon id="user"/> } 
           label="test" onClick={navigate}/>}/>,
         renderAccountMenuItem(loggedIn, username, login, logout).bind
       )
 
-    val leftNavbarItems =
-      Constants("This", "is", "a", "test")
-        .map(x => <NavbarItem item={x}/>)
-        .all
-        .bind
-
     // TODO consolidate navbarItem and apply same logic for similar situations
     // (note how there is no need to call bind in <NavbarItem item={username}/>)
     val navbar =
       <Navbar isFixedTop={false} 
         isTransparent={true} logo={logo}
-        rightItems={rightNavbarItems}
-        leftItems={leftNavbarItems}/>
+        rightItems={rightNavbarItems}/>
 
     val banner =
       <Banner content={<h5>Welcome to globeapp</h5>}/>
@@ -92,9 +85,8 @@ object MainShell extends BulmaCssClasses {
             isRightDropdown={true} 
             isHoverable={true}
             dropdownItems={Seq(
-                <a href={s"#$ROOT_PATH"}>Your reviews</a>, 
+                <a href={s"#$ROOT_PATH/yourreviews"}>Your reviews</a>, 
                 <a href={s"#$ROOT_PATH/favoriteapps"}>Favourite apps</a>, 
-							  <a href={s"#$ROOT_PATH"}>Stats</a>, 
                 <a href={s"#$ROOT_PATH"}>Contact us</a>, <hr/>, 
                 <a href={s"#$ROOT_PATH"}>Manage account</a>,
                 <Button label="log out" onClick={logout}/>)} />
