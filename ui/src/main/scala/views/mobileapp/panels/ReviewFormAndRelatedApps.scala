@@ -61,9 +61,9 @@ object ReviewFormAndRelatedApps {
 
   def relatedAppsPanel(relatedApps: Seq[MobileApp]) = {
 
-    @dom val panel = 
-    	<AppsPanel apps={relatedApps} header="Related apps"/>
-    
+    @dom val panel =
+      <AppsPanel apps={relatedApps} header="Related apps"/>
+
     panel
   }
 }

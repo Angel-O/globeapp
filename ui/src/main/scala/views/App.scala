@@ -7,8 +7,8 @@ import components.Components.Router
 import navigation.URIs._
 import config._
 import appstate.{VerifyToken, Logout, Connect, FetchAllMobileApps}
-import appstate.AuthSelector._
 import appstate.AppCircuit._
+import appstate.AuthSelector._
 import utils.Push
 import router.Config
 
@@ -27,14 +27,17 @@ object App extends Push {
                           notFoundUrl = NotFoundPageURI)
 
       MainShell
-        .render(<div><BrowserRouter config={config}/></div>,
-                loggedIn.bind,
-                username.bind,
-                navigateToLogin _,
-                doLogout _,
-                navigateToCatalog _,
-                navigateToPolls _,
-                navigate _)
+        .render(
+          <div><BrowserRouter config={config}/></div>,
+          loggedIn.bind,
+          username.bind,
+          navigateToLogin _,
+          doLogout _,
+          navigateToCatalog _,
+          navigateToPolls _,
+          navigateToFavoriteApps _,
+          navigate _
+        )
         .bind
     }
 
@@ -52,6 +55,7 @@ object App extends Push {
   def navigateToLogin() = push(LoginPageURI)
   def navigateToCatalog() = push(CatalogPageURI)
   def navigateToPolls() = push(PollsPageURI)
+  def navigateToFavoriteApps() = push(FavoriteAppsPageURI)
   def navigate() = push(s"$CatalogPageURI/55")
 
   def update = {

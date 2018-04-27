@@ -17,7 +17,7 @@ import diode.Effect
 // Model //TODO rename to AuthState
 protected case class AuthState(jwt: Option[String] = None,
                                 errorCode: Option[Int] = None,
-                                persistentState: Option[PersistentState] = None, //cannot be an option...
+                                persistentState: Option[PersistentState] = None,
                                 loggedIn: Option[Boolean] = None,
                                 isTokenExpired: Option[Boolean] = None,
                                 matchingEmails: Pot[Int] = Pot.empty)
@@ -75,8 +75,8 @@ class AuthHandler[M](modelRW: ModelRW[M, AuthState])
     case Logout => effectOnly(logoutEffect()) // + redirectEffect(HomePageURI))
     case UserLoggedIn(token, user) => {
       val state = value.persistentState
-      .map(state => state.copy(user = user))
-      .getOrElse(PersistentState(user))
+      .map(state => state.copy(user = Some(user)))
+      .getOrElse(PersistentState(Some(user)))
       updated(AuthState(
         jwt = Some(token),
         persistentState = Some(state),
@@ -148,17 +148,18 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
       email = Some(email),
       password = Some(password),
       gender = Some(gender))
+      
     Effect((for {
       xhr <- Post(url = s"$AUTH_SERVER_ROOT/auth/api/register", payload = write(payload))
       token <- readTokenFromResponse(xhr)
       user <- decodeToken(token) andThen { // andThen used for side effects...if it fails the error is not caught by redirectOnFailure
-          case user => createUserProfile(
-            user.get._id, // calling get on the Try ...this should not fail
-            whereDidYouHearAboutUs,
-            additionalInfo, 
-            subscribed, 
-            favoriteCategories)
-        }
+        case user => createUserProfile(
+          user.get._id, // calling get on the Try ...this should not fail
+          whereDidYouHearAboutUs,
+          additionalInfo,
+          subscribed,
+          favoriteCategories)
+      }
       loginAction <- Future.successful { UserLoggedIn(token, user) }
     } yield (loginAction)).redirectOnFailure) 
   }
@@ -227,20 +228,19 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
 
 // Selector
 object AuthSelector extends AppModelSelector[AuthState] {
-
   import utils.persist._
   def getToken() = model.jwt
   def getErrorCode() = model.errorCode
-  def getUsername(): String = model.persistentState.map(_.user.username).getOrElse("")
+  def getUsername(): String = model.persistentState.flatMap(_.user).map(_.username).getOrElse("")
   def getUserId(): String = {
     (for {
-      appStateUserId <- model.persistentState.flatMap(state => state.user._id)
-      storageUserId <- retrieve().flatMap(state => state.user._id)
+      appStateUserId <- model.persistentState.flatMap(_.user).flatMap(_._id)
+      storageUserId <- retrieve().flatMap(_.user).flatMap(_._id)
     } yield (if (appStateUserId.isEmpty) storageUserId else appStateUserId))
     .getOrElse("")
   }
   def getLoggedIn(): Boolean = model.loggedIn.getOrElse(false)
-  def getRole(): Option[Role] = model.persistentState.map(_.user.role)
+  def getRole(): Option[Role] = model.persistentState.flatMap(_.user).map(_.role)
   
   def getMatchingEmailsCount() = model.matchingEmails match{
     case Ready(count) => Some(count)
@@ -249,5 +249,4 @@ object AuthSelector extends AppModelSelector[AuthState] {
   }
 
   val cursor = AppCircuit.authSelector
-  val circuit = AppCircuit
 }

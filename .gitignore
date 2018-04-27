@@ -32,3 +32,6 @@ project/plugins/project/
 .ensime
 .ensime_cache/
 .ensime_lucene/
+
+# mongo backup
+mongo-data/

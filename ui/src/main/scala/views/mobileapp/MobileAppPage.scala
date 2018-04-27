@@ -13,6 +13,7 @@ import appstate.MobileAppsSelector._
 import appstate.ReviewsSelector._
 import appstate.AuthSelector._
 import appstate.SuggestionsSelector._
+import appstate.UiUserSelector._
 import apimodels.mobile.MobileApp
 import appstate.{CreateReview, FetchReviews, CreatePoll, UpdateReview, FetchRelatedApps}
 import apimodels.review.Review
@@ -31,6 +32,8 @@ object MobileAppPage {
     val relatedApps = Var[Seq[MobileApp]](Seq.empty)
 
     val pollPopUpIsOpen = Var(false)
+    lazy val appIsFavorite = Var(getAppIsFavorite(appId))
+    // val appIsFavorite = Var[Boolean] = 
     val maxRelatedAppsToShow = 5
     
 
@@ -50,7 +53,7 @@ object MobileAppPage {
             <Tile isVertical={true} children={Seq(
               <Tile isParent={true} children={Seq(
                 <Tile isPrimary={true} content={
-                  <div> {TopBar.panel(appId, pollPopUpIsOpen, reviews, createPoll _).bind } </div>
+                  <div> {TopBar.panel(appId, appIsFavorite, pollPopUpIsOpen, reviews, createPoll _).bind } </div>
                 }/>
               )}/>,
               <Tile children={Seq(
@@ -102,8 +105,9 @@ object MobileAppPage {
     def update() = {
       reviews.value = getReviewsByApp(appId)
       relatedApps.value = getSuggestedMobileApps(maxRelatedAppsToShow)
+      appIsFavorite.value = getAppIsFavorite(appId)
     }
     override def redirectCondition = getMobileAppById(appId) == None
-    multiConnect(update())(reviewSelector, suggestionSelector)
+    multiConnect(update())(reviewSelector, suggestionSelector, uiUserSelector)
   }
 }

@@ -76,6 +76,7 @@ trait SuggestionsEffects extends Push {
   }
 }
 
+// Selector
 object SuggestionsSelector extends AppModelSelector[SuggestionsState] {
   import scala.util.Random
   
@@ -88,6 +89,5 @@ object SuggestionsSelector extends AppModelSelector[SuggestionsState] {
   def getMostDebatedMobileApps() = 
     model.mostDebatedApps
 
-  val cursor = AppCircuit.suggestionSelector
-  val circuit = AppCircuit
+  val cursor = circuit.suggestionSelector //ModelRW[M, T]
 }

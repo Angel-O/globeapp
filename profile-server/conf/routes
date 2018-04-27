@@ -4,11 +4,17 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                           controllers.HomeController.index
+GET    /                                               controllers.HomeController.index
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET    /assets/*file                                   controllers.Assets.versioned(path="/public", file: Asset)
 
-GET		/api/userprofiles/:userId   controllers.UserProfileController.getUserProfile(userId: String)
+GET    /api/userprofiles/:userId                       controllers.UserProfileController.getUserProfile(userId: String)
 
-POST		/api/userprofiles		controllers.UserProfileController.postUserProfile
+POST   /api/userprofiles                               controllers.UserProfileController.postUserProfile
+
+PUT    /api/userprofiles/:userId/addtofavorites        controllers.UserProfileController.addAppToFavorites(userId: String)
+
+PUT    /api/userprofiles/:userId/removefromfavorites   controllers.UserProfileController.removeAppFromFavorites(userId: String)
+
+GET    /api/userprofiles/:userId/favoriteapps          controllers.UserProfileController.getFavoriteApps(userId: String)

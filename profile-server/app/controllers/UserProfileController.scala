@@ -26,7 +26,8 @@ class UserProfileController @Inject()(scc: SecuredControllerComponents,
   def getUserProfile(userId: String) = Action.async { 
     Logger.info(s"Fetching user profile (userId = $userId)")
     (for {
-      userProfile <- fetchUserProfile(userId)
+      validId <- parseId(userId) // not neccessary, but it provides a useful error msg
+      userProfile <- fetchUserProfile(validId)
       httpResponse <- Future.successful { Ok(toJson(userProfile)) }
     } yield (httpResponse))
     .logFailure.handleRecover
@@ -36,44 +37,46 @@ class UserProfileController @Inject()(scc: SecuredControllerComponents,
     Logger.info(s"Creating user profile...")
     (for {
       validPayload <- parsePayload(req) 
-      id <- 
-        repository.addOne(validPayload.copy(_id = newId)) andThen 
+      id <- repository.addOne(validPayload.copy(_id = newId)) andThen 
         { case _ => Logger.info(s"...User profile created (userId = ${validPayload.userId})") }
       httpResponse <- Future.successful { Ok(id) }
     } yield (httpResponse))
     .logFailure.handleRecover
   }
   
-  def addAppToFavorites(appId: String) = AuthenticatedAction.async { req =>
-    val userId = req.user._id.get
-    Logger.info(s"Saving favorite app (id = $appId)")
+  def addAppToFavorites(userId: String) = AuthenticatedAction(parse.text).async { implicit req => 
     (for {
-      validId <- parseId(appId)
-      userProfile <- fetchUserProfile(userId)
-      updated <- repository.updateOne(userProfile._id.get, userProfile.addFavoriteApp(appId))
-      httpResponse <- Future.successful { Ok(toJson(updated)) }
+      (validAppId, validUserId) <- 
+        parseText flatMap parseId zip 
+        parseId(userId) andThen 
+          { case success => success map {case (appId, userId) => 
+            Logger.info(s"Saving favorite app (app id = $appId, user id = $userId)")} }
+      userProfile <- fetchUserProfile(validUserId)
+      updated <- repository updateOne(userProfile._id.get, userProfile addFavoriteApp validAppId)
+      httpResponse <- Future successful { Ok(toJson(updated)) }
     } yield (httpResponse))
     .logFailure.handleRecover
   }
   
-  def removeAppFromFavorites(appId: String) = AuthenticatedAction.async { req =>
-    val userId = req.user._id.get
-    Logger.info(s"Removing favorite app (id = $appId)")
+  def removeAppFromFavorites(userId: String) = AuthenticatedAction(parse.text).async { implicit req =>
     (for {
-      validId <- parseId(appId)
-      userProfile <- fetchUserProfile(userId)
-      updated <- repository.updateOne(userProfile._id.get, userProfile.removeFromFavoriteApps(appId))
-      httpResponse <- Future.successful { Ok(toJson(updated)) }
+      (validAppId, validUserId) <- 
+        parseText flatMap parseId zip 
+        parseId(userId) andThen 
+          { case success => success map {case (appId, userId) => 
+            Logger.info(s"Removing favorite app (id = $appId), profile id = $userId")} }
+      userProfile <- fetchUserProfile(validUserId)
+      updated <- repository updateOne(userProfile._id.get, userProfile removeFromFavoriteApps validAppId)
+      httpResponse <- Future successful { Ok(toJson(updated)) }
     } yield (httpResponse))
     .logFailure.handleRecover
   }
   
-  def getFavoriteApps = AuthenticatedAction.async { implicit req => 
-    val userId = req.user._id.get
+  def getFavoriteApps(userId: String) = AuthenticatedAction.async { implicit req => 
     Logger.info(s"Fetching favorite apps (user id = $userId)")
     (for {
       (userProfile, jsonResponse) <- 
-        fetchUserProfile(userId) zip
+        parseId(userId) flatMap fetchUserProfile zip
         Get(s"$APPS_API_ROOT/apps")
       apps <- parseResponseAll[MobileApp](jsonResponse)
       // favoriteApps <- Future { apps.filter(app => app._id.map(userProfile.favoriteApps.contains).getOrElse(false)) } //INEFFICIENT 

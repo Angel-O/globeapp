@@ -18,19 +18,21 @@ import components.core.ComponentBuilder
 
 // Represents the portion of the state that will be serialized
 // in the location storage to be retrieved after a browser refresh
-case class PersistentState(user: User)
+case class PersistentState(user: Option[User] = None, favoriteAppsIds: Seq[String] = Seq.empty)
 case object PersistentState{
+  import utils.persist._
+  def apply() = retrieve()
   //def apply(username: String, userId: String) = new PersistentState(username, userId)
   //def apply() = new PersistentState("", "") //TODO use option after finding out how to persist global state
   //implicit def rw: RW[PersistentState] = macroRW
 }
 
 // Global state tree
-case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls, reviews: Reviews, suggestions: Suggestions)
+case class AppModel(users: Users, cars: Cars, auth: Auth, mobileApps: MobileApps, polls: Polls, reviews: Reviews, suggestions: Suggestions, uiUser: UiUser)
 
 object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with GlobalSelector[AppModel] with HelpConnect[AppModel] {
 
-  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls(), Reviews(), Suggestions())
+  def initialModel = AppModel(Users(), Cars(), Auth(), MobileApps(), Polls(), Reviews(), Suggestions(), UiUser())
 
   def currentModel = zoom(identity).value
 
@@ -41,6 +43,7 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
   val pollSelector = zoomTo(x => x.polls.polls)
   val reviewSelector = zoomTo(x => x.reviews.reviews)
   val suggestionSelector = zoomTo(x => x.suggestions.state)
+  val uiUserSelector = zoomTo(x => x.uiUser.state)
   
   implicit val globalSelector: ModelRW[AppModel, AppModel] = zoomRW[AppModel](identity)((model, _) => identity(model))
   
@@ -55,7 +58,8 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
     new MobileAppsHandler(mobileAppSelector),
     new PollHandler(pollSelector),
     new ReviewHandler(reviewSelector),
-    new SuggestionHandler(suggestionSelector)
+    new SuggestionHandler(suggestionSelector),
+    new UiUserHandler(uiUserSelector)
   )
   
   val circuit = this
@@ -99,6 +103,13 @@ trait HelpConnect[M <: AnyRef] {
   //   case h::Nil => Future { dispatchAll(Seq(h)) }
   //   case _ => Future.unit
   // }
+}
+
+trait AppModelSelector[T] extends ReadConnect[AppModel, T]{
+  import apimodels.common.localDateOrdering
+  import AppCircuit._
+  implicit val ordering = localDateOrdering
+  val circuit = AppCircuit
 }
 
 class LoggingHandler[M](modelRW: ModelRW[M, AppModel])
@@ -200,13 +211,13 @@ trait SilentConnect[M <: AnyRef,T] extends GenericConnect[M,T]{
 //////// TODO improve this: the goal is to allow to connect to multiple selectors 
 
 abstract class ReadWriteConnectBase[M <: AnyRef, T] {
-  val cursor: ModelR[M, T]
   val circuit: Circuit[M] with ModelLens[M]
+  val cursor: ModelR[M, T]
 }
 
 trait ReadConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
-  protected def model = cursor.value
   protected def initialModel = circuit.initialModel
+  protected def model = cursor.value
 }
 
 trait WriteConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
@@ -216,8 +227,4 @@ trait WriteConnect[M <: AnyRef, T] extends ReadWriteConnectBase[M, T] {
 
 trait RWConnect[M <: AnyRef, T] extends ReadConnect[M, T] with WriteConnect[M, T]
 
-trait AppModelSelector[T] extends ReadConnect[AppModel, T]{
-  import apimodels.common.localDateOrdering
-  implicit val ordering = localDateOrdering
-}
 

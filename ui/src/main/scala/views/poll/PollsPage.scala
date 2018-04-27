@@ -29,9 +29,9 @@ object PollsPage {
 
     @dom
     override def element = {
-      <div> { for (poll <- toBindingSeq(polls.bind)) yield {
+      <div> { for {poll <- toBindingSeq(polls.bind)} yield {
         <div onclick={ (_: Event) => openDialog(poll) }>
-          <Card title={ poll.title } subTitle={ poll.createdBy.getOrElse("") } content={
+          <Card title={ poll.title } subTitle={ poll.createdBy } content={
             <div> { poll.content } </div>
           }/>
         </div>}} { val target = targetPoll.bind; val app = appName.bind
