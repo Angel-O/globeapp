@@ -41,12 +41,6 @@ object MobileAppPage {
     // if fetching fails redirect to 404 or show error msg
     @dom override def element = {
 
-      // dispatching here because appId is a lazy val
-      // this avoids evaluating its value too early.
-      // Ideally fetching needs to be done in the parent
-      // component CUrrently it is done on both ...PICK one
-      dispatch(FetchReviews(appId))
-
       val pageSkeleton =
         <div>
           <Tile isAncestor={true} children={Seq(
@@ -102,6 +96,8 @@ object MobileAppPage {
       pollPopUpIsOpen.value = false
     }
 
+    dispatch(FetchReviews)
+    
     def update() = {
       reviews.value = getReviewsByApp(appId)
       relatedApps.value = getSuggestedMobileApps(maxRelatedAppsToShow)

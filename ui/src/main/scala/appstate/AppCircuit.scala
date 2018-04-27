@@ -65,6 +65,15 @@ object AppCircuit extends Circuit[AppModel] with ModelLens[AppModel] with Global
   val circuit = this
 }
 
+//TODO this is not working found another way of doing a global reset
+//class GlobalHandler[M, T](modelRW: ModelRW[M, T])
+//    extends ActionHandler(modelRW) {
+//  
+//  override def handle = {
+//    case UserLoggedOut => updated(value)
+//  }
+//}
+
 trait GlobalSelector[M]{
   val globalSelector: ModelRW[M, M]
 }

@@ -21,8 +21,7 @@ case object Reviews {
 }
 
 // Primary actions
-case class FetchReviews(mobileAppId: String) extends Action
-//case class FetchReview(reviewId: String) extends Action
+case object FetchReviews extends Action
 case class CreateReview(username: String, title: String, content: String, rating: Int, mobileAppId: String)
     extends Action
 case class UpdateReview(reviewId: String, title: String, content: String, rating: Int)
@@ -38,8 +37,8 @@ class ReviewHandler[M](modelRW: ModelRW[M, Seq[Review]])
     extends ActionHandler(modelRW)
     with ReviewEffects {
   override def handle = {
-    case FetchReviews(mobileAppId) =>
-      effectOnly(fetchReviewsEffect(mobileAppId))
+    case FetchReviews =>
+      effectOnly(fetchReviewsEffect())
     case ReviewsFetched(reviews) => updated(reviews)
     case CreateReview(username, title, content, rating, mobileAppId) =>
       effectOnly(createReviewEffect(username, title, content, rating, mobileAppId))
@@ -71,7 +70,7 @@ trait ReviewEffects {
 
   import AuthSelector.getUserId
 
-  def fetchReviewsEffect(reviewId: String) = {
+  def fetchReviewsEffect() = {
     Effect(
         Get(url = s"$REVIEW_SERVER_ROOT/api/reviews") map 
         { xhr => ReviewsFetched(read[Seq[Review]](xhr.responseText)) })
@@ -107,7 +106,7 @@ object ReviewsSelector extends AppModelSelector[Seq[Review]] {
   def getReviews() = model.sortBy(_.dateCreated.map(identity))
   def getReviewById(id: String) = getReviews().find(_._id == Some(id))
   def getReviewsByApp(mobileAppId: String) = getReviews().filter(_.mobileAppId == mobileAppId)
-  def getUserReviews(userId: String) = getReviews.find(_.author.userId == Some(userId))
+  def getUserReviews(userId: String) = getReviews.filter(_.author.userId == Some(userId))
   def getUserHasAlreadyVoted(userId: String, mobileAppId: String) = { 
     model
     .filter(_.mobileAppId == mobileAppId)
