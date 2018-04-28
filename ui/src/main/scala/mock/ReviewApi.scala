@@ -1,6 +1,7 @@
 package mock
 
-import apimodels.review.{Review, Author}
+import apimodels.review.Review
+import apimodels.common.Author
 import java.time._
 
 object ReviewApi {

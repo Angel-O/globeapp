@@ -13,6 +13,7 @@ package object config {
   val REQUEST_TIMEOUT = 9000
   val ROOT_PATH = "/globeapp"
   val RESPONSE_TYPE = "text"
+  val WEB_SOCKET_SERVER_ENDPOINT = "ws://localhost:9000/ws"
   val TEXT_CONTENT_HEADER = ("Content-type" -> "text/plain")
   val JSON_CONTENT_HEADER = ("Content-type" -> "application/json")
 }

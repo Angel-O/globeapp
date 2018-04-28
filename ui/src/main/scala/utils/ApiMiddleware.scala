@@ -25,12 +25,18 @@ object ApiMiddleware {
     // equivalent to reads.reads(parse(json)).get
     deserializer.reads(parse(json)).get //TODO make it safe if needed
   }
+  
+  implicit def readOpt[T](json: JsValue)(implicit deserializer: Reads[T]) = {
+    // equivalent to reads.reads(parse(json)).get
+    parse(json).validateOpt.get
+    //deserializer.reads(dd) //TODO make it safe if needed
+  }
     
   val headers: Map[String, String] = Map.empty
 
   def getErrorCode(t: Throwable) = t match {
     case ex: AjaxException => ex.xhr.status
-    case _                 => 0 //using zero to signify uknown response
+    case _                 => 0 //using zero to signify unknown response
   }
 
   def getStatusCode(xhr: XMLHttpRequest) = xhr.status

@@ -12,8 +12,29 @@ import router.RoutingView
 import utils.Push
 import config._
 
+import apimodels.message.Message
+import apimodels.common.Author
+import appstate.AuthSelector._
+import java.time._
+import utils.api._
+
+import utils.WsMiddleware._
+
+import org.scalajs.dom.raw.WebSocket
+import apimodels.common.Notification
+
 object MainShell extends BulmaCssClasses {
 
+  def onNotification = (notification: Notification) => {
+    if (notification.recipientId == getUserId){
+      println("IT WAS FOR ME")
+    }
+    else{
+      println("IT WAS FOR SOMEONE ELSE")
+    }
+  }
+  val socket = new WsClient(onNotification)
+  
   @dom
   def render(content: HTMLElement,
              loggedIn: Boolean,
@@ -61,6 +82,12 @@ object MainShell extends BulmaCssClasses {
     val banner =
       <Banner content={<h5>Welcome to globeapp</h5>}/>
 
+    socket.send(new Message(
+            sender = Author(name="me", userId = Some("5aaee5ff810000a8af9cc6c2")), 
+            receiver = Author(name="you", userId = Some("5ad1227de500007c7b18e72c")), 
+            content = "hello mates how y'all doing?", 
+            dateCreated = Some(LocalDate.parse("2007-12-03"))))
+    
     //The shell
     <div class={getClassName(CONTAINER, FLUID)}>
       {navbar}
