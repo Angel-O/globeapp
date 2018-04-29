@@ -28,12 +28,17 @@ object MainShell extends BulmaCssClasses {
   def onNotification = (notification: Notification) => {
     if (notification.recipientId == getUserId){
       println("IT WAS FOR ME")
+      incrementNotifications
     }
     else{
       println("IT WAS FOR SOMEONE ELSE")
     }
   }
   val socket = new WsClient(onNotification)
+
+  val notifications: Var[Int] = Var(0)
+
+  def incrementNotifications() = notifications.value = notifications.value + 1
   
   @dom
   def render(content: HTMLElement,
@@ -52,11 +57,21 @@ object MainShell extends BulmaCssClasses {
           alt={"Globeapp logo"}
           width={112} height={28}/>}/>
 
+    //val newMessages = notifications.bind
+
+    val icon =
+      <span class="fa-stack fa-3x" style={"font-size: 0.55em;"}>
+        <i class="fa fa-inbox fa-stack-2x"></i>
+        <span class="fa-stack-1x inbox-number" style={"margin-top: -1.5em; font-size: 1em; border-radius: 100%; font-weight: bold; background-color: red"}>{notifications.bind}</span>
+        <span class="fa-stack-1x inbox-text" style={"margin-top: -1.5em; margin-left: 1.8em; font-size: 1em; font-weight: bold;"}>new</span>
+      </span>
+
     val rightNavbarItems =
       Seq(
         <NavbarItem 
-          item={<SimpleButton isPrimary={true} 
-          icon={ <Icon id="inbox"/> } label="messages"/>}/>,
+          item={<IconButton isPrimary={true} 
+          icon={ icon } 
+          label="messages" onClick={navigateToPolls}/>}/>,
         <NavbarItem 
           item={<SimpleButton isSuccess={true} 
           icon={ <Icon id="comments"/> } 
