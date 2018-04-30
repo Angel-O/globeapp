@@ -120,6 +120,8 @@ trait AuthEffects extends Push{ //Note: AuthEffects cannot be an object extendin
   import diode.{Effect, NoAction}
   import config._
   import org.scalajs.dom.raw.XMLHttpRequest
+  import utils.WsMiddleware.WsClient
+  import apimodels.message.MessageType._
 
   def loginEffect(username: String, password: String) = {
     val payload = User(username, password = Some(password)) // no id

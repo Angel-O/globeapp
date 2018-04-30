@@ -3,18 +3,25 @@ package actors
 import akka.actor.ActorRef
 import akka.actor.Actor
 import akka.actor.Props
-import apimodels.message.Message
+import apimodels.message.WsMessage
+import apimodels.message.MessageType._
 import UserManagerActor._
 import play.api.Logger
 
-class MessageServerActor(val out: ActorRef, val userManager: ActorRef) extends Actor{
-  
+class MessageServerActor(val out: ActorRef, val userManager: ActorRef) extends Actor {
+  import MessageServerActor._
+
   def receive = {
-    case msg @ Message(sender, _, _, _, _) => sender.userId map { id => userManager ! ClientConnected(out, id, msg) }
-    //case whatever @ _ => Logger.info(s"Whateva: ${whatever}")
+    case WsMessage(sender, messageType, _, _) => messageType match {
+      case msg: ClientDisconnected               => userManager ! msg
+      case ClientConnected(userId)               => userManager ! CreateConnection(userId, out)
+      case msg @ UserMessage(content, recipient) => userManager ! MessageReceived(msg, sender.userId.get)
+      case _                                     => println("MMMMMM", messageType)
+    }
   }
 }
 
-object MessageServerActor{
+object MessageServerActor {
+  case class CreateConnection(userId: String, out: ActorRef)
   def props(out: ActorRef, userManager: ActorRef) = Props(classOf[MessageServerActor], out, userManager)
 }

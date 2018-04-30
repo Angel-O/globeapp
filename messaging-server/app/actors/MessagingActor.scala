@@ -1,22 +1,21 @@
 package actors
 
-import akka.actor.ActorRef
+import actors.UserManagerActor.SendNotification
 import akka.actor.Actor
-import apimodels.message.Message
-import play.api.Logger
-import apimodels.common.Notification
+import akka.actor.ActorRef
 import akka.actor.Props
+import apimodels.message.MessageType._
+import play.api.Logger
 
-class MessagingActor(val out: ActorRef) extends Actor{
+class MessagingActor(val out: ActorRef) extends Actor {
   def receive = {
-    case msg: Message => {
-      Logger.info(s"Sending msg: $msg")
-      (for {
-        recipientId <- msg.recipient.userId
-        senderId <- msg.sender.userId
-      } yield Notification(senderId = senderId, recipientId = recipientId))
-      .map(notification => out ! notification) 
-      }
+    case SendNotification(
+      msg @ UserMessage(content, recipientId), //TODO what to do with the content ??
+      senderId) => {
+
+      out ! Notification(senderId = senderId, recipientId = recipientId)
+      Logger.info(s"Message sent: $msg")
+    }
   }
 }
 case object MessagingActor {

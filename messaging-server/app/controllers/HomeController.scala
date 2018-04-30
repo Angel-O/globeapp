@@ -5,10 +5,9 @@ import actors.UserManagerActor
 import akka.actor.ActorSystem
 import akka.actor.Props
 import akka.stream.Materializer
-import apimodels.common.Notification
-import apimodels.common.Notification.format
-import apimodels.message.Message
-import apimodels.message.Message.messageFormat
+import apimodels.message.WsMessage
+import apimodels.message.WsMessage.messageFormat
+import apimodels.message.MessageType._
 import javax.inject.Inject
 import javax.inject.Singleton
 import play.api.Logger
@@ -19,6 +18,7 @@ import play.api.mvc.RequestHeader
 import play.api.mvc.WebSocket
 import play.api.mvc.WebSocket.MessageFlowTransformer.jsonMessageFlowTransformer
 import akka.stream.scaladsl.Flow
+import apimodels.message.MessageType
 
 @Singleton
 class HomeController @Inject() (cc: ControllerComponents)(
@@ -27,18 +27,14 @@ class HomeController @Inject() (cc: ControllerComponents)(
   mat:    Materializer)
   extends AbstractController(cc) {
   
-  implicit val messageFlowTransformer = jsonMessageFlowTransformer[Message, Notification]
+  implicit val messageFlowTransformer = jsonMessageFlowTransformer[WsMessage, MessageType]
     
   val userFactory = system.actorOf(Props[UserManagerActor], "userFactory")
   
-  def socket = WebSocket.accept[Message, Notification] { implicit request: RequestHeader => 
+  def socket = WebSocket.accept[WsMessage, MessageType] { implicit request: RequestHeader => 
     
     Logger.info(s"Establishing connection...request id: ${request.id}")
     
     ActorFlow.actorRef(out => MessageServerActor.props(out, userFactory))
   }
-  
-//  def connect = WebSocket.accept[String, String] { implicit request: RequestHeader =>
-//    Flow[String].map(_ => "connection accepted")
-//  }
 }
