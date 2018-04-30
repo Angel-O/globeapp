@@ -11,7 +11,8 @@ import diode.data.Pot
 import diode.data.PotState._
 import diode.data.{Ready, Pending}
 
-import apimodels.review.{Review, Author}
+import apimodels.review.Review
+import apimodels.common.Author
 import java.time.LocalDate
 
 // Model

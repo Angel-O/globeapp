@@ -11,6 +11,11 @@ import appstate.AppCircuit._
 import appstate.AuthSelector._
 import utils.Push
 import router.Config
+import utils.WsMiddleware.WsClient
+import apimodels.message.MessageType
+import apimodels.message.MessageType._
+import apimodels.message.WsMessage
+import utils.ws._
 
 //case class Props(username: String, loggedIn: Boolean)
 
@@ -18,19 +23,30 @@ object App extends Push {
   // keeping track of logged in status (children components are affected by it)
   val loggedIn: Var[Boolean] = Var(getLoggedIn())
   val username: Var[String] = Var(getUsername())
+  var notifications: Var[Int] = Var(0)
+  var socket: WsClient[_, _] = new WsClient(
+    onConnect = ClientConnected(getUserId),
+    onDisconnect = ClientDisconnected(getUserId))
 
   def main(args: Array[String]): Unit = {
 
     @dom def render = {
-      val config = Config(baseUrl = HomePageURI,
-                          routes = RouteProvider.routes.bind,
-                          notFoundUrl = NotFoundPageURI)
+      val config = Config(
+        baseUrl = HomePageURI,
+        routes = RouteProvider.routes.bind,
+        notFoundUrl = NotFoundPageURI)
+    
+      if(loggedIn.bind){ 
+        socket.open //allows to update socket without a dedicated binding
+      }
 
       MainShell
         .render(
           <div><BrowserRouter config={config}/></div>,
           loggedIn.bind,
           username.bind,
+          notifications,
+          socket,
           navigateToLogin _,
           doLogout _,
           navigateToCatalog _,
@@ -61,7 +77,12 @@ object App extends Push {
   def update = {
     loggedIn.value = getLoggedIn()
     username.value = getUsername()
+    if(loggedIn.value) {
+      socket.reconnect 
+    } else {
+      socket.disconnect
+    }
   }
-
+  
   connect(update)(authSelector)
 }

@@ -12,12 +12,28 @@ import router.RoutingView
 import utils.Push
 import config._
 
-object MainShell extends BulmaCssClasses {
+import apimodels.message.WsMessage
+import apimodels.common.Author
+import appstate.AuthSelector._
+import java.time._
+import utils.api._
 
+import utils.WsMiddleware._
+
+import org.scalajs.dom.raw.WebSocket
+import apimodels.message.MessageType._
+
+import appstate.AppCircuit._
+import apimodels.message.MessageType
+
+object MainShell extends BulmaCssClasses {
+    
   @dom
   def render(content: HTMLElement,
              loggedIn: Boolean,
              username: String,
+             notifications: Var[Int],
+             socket: WsClient[_, _],
              login: () => Unit,
              logout: () => Unit,
              navigateToCatalog: () => Unit,
@@ -25,17 +41,38 @@ object MainShell extends BulmaCssClasses {
              navigateToFavoriteApps: () => Unit,
              navigate: () => Unit) = {
 
+    if (loggedIn) {
+      def incrementNotifications(msg: MessageType) = {
+        println("MESSAGE, RECEIVED...")
+        Some(msg) collect { case x: Notification => notifications.value = notifications.value + 1 }
+        println(notifications.value)
+      }
+      socket.handleMessageWith(incrementNotifications)   
+    } 
+    
+    if(socket.isOpen){
+      socket.handleCloseWith(() => notifications.value = 0)
+    }
+    
     val logo =
       <NavbarLogo href={s"#$ROOT_PATH"} image={
         <img src={"https://bulma.io/images/bulma-logo.png" } 
           alt={"Globeapp logo"}
           width={112} height={28}/>}/>
+      
+    val icon =
+      <span class="fa-stack fa-3x" style={"font-size: 0.55em;"}>
+        <i class="fa fa-inbox fa-stack-2x"></i> { if(notifications.bind > 0)
+        <span class="fa-stack-1x inbox-number">{notifications.bind}</span> else <div></div>}{if(notifications.bind > 0)
+        <span class="fa-stack-1x inbox-text">new</span> else <div></div>}
+      </span>
 
     val rightNavbarItems =
       Seq(
         <NavbarItem 
-          item={<SimpleButton isPrimary={true} 
-          icon={ <Icon id="inbox"/> } label="messages"/>}/>,
+          item={<IconButton isPrimary={true} 
+          icon={ icon } 
+          label="messages" onClick={navigateToPolls}/>}/>,
         <NavbarItem 
           item={<SimpleButton isSuccess={true} 
           icon={ <Icon id="comments"/> } 
@@ -54,13 +91,20 @@ object MainShell extends BulmaCssClasses {
     // TODO consolidate navbarItem and apply same logic for similar situations
     // (note how there is no need to call bind in <NavbarItem item={username}/>)
     val navbar =
+      <div>
       <Navbar isFixedTop={false} 
         isTransparent={true} logo={logo}
-        rightItems={rightNavbarItems}/>
+        rightItems={rightNavbarItems}/></div>
 
     val banner =
       <Banner content={<h5>Welcome to globeapp</h5>}/>
 
+    socket.send(new WsMessage(
+            sender = Author(userId = Some("5aaee5ff810000a8af9cc6c2"), name= "Me"), 
+            messageType = UserMessage(content = "hello mates how y'all doing?", recipient="iii"),
+            dateCreated = Some(LocalDate.parse("2007-12-03"))))
+    
+    
     //The shell
     <div class={getClassName(CONTAINER, FLUID)}>
       {navbar}

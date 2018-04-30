@@ -77,11 +77,15 @@ lazy val reviewServer = (project in file("review-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
+lazy val profileServer = (project in file("profile-server"))
+    .dependsOn(sharedJVM, securityServer, common)
+    .disablePlugins(WorkbenchPlugin)
+
 lazy val suggestionServer = (project in file("suggestion-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
-lazy val profileServer = (project in file("profile-server"))
+lazy val messagingServer = (project in file("messaging-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 

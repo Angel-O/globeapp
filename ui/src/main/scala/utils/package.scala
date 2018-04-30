@@ -16,6 +16,7 @@ package object utils {
   val persist = PersistStateMiddleware
   val redirect = Redirect
   val json = JsonMiddleware
+  val ws = WsMiddleware
   val log = console
   lazy val nameOf = com.github.dwickern.macros.NameOf
   type Push = HashChanger

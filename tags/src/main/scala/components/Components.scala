@@ -56,6 +56,7 @@ object Components {
   }
 
   implicit final class Button(x: dom.Runtime.TagsAndTags2.type) {
+    def IconButton() = new IconButtonBuilder()
     def Button() = new ButtonBuilder()
     def ButtonRaw() = new ButtonBuilderRaw()
     def SimpleButton() = new SimpleButtonBuilder()
