@@ -25,16 +25,7 @@ import apimodels.common.Notification
 
 object MainShell extends BulmaCssClasses {
 
-  def onNotification = (notification: Notification) => {
-    if (notification.recipientId == getUserId){
-      println("IT WAS FOR ME")
-      incrementNotifications
-    }
-    else{
-      println("IT WAS FOR SOMEONE ELSE")
-    }
-  }
-  val socket = new WsClient(onNotification)
+  val socket = new WsClient((_: Notification) => incrementNotifications)
 
   val notifications: Var[Int] = Var(0)
 
@@ -99,7 +90,7 @@ object MainShell extends BulmaCssClasses {
 
     socket.send(new Message(
             sender = Author(name="me", userId = Some("5aaee5ff810000a8af9cc6c2")), 
-            receiver = Author(name="you", userId = Some("5ad1227de500007c7b18e72c")), 
+            recipient = Author(name="you", userId = Some("5ad1227de500007c7b18e72c")), 
             content = "hello mates how y'all doing?", 
             dateCreated = Some(LocalDate.parse("2007-12-03"))))
     

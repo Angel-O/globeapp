@@ -16,20 +16,31 @@ object WsMiddleware {
   val url = WEB_SOCKET_SERVER_ENDPOINT
   val socket = new WebSocket(url)
 
-  class WsClient[In, Out](on: In => Unit)(implicit deserializer: Reads[In]) {
+  class WsClient[In, Out](on: In => Unit, onClose: () => Unit = () => ())(
+      implicit deserializer: Reads[In]) {
 
-    socket.onopen = (_: Event) => println("ui socket connected")
-    socket.onclose = (_: Event) => println("ui socket disconnected")
-    socket.onerror = (_: ErrorEvent) => ()
-    socket.onmessage = (me: MessageEvent) => read(me.data.toString) collect { case data => on(data) }
-
-
-    def read[In](data: String)(implicit deserializer: Reads[In]) = readOpt[In](toJsonValue(data))
-    def send[Out](msg: Out)(implicit serializer: Writes[Out]) = socket.readyState match {
-      case 0 => ()
-      case 1 => socket.send(write(msg)) //TODO handle other states properly and add many missing state
-      case 2 => ()
-      case _ => ()
+    socket.onopen = (_: Event) => {
+      send("HI")
+      println("ui socket connected")
+    } //TODO send message to server to register connection
+    socket.onclose = (_: Event) => {
+      onClose() //TODO improve this..
+      println("ui socket disconnected")
     }
+    socket.onerror = (_: ErrorEvent) => ()
+    socket.onmessage = (me: MessageEvent) =>
+      read(me.data.toString) collect { case data => on(data) }
+
+    def read[In](data: String)(implicit deserializer: Reads[In]) =
+      readOpt[In](toJsonValue(data))
+
+    def send[Out](msg: Out)(implicit serializer: Writes[Out]) =
+      //TODO handle other states properly and add many missing state
+      socket.readyState match {
+        case 0 => ()
+        case 1 => socket.send(write(msg))
+        case 2 => ()
+        case _ => ()
+      }
   }
 }
