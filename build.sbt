@@ -89,6 +89,10 @@ lazy val messagingServer = (project in file("messaging-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 
+lazy val usermessageServer = (project in file("usermessage-server"))
+    .dependsOn(sharedJVM, securityServer, common)
+    .disablePlugins(WorkbenchPlugin)
+
 //TODO turn this into a library
 lazy val securityServer = (project in file("security-server"))
     .dependsOn(sharedJVM)
