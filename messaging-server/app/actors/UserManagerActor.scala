@@ -15,7 +15,7 @@ class UserManagerActor() extends Actor {
 
   def receive = {
     case CreateConnection(userId, out) => {
-      users = users + (userId -> context.actorOf { Props { new MessagingActor(out) } })
+      users = users + (userId -> context.actorOf { MessagingActor.props(out) })
       Logger.info(s"New Connection established. ALL CONNECTIONS: $users")
     }
     case ClientDisconnected(userId, reason) => {
