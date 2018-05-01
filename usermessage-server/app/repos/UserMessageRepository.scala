@@ -5,34 +5,31 @@ import scala.concurrent.Future
 
 import com.github.dwickern.macros.NameOf.nameOf
 
-import apimodels.review.Review
+// TODO fix mess with message types...
+import apimodels.message.MessageType.UserMessage
+import apimodels.message.MessageTypeFormat._
 import javax.inject.Inject
 import play.api.libs.json.Json.obj
 import play.modules.reactivemongo.ReactiveMongoApi
 import repository.{RepoBase, Criteria}
 
-trait ReviewSearchCriteria extends Criteria {
-  def byApp(mobileAppId: String) = obj(nameOf(mobileAppId) -> mobileAppId)
+trait UserMessageSearchCriteria extends Criteria {
+  def byRecipient(recipient: String) = obj(nameOf(recipient) -> recipient)
   
-  def byKey(mobileAppId: String, `author.userId`: String) =
-    obj(nameOf(mobileAppId) -> mobileAppId,
-        nameOf(`author.userId`) -> `author.userId`)
-        
-  def byIdAndUser(_id: String, `author.userId`: String) =
-    obj(nameOf(_id) -> _id, nameOf(`author.userId`) -> `author.userId`)
+  def byRecipientUnread(recipient: String) = {
+    val read = false
+    obj(nameOf(recipient) -> recipient, nameOf(read) -> read)
+  }
 }
 
-class ReviewRepository @Inject()(implicit ec: ExecutionContext,
+class UserMessageRepository @Inject()(implicit ec: ExecutionContext,
                                  reactiveMongoApi: ReactiveMongoApi)
-    extends RepoBase[Review]("reviews", ec, reactiveMongoApi)
-    with ReviewSearchCriteria {
+    extends RepoBase[UserMessage]("user-messages", ec, reactiveMongoApi)
+    with UserMessageSearchCriteria {
 
-  def getAllByApp(mobileAppId: String): Future[Seq[Review]] =
-    findManyBy(byApp(mobileAppId))
+  def getAllByRecipient(recipient: String): Future[Seq[UserMessage]] =
+    findManyBy(byRecipient(recipient))
 
-  def getByKey(mobileAppId: String, userId: String): Future[Option[Review]] =
-    findOneBy(byKey(mobileAppId, userId))
-
-  def getByIdAndUser(id: String, userId: String): Future[Option[Review]] =
-    findOneBy(byIdAndUser(id, userId))
+  def getAllUnreadByRecipient(recipient: String): Future[Seq[UserMessage]] =
+    findManyBy(byRecipientUnread(recipient))
 }
