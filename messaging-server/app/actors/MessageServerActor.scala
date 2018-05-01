@@ -13,10 +13,10 @@ class MessageServerActor(val out: ActorRef, val userManager: ActorRef) extends A
 
   def receive = {
     case WsMessage(sender, messageType, _, _) => messageType match {
-      case msg: ClientDisconnected               => userManager ! msg
-      case ClientConnected(userId)               => userManager ! CreateConnection(userId, out)
-      case msg @ UserMessage(content, recipient) => userManager ! MessageReceived(msg, sender.userId.get)
-      case _                                     => println("MMMMMM", messageType)
+      case msg: ClientDisconnected => userManager ! msg
+      case ClientConnected(userId) => userManager ! CreateConnection(userId, out)
+      case msg: UserMessage        => userManager ! MessageReceived(msg, sender)
+      case _                       => println("MMMMMM", messageType)
     }
   }
 }
