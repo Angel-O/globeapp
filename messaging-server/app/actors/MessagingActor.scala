@@ -10,10 +10,10 @@ import play.api.Logger
 class MessagingActor(val out: ActorRef) extends Actor {
   def receive = {
     case SendNotification(
-      msg @ UserMessage(content, recipientId), //TODO what to do with the content ??
+      msg: UserMessage, //TODO what to do with the content ??
       senderId) => {
 
-      out ! Notification(senderId = senderId, recipientId = recipientId)
+      out ! Notification(senderId = senderId, recipientId = msg.recipient)
       Logger.info(s"Message sent: $msg")
     }
   }

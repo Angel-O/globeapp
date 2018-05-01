@@ -100,8 +100,8 @@ object MainShell extends BulmaCssClasses {
       <Banner content={<h5>Welcome to globeapp</h5>}/>
 
     socket.send(new WsMessage(
-            sender = Author(userId = Some("5aaee5ff810000a8af9cc6c2"), name= "Me"), 
-            messageType = UserMessage(content = "hello mates how y'all doing?", recipient="iii"),
+            sender = "5aaee5ff810000a8af9cc6c2", 
+            messageType = UserMessage(sender = "5aaee5ff810000a8af9cc6c2", content = "hello mates how y'all doing?", recipient="iii"),
             dateCreated = Some(LocalDate.parse("2007-12-03"))))
     
     

@@ -23,7 +23,8 @@ class UserManagerActor() extends Actor {
       Logger.info(s"Connection removed reason ($reason). ALL CONNECTIONS: : $users")
     }
     case MessageReceived(msgType, senderId) => msgType match {
-      case msg @ UserMessage(_, recipientId) => sendNotification(senderId, recipientId, msg)
+      case msg: UserMessage => sendNotification(senderId, msg.recipient, msg)
+      case _ => { } // ignore for now
     }
   }
 
