@@ -16,4 +16,7 @@ package object form {
 
   @register
   val CreatePollForm = "CreatePollForm"
+  
+  @register
+  val CreateMessageDialog = "CreateMessageDialog"
 }

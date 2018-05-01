@@ -15,6 +15,7 @@ object URIs {
   val PollsPageURI = "/polls"
   val FavoriteAppsPageURI = "/favoriteapps"
   val ReviewsPageURI = "/yourreviews"
+  val MessagesPageURI = "/yourmessages"
   val UnavailablePageURI = "/unavailable"
   val NotFoundPageURI = "/notfound"
   val UserPostURI = UserEditPageURI.tail / ":username" / "posts" / Int

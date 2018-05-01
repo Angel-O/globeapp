@@ -6,13 +6,14 @@ import components.core.Color
 import components.core.ComponentBuilder
 import components.core.Size
 
-protected abstract class ButtonBaseBuilder
+protected abstract class ButtonBaseBuilder()
     extends ComponentBuilder
     with Color
     with Size {
 
   var label: String = _
   var onClick: () => Unit = () => () //do nothing by default
+  // var isDisabled: Boolean = _ //TODO this causes compilation issues...
 
   protected def handleOnclick = (e: Event) => {
     //val self = e.currentTarget.asInstanceOf[HTMLElement]

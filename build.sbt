@@ -40,8 +40,8 @@ commands += Command.command("dcu") { state => "sbt ; dcu" :: state }
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    .aggregate(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
-    .dependsOn(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer)
+    .aggregate(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer, usermessageServer)
+    .dependsOn(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer, usermessageServer)
     .enablePlugins(DockerPlugin)
     .settings(
         commonSettings,
@@ -86,6 +86,10 @@ lazy val suggestionServer = (project in file("suggestion-server"))
     .disablePlugins(WorkbenchPlugin)
 
 lazy val messagingServer = (project in file("messaging-server"))
+    .dependsOn(sharedJVM, securityServer, common)
+    .disablePlugins(WorkbenchPlugin)
+
+lazy val usermessageServer = (project in file("usermessage-server"))
     .dependsOn(sharedJVM, securityServer, common)
     .disablePlugins(WorkbenchPlugin)
 

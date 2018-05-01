@@ -30,6 +30,11 @@ services:
     container_name: suggestion
     ports:
       - "3005:9000"
+  usermessage:
+   image: usermessage-server:0.1.0-SNAPSHOT
+   container_name: usermessage
+   ports:
+      - "3007:9000"
   db:
     image: mongo:latest
     container_name: mongodb

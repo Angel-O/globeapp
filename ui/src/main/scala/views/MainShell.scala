@@ -39,6 +39,7 @@ object MainShell extends BulmaCssClasses {
              navigateToCatalog: () => Unit,
              navigateToPolls: () => Unit,
              navigateToFavoriteApps: () => Unit,
+             navigateToMessages: () => Unit,
              navigate: () => Unit) = {
 
     if (loggedIn) {
@@ -72,7 +73,7 @@ object MainShell extends BulmaCssClasses {
         <NavbarItem 
           item={<IconButton isPrimary={true} 
           icon={ icon } 
-          label="messages" onClick={navigateToPolls}/>}/>,
+          label="messages" onClick={() => { notifications.value = 0; navigateToMessages() }}/>}/>,
         <NavbarItem 
           item={<SimpleButton isSuccess={true} 
           icon={ <Icon id="comments"/> } 

@@ -52,6 +52,7 @@ object App extends Push {
           navigateToCatalog _,
           navigateToPolls _,
           navigateToFavoriteApps _,
+          navigateToMessages _,
           navigate _
         )
         .bind
@@ -72,6 +73,7 @@ object App extends Push {
   def navigateToCatalog() = push(CatalogPageURI)
   def navigateToPolls() = push(PollsPageURI)
   def navigateToFavoriteApps() = push(FavoriteAppsPageURI)
+  def navigateToMessages() = push(MessagesPageURI)
   def navigate() = push(s"$CatalogPageURI/55")
 
   def update = {
