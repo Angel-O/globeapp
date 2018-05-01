@@ -9,8 +9,8 @@ import scala.scalajs.js.Any.fromFunction1
 
 case class ButtonBuilder() extends ButtonBaseBuilder() {
   def render = this
-
-  var isDisabled: Boolean = false
+  
+  var isDisabled: Boolean = _
 
   @dom def build = {
 

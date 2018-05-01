@@ -11,6 +11,7 @@ import com.thoughtworks.binding.{dom, Binding},
 Binding.{Var, Vars, Constants, BindingSeq}
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.HTMLHRElement
+import components.icon.IconBuilder
 
 case class PageModalBuilder() extends {
   val targetId = s"pageModal_${PageModalBuilder.getId}" //using scala early initializers!!!
@@ -18,15 +19,24 @@ case class PageModalBuilder() extends {
 } with ModalBase {
 
   def render = this
+  var icon: IconBuilder = _
+  var isDisabled: Boolean = _
 
   @dom def build = {
 
     val triggerClass =
       getClassName(BUTTON, MODAL_BUTTON, COLOR_CLASS, SIZE_CLASS)
 
-    val modalTrigger = <a class={triggerClass} data:data-target={targetId}>
-                         { label }
-                       </a>.asInstanceOf[HTMLElement]
+    val modalTrigger = <button class={triggerClass} data:data-target={targetId}> 
+                        <div style={"display: flex; justify-content: space-between; align-items: center"}> { unwrapElement(
+                          <span class={ getClassName(ICON) }>
+                            { unwrapBuilder(icon, icon != null).bind }
+          							 	 </span>, icon != null).bind } 
+                          <span style={"font-size: 1em"}> { label } </span>
+												</div>
+                       </button>.asInstanceOf[HTMLButtonElement]
+                       
+    modalTrigger.disabled = isDisabled
 
     //TODO add size modifier for close button
     val closeButton =

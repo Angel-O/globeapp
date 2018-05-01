@@ -15,6 +15,7 @@ import poll._
 import mobileapp._
 import favoriteapps._
 import reviews._
+import messages._
 import error._
 
 object RouteProvider {
@@ -35,6 +36,7 @@ object RouteProvider {
       MobileAppDetailPageURI -> MobileAppPage.view _,
       FavoriteAppsPageURI.tail.toPath -> FavoriteAppsPage.view _,
       ReviewsPageURI.tail.toPath -> ReviewsPage.view _,
+      MessagesPageURI.tail.toPath -> MessagesPage.view _,
       UnavailablePageURI.tail.toPath -> ErrorPage.unavailable _,
       NotFoundPageURI.tail.toPath -> ErrorPage.notFound _
       //UserPostURI -> UserEditPage.view _

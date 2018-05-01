@@ -16,7 +16,7 @@ import utils.Json._
 import exceptions.ServerException._
 import apimodels.common.Entity
 
-class ReviewController @Inject() (
+class UserMessageController @Inject() (
   scc:        SecuredControllerComponents,
   repository: UserMessageRepository)
   extends SecuredController(scc) {
@@ -27,17 +27,17 @@ class ReviewController @Inject() (
     repository.getAllByRecipient(userId).map(messages => Ok(toJson(messages)))
   }
 
-  def getAllUnreadByuser = AuthenticatedAction.async { implicit req => 
+  def getAllUnreadByUser = AuthenticatedAction.async { implicit req => 
     val userId = req.user._id.get
     Logger.info(s"Fetching all unread messages (userId = $userId)")
     repository.getAllUnreadByRecipient(userId).map(messages => Ok(toJson(messages)))
   }
   
   def saveMessage = AuthenticatedAction.async(parse.json) { implicit req =>
-    Logger.info(s"Saving message)")
+    Logger.info(s"Saving message")
     (for{
       payload <- parsePayload(req)
-      id <- repository.addOne(payload)
+      id <- repository.addOne(payload.copy(_id = newId))
     } yield (Ok(id))).logFailure.handleRecover 
   }
 }

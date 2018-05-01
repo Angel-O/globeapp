@@ -10,6 +10,7 @@ package object config {
   val POLL_SERVER_ROOT = makeEndpoint(POLL_SERVER_HOST, POLL_SERVER_PORT)
   val USERPROFILE_SERVER_ROOT = makeEndpoint(USERPROFILE_SERVER_HOST, USERPROFILE_SERVER_PORT)
   val SUGGESTIONS_SERVER_ROOT = makeEndpoint(SUGGESTIONS_SERVER_HOST, SUGGESTIONS_SERVER_PORT)
+  val USERMESSAGE_SERVER_ROOT = makeEndpoint(USERMESSAGE_SERVER_HOST, USERMESSAGE_SERVER_PORT)
   val REQUEST_TIMEOUT = 9000
   val ROOT_PATH = "/globeapp"
   val RESPONSE_TYPE = "text"
@@ -36,6 +37,9 @@ object Network{
   
   val SUGGESTIONS_SERVER_HOST = "suggestion"
   val SUGGESTIONS_SERVER_PORT = 3005
+  
+  val USERMESSAGE_SERVER_HOST = "usermessage"
+  val USERMESSAGE_SERVER_PORT = 3007
   
   def makeEndpoint(host: String, port: Int) = s"http://localhost:$port" //s"http://$host:$port"
 }
