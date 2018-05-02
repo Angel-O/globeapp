@@ -59,6 +59,7 @@ object ReviewList {
   // Option[String] gets converted to a String with extra quotes around it !!!! silly!!
   def messageUser(recipient: String) = {
 
+    val popUpIsOpen = Var(false)
     def postMessage(content: String) = {
       if(!socket.isOpen)
       { socket.reconnect }
@@ -67,19 +68,24 @@ object ReviewList {
       Post(url = s"$USERMESSAGE_SERVER_ROOT/api/messages", payload = write(message))
       
       socket.send(WsMessage(getUserId, message, None))
+      
+      // hack to trigger page reload...TODO fix dialog for good
+      popUpIsOpen.value = true
+      popUpIsOpen.value = false
     }
     
     @dom
     val element =
-    <div style={"display: flex; justify-content: flex-end"}>
+    <div style={"display: flex; justify-content: flex-end"}>{val isOpen = popUpIsOpen.bind
+      <div>
     		<PageModal 
 		  		isDisabled={getUserId == recipient || getUserId.isEmpty || recipient.isEmpty || !getLoggedIn}
-		  		icon={<Icon solid={Some(true)} id="envelope"/>} 
-		  		label={"Send message"} isOpen={false} isPrimary={true} content={
+		  		icon={<Icon solid={Some(true)} id="envelope"/>}
+		  		label={"Send message"} isOpen={isOpen} isPrimary={true} content={
         <div>
         	 <CreateMessageDialog submitLabel={"Send message"} onSubmit={postMessage _} /> 
         </div>
-      }/>
+      }/></div>}
     </div>
 		  		
 		element
