@@ -1,3 +1,7 @@
+# managed projects
+/js/
+/jvm/
+
 *.class
 *.log
 *.css
@@ -35,8 +39,3 @@ project/plugins/project/
 
 # mongo backup
 mongo-data/
-/models/
-
-# managed projects
-/js/
-/jvm/ 
