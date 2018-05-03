@@ -1,4 +1,4 @@
-package models.common
+package apimodels.common
 
 import play.api.libs.json.OFormat
 import play.api.libs.json.Json

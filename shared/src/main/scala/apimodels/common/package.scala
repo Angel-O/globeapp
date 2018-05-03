@@ -1,4 +1,4 @@
-package models
+package apimodels
 
 import java.time._
 

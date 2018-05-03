@@ -1,4 +1,4 @@
-package models.mobile
+package apimodels.mobile
 
 import play.api.libs.json.{ OFormat, Json }
 import play.api.libs.json.JsValue

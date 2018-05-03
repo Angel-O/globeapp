@@ -1,13 +1,12 @@
-package models.message
+package apimodels.message
 
-import models.common, common.Author, common.Author._, common._
+import apimodels.common._
 import java.time._
 import play.api.libs.json.OFormat
 import play.api.libs.json.Json
 
-//TODO the author could just be a user...
 case class WsMessage(
-  sender:      Author,
+  sender:      String,
   messageType: MessageType,
   dateCreated: Option[LocalDate],
   _id:         Option[String]    = None)
@@ -17,7 +16,7 @@ case object WsMessage {
   implicit val messageFormat: OFormat[WsMessage] = Json.format[WsMessage]
 
   def apply(
-    sender:      Author,
+    sender:      String,
     messageType: MessageType,
     dateCreated: Option[LocalDate],
     id:          Option[String]    = None) =

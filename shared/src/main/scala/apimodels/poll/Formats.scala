@@ -1,9 +1,7 @@
-package models.poll
+package apimodels.poll
 
 import java.time._
-import models.common._
-
-//TODO is it needed??
+import apimodels.common._ //TODO is it needed??
 
 import play.api.libs.json._
 import play.api.libs.functional.syntax._

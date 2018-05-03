@@ -1,4 +1,4 @@
-package models.user
+package apimodels.user
 
 import play.api.libs.json.{ OFormat, Json }
 import play.api.libs.json.JsValue
@@ -9,8 +9,6 @@ import play.api.libs.json.JsString
 import play.api.libs.json.Format
 import play.api.libs.json.Reads
 import play.api.libs.json.Writes
-
-import Role._
 
 object GenderFormat extends Format[Gender] {
   def reads(json: JsValue): JsResult[Gender] = json.as[String].toLowerCase() match{

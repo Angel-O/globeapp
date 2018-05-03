@@ -1,4 +1,4 @@
-package models.review
+package apimodels.review
 import java.time._
 
 import play.api.libs.json.Format
@@ -11,8 +11,8 @@ import play.api.libs.json._ // JSON library
 import play.api.libs.functional.syntax._ // Combinator syntax
 
 //import play.api.libs.json.Writes.DefaultLocalDateWrites._
-import models.common._
-import models.common.Author._
+import apimodels.common._
+import apimodels.common.Author._
 
 object ReviewFormats {
   

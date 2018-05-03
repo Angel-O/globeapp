@@ -1,10 +1,10 @@
-package models.poll
+package apimodels.poll
 
 import java.time._
 import PollFormats._
 import play.api.libs.json.OFormat
 import play.api.libs.json.Json
-import models.common._
+import apimodels.common._
 
 sealed trait PollStatus
 case object Open extends PollStatus

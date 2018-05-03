@@ -1,6 +1,6 @@
-package models.message
+package apimodels.message
 
-import models.common._
+import apimodels.common._
 
 sealed trait MessageType
 
@@ -10,6 +10,8 @@ object MessageType {
   case object UserAuthenticated extends MessageType
   case class UserMessage(sender: String, content: String, recipient: String, _id: Option[String] = None) extends Entity with MessageType
   case class Notification(recipientId: String, senderId: String) extends MessageType
+  case object CheckConnectionAlive extends MessageType
+  case class ConnectionAlive(userId: String, connectionDate: String) extends MessageType //adding local date to differentiate from other messages
   
   import MessageTypeFormat._
   implicit val messageTypeFormat = MessageTypeFormat 

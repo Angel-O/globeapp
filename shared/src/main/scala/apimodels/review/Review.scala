@@ -1,11 +1,11 @@
-package models.review
+package apimodels.review
 
-import models.common._
+import apimodels.common._
 import java.time._
 import play.api.libs.json.OFormat
 import play.api.libs.json.Json
-import models.common.Author._
-import models.common.Author
+import apimodels.common.Author._
+import apimodels.common.Author
 
 case class Review(
   _id:         Option[String],

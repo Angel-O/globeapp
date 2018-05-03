@@ -35,3 +35,8 @@ project/plugins/project/
 
 # mongo backup
 mongo-data/
+/models/
+
+# managed projects
+/js/
+/jvm/ 

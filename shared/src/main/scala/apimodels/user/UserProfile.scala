@@ -1,10 +1,10 @@
-package models.user
+package apimodels.user
 
-import models.common.Entity
+import apimodels.common.Entity
 import play.api.libs.json.OFormat
 import play.api.libs.json.Json
-import models.mobile.Genre, Genre._
-import models.mobile.GenreFormat
+import apimodels.mobile.Genre, Genre._
+import apimodels.mobile.GenreFormat
 
 case class UserProfile(
   userId:             String,

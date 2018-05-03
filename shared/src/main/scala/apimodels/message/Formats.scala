@@ -1,4 +1,4 @@
-package models.message
+package apimodels.message
 
 import java.time._
 
@@ -9,20 +9,20 @@ import play.api.libs.json.JsString
 import play.api.libs.json._ 
 import play.api.libs.functional.syntax._ 
 
-import models.common, common.Author, common._
+import apimodels.common, common.Author, common._
 import MessageType._
 
 object WsMessageFormats {
   
   implicit val messageReads: Reads[WsMessage] = (
-    (__ \ "sender").read[Author] and
+    (__ \ "sender").read[String] and
     (__ \ "messageType").read[MessageType] and
     (__ \ "dateCreated").readNullable[String].map(maybeDate => maybeDate.map(LocalDate.parse)) and
     (__ \ "_id").readNullable[String])(WsMessage.apply _)
 
   
   implicit val messageWrites: Writes[WsMessage] = (
-    (__ \ "sender").write[Author] and
+    (__ \ "sender").write[String] and
     (__ \ "content").write[MessageType] and
     (__ \ "dateCreated").writeNullable[LocalDate] and
     (__ \ "_id").writeNullable[String])(unlift(WsMessage.unapply)) 
@@ -92,6 +92,8 @@ object MessageTypeFormat extends Format[MessageType] {
   //implicit val clientDisconnectedFormat: Format[ClientDisconnected] = disconnectFormat
   implicit val notificationFormat: OFormat[Notification] = Json.format[Notification]
   
+  implicit val connectionAliveFormat: OFormat[ConnectionAlive] = Json.format[ConnectionAlive]
+  
   def reads(json: JsValue): JsResult[MessageType] = {
     // this would fail wiithout using strict Reads in at least one of the below...
     //println("SEE CONN", json.asOpt[ClientConnected])
@@ -100,9 +102,11 @@ object MessageTypeFormat extends Format[MessageType] {
       json.asOpt[UserMessage] ::
       json.asOpt[ClientConnected] ::
       json.asOpt[ClientDisconnected] ::
+      json.asOpt[ConnectionAlive] ::
       json.asOpt[Notification] ::
       json.asOpt[String].collect { 
         case "userAuthenticated" => UserAuthenticated  //SAMPLE MESSAGE NOT USED
+        case "checkConnectionAlive" => CheckConnectionAlive
       } :: Nil find (_.nonEmpty)
     )
     .flatten
@@ -112,8 +116,10 @@ object MessageTypeFormat extends Format[MessageType] {
   
   def writes(messageType: MessageType) = messageType match {
     case UserAuthenticated => JsString("userAuthenticated") //SAMPLE MESSAGE NOT USED
+    case CheckConnectionAlive => JsString("checkConnectionAlive")
     case cc: ClientConnected => connectFormat.writes(cc)
     case cd: ClientDisconnected => disconnectFormat.writes(cd)
+    case ca: ConnectionAlive => connectionAliveFormat.writes(ca)
     case nt: Notification => notificationFormat.writes(nt)
     case msg: UserMessage => userMessageFormat.writes(msg)
 //    case ClientConnected(userId) => JsObject(Seq("userId" -> JsString(userId)))

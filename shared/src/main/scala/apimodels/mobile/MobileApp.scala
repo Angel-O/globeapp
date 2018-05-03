@@ -1,8 +1,8 @@
-package models.mobile //TODO investigate!!!! calling this package mobileapp makes compilation fail!! crazy
+package apimodels.mobile //TODO investigate!!!! calling this package mobileapp makes compilation fail!! crazy
 
 import play.api.libs.json.OFormat
 import play.api.libs.json.Json
-import models.common.Entity
+import apimodels.common.Entity
 import play.api.libs.json.JsString
 
 trait Enum[A] {

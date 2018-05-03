@@ -23,7 +23,7 @@ object MessagesPage {
 
     @dom
     override def element = {
-      <div> { for { message <- toBindingSeq(messages.bind) } yield {
+      <div> { for { message <- toBindingSeq(messages.bind.reverse) } yield {
         <div>
           <Card title={ message.content take 10 } subTitle={ "..." } content={
             <div> { message.content } </div>
