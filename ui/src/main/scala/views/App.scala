@@ -18,15 +18,17 @@ import apimodels.message.WsMessage
 import utils.ws._
 
 //case class Props(username: String, loggedIn: Boolean)
-
+case class State(loggedIn: Boolean, username: String)
 object App extends Push {
   // keeping track of logged in status (children components are affected by it)
-  val loggedIn: Var[Boolean] = Var(getLoggedIn())
-  val username: Var[String] = Var(getUsername())
+  //val loggedIn: Var[Boolean] = Var(getLoggedIn())
+  //val username: Var[String] = Var(getUsername())
   var notifications: Var[Int] = Var(0)
   var socket: WsClient[_, _] = new WsClient(
     onConnect = ClientConnected(getUserId),
     onDisconnect = ClientDisconnected(getUserId))
+  
+  val state = Var(State(getLoggedIn, getUsername))
 
   def main(args: Array[String]): Unit = {
 
@@ -36,15 +38,16 @@ object App extends Push {
         routes = RouteProvider.routes.bind,
         notFoundUrl = NotFoundPageURI)
     
-      if(loggedIn.bind){ 
+      if(state.bind.loggedIn){ 
         socket.open //allows to update socket without a dedicated binding
       }
 
       MainShell
         .render(
           <div><BrowserRouter config={config}/></div>,
-          loggedIn.bind,
-          username.bind,
+          //loggedIn.bind,
+          //username.bind,
+          state.bind,
           notifications,
           socket,
           navigateToLogin _,
@@ -77,13 +80,15 @@ object App extends Push {
   def navigate() = push(s"$CatalogPageURI/55")
 
   def update = {
-    loggedIn.value = getLoggedIn()
-    username.value = getUsername()
-    if(loggedIn.value) {
+    //state.value = State(getLoggedIn(),getUsername())
+    //loggedIn.value = getLoggedIn()
+    //username.value = getUsername()
+    if(state.value.loggedIn) {
       socket.reconnect 
     } else {
       socket.disconnect
     }
+    state.value = State(getLoggedIn(),getUsername())
   }
   
   connect(update)(authSelector)
