@@ -11,10 +11,11 @@ package object config {
   val USERPROFILE_SERVER_ROOT = makeEndpoint(USERPROFILE_SERVER_HOST, USERPROFILE_SERVER_PORT)
   val SUGGESTIONS_SERVER_ROOT = makeEndpoint(SUGGESTIONS_SERVER_HOST, SUGGESTIONS_SERVER_PORT)
   val USERMESSAGE_SERVER_ROOT = makeEndpoint(USERMESSAGE_SERVER_HOST, USERMESSAGE_SERVER_PORT)
+  val MESSAGING_SERVER_ROOT = makeEndpoint(MESSAGING_SERVER_HOST, MESSAGING_SERVER_PORT)
   val REQUEST_TIMEOUT = 9000
   val ROOT_PATH = "/globeapp"
   val RESPONSE_TYPE = "text"
-  val WEB_SOCKET_SERVER_ENDPOINT = "ws://localhost:9000/ws"
+  val WEB_SOCKET_SERVER_ENDPOINT = "ws://localhost:3006/ws"
   val TEXT_CONTENT_HEADER = ("Content-type" -> "text/plain")
   val JSON_CONTENT_HEADER = ("Content-type" -> "application/json")
 }
@@ -37,6 +38,9 @@ object Network{
   
   val SUGGESTIONS_SERVER_HOST = "suggestion"
   val SUGGESTIONS_SERVER_PORT = 3005
+  
+  val MESSAGING_SERVER_HOST = "messaging"
+  val MESSAGING_SERVER_PORT = 3006
   
   val USERMESSAGE_SERVER_HOST = "usermessage"
   val USERMESSAGE_SERVER_PORT = 3007

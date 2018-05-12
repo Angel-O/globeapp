@@ -40,8 +40,8 @@ commands += Command.command("dcu") { state => "sbt ; dcu" :: state }
 //lazy val all = taskKey[Unit]("compile and then scalastyle")
 
 lazy val root = (project in file("."))
-    .aggregate(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer, usermessageServer)
-    .dependsOn(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer, usermessageServer)
+    .aggregate(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer, messagingServer, usermessageServer)
+    .dependsOn(authenticationServer, appServer, pollServer, reviewServer,profileServer, suggestionServer, messagingServer,usermessageServer)
     .enablePlugins(DockerPlugin)
     .settings(
         commonSettings,
@@ -125,14 +125,14 @@ lazy val cross = (crossProject.crossType(CrossType.Full) in file("."))
     )
     //.jsConfigure(_.enablePlugins(ScalaJSPlugin))
     .jvmSettings(
-        //name := "crossJVM" // adding name for eclipse...
+        name := "crossJVM" // adding name for eclipse...
         // Add JVM-specific settings here
         //libraryDependencies += "org.scala-js" %% "scalajs-dom" % "0.9.3"
         //unmanagedSourceDirectories in Compile += baseDirectory.value / "jvm",
         //libraryDependencies += "com.lihaoyi" %% "upickle" % "0.5.1"
     )
     .jsSettings(
-        //name := "crossJS" // adding name for eclipse...
+        name := "crossJS" // adding name for eclipse...
         // Add JS-specific settings here
         //libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.3"
         //sourceMapsBase := baseDirectory.value / "..",

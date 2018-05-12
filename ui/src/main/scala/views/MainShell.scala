@@ -30,8 +30,9 @@ object MainShell extends BulmaCssClasses {
     
   @dom
   def render(content: HTMLElement,
-             loggedIn: Boolean,
-             username: String,
+             //loggedIn: Boolean,
+             //username: String,
+             state: State,
              notifications: Var[Int],
              socket: WsClient[_, _],
              login: () => Unit,
@@ -42,7 +43,7 @@ object MainShell extends BulmaCssClasses {
              navigateToMessages: () => Unit,
              navigate: () => Unit) = {
 
-    if (loggedIn) {
+    if (state.loggedIn) {
       def incrementNotifications(msg: MessageType) = {
         println("MESSAGE, RECEIVED...")
         Some(msg) collect { case x: Notification => notifications.value = notifications.value + 1 }
@@ -57,7 +58,7 @@ object MainShell extends BulmaCssClasses {
     
     val logo =
       <NavbarLogo href={s"#$ROOT_PATH"} image={
-        <img src={"https://bulma.io/images/bulma-logo.png" } 
+        <img src={"./../src/main/resources/logo.png" } 
           alt={"Globeapp logo"}
           width={112} height={28}/>}/>
       
@@ -86,16 +87,17 @@ object MainShell extends BulmaCssClasses {
           item={<SimpleButton isInfo={true} 
           icon={ <Icon id="user"/> } 
           label="test" onClick={navigate}/>}/>,
-        renderAccountMenuItem(loggedIn, username, login, logout).bind
+        renderAccountMenuItem(state.loggedIn, state.username, login, logout).bind
       )
 
     // TODO consolidate navbarItem and apply same logic for similar situations
     // (note how there is no need to call bind in <NavbarItem item={username}/>)
     val navbar =
-      <div>
-      <Navbar isFixedTop={false} 
-        isTransparent={true} logo={logo}
-        rightItems={rightNavbarItems}/></div>
+      <div style={"margin-bottom: 3em;"}>
+      		<Navbar isFixedTop={false} 
+        		isTransparent={true} logo={logo}
+        		rightItems={rightNavbarItems}/>
+			</div>
 
     val banner =
       <Banner content={<h5>Welcome to globeapp</h5>}/>
@@ -109,7 +111,7 @@ object MainShell extends BulmaCssClasses {
     //The shell
     <div class={getClassName(CONTAINER, FLUID)}>
       {navbar}
-      {banner}
+      <!--{banner}-->
       {content}
     </div>
   }

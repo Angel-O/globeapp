@@ -1,3 +1,7 @@
+# managed projects
+/js/
+/jvm/
+
 *.class
 *.log
 *.css
