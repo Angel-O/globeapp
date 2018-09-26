@@ -1,5 +1,9 @@
 # globeapp
-just messing around the Play! framework and Scala.js. The result? A little web app based on mobile apps. Note: the UI project is a Scala.js experiment to turn Biding.scala into a reactive component based library: not expecting you to understand everything :)
+just messing around the Play! framework and Scala.js. The result? A little web app based on mobile apps. 
+
+#### Notes
+- the UI project is a Scala.js experiment to turn Biding.scala into a reactive component based library: not expecting you to understand everything :)
+- this README file is still a WIP...
 
 ## Tech stack
 
@@ -36,7 +40,7 @@ just messing around the Play! framework and Scala.js. The result? A little web a
 
 ### Running Services
 
-1. from a terminal run `docker-compose up` in the root of the project: this will run all servcices simultaneously
+1. from a terminal run `docker-compose up` at the root of the project: this will run all servcices simultaneously
 
 Each service can be run (and stopped) separately using the docker CLI
 
