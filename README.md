@@ -1,5 +1,5 @@
 # globeapp
-just messing around with Scala.js and Play! framework. The result? A simple web app to centered around mobile apps. Note the UI project is an experiment to turn Biding.scala into a reactive component based library
+just messing around the Play! framework and Scala.js. The result? A little web app based on mobile apps. Note: the UI project is a Scala.js experiment to turn Biding.scala into a reactive component based library: not expecting you to understand everything :)
 
 ## Tech stack
 
@@ -32,7 +32,7 @@ just messing around with Scala.js and Play! framework. The result? A simple web 
 
 ### Building services
 
-coming soon
+- coming soon
 
 ### Running Services
 
