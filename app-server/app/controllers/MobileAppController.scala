@@ -10,6 +10,9 @@ import play.api.libs.json._
 import play.api.libs.json.Json._
 import repos.MobileAppRepository
 import utils.Bson._
+import utils.FutureImplicits._
+import utils.Json._
+import exceptions.ServerException._
 
 class MobileAppController @Inject() (
   scc:        SecuredControllerComponents,
@@ -23,66 +26,49 @@ class MobileAppController @Inject() (
 
   def getApp(id: String) = Action.async {
     Logger.info("Fetching mobile app")
-    parseId(id)
-      .flatMap(validId =>
-        repository
-          .getById(validId))
-          .map({
-            case Some(mobileApp) => Ok(toJson(mobileApp))
-            case None            => NotFound
-          })
-      .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
+    (for {
+      validId <- parseId(id)
+      maybeMobileApp <- repository.getById(validId)
+      httpResponse <- Future.successful { maybeMobileApp.map(app => Ok(toJson(app))).getOrElse(NotFound) }
+    } yield (httpResponse)).logFailure.handleRecover
   }
 
-  def postApp = AuthenticatedAction.async(parse.json) { req =>
+  def postApp = AuthenticatedAction.async(parse.json) { req => 
     Logger.info("Creating mobile app")
-    req.body.validate[MobileApp]
-      .map(uploadModel => {
-        repository
-          .getByKey(uploadModel.name, uploadModel.company, uploadModel.store)
-          .flatMap({
-            case Some(_) =>
-              Future(BadRequest(
-                  "Found existing app with same name, company, store combination "+ 
-                  s"(${uploadModel.name}, ${uploadModel.company}, ${uploadModel.store})"))
-            case None => {
-              val app = uploadModel.copy(_id = newId)
-              repository
-                .addOne(app)
-                .map(id => Created(id))
-                .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
-            }
-          })
-      })
-      .getOrElse({ Logger.error("Invalid payload"); Future(BadRequest) })
+    (for {
+      validPayload <- parsePayload[MobileApp](req)
+      _ <- verifyAppAlreadyRegistered(validPayload)
+      id <- repository.addOne(validPayload.copy(_id = newId))
+      httpResponse <- Future.successful { Ok(id) }
+    } yield (httpResponse)).logFailure.handleRecover
   }
-
+  
   def deleteApp(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Deleting mobile app")
-    parseId(id)
-      .flatMap(validId =>
-        repository
-          .deleteOne(validId)
-          .map({
-            case Some(mobileApp) => Ok(toJson(mobileApp))
-            case None            => NotFound
-          }))
-      .recover({ case ex => Logger.error(ex.getMessage); BadRequest })
+    (for {
+      validId <- parseId(id)
+      maybeApp <- repository.deleteOne(validId)
+      httpResponse <-  Future.successful { maybeApp.map(app => Ok(toJson(app))).getOrElse(NotFound) }
+    } yield (httpResponse)).logFailure.handleRecover
   }
-
+  
   def updateApp(id: String) = AuthenticatedAction.async(parse.json) { req =>
     Logger.info("Updating mobile app")
-    req.body.validate[MobileApp]
-      .map(uploadModel =>
-        parseId(id)
-          .flatMap(validId =>
-            repository
-              .updateOne(validId, uploadModel)
-              .map({
-                case Some(mobileApp) => Ok(toJson(mobileApp))
-                case None            => NotFound
-              }))
-          .recover({ case ex => Logger.error(ex.getMessage); BadRequest }))
-      .getOrElse({ Logger.error("Invalid payload"); Future(BadRequest) })
+    (for {
+      (validId, validPayload) <- parseId(id) zip parsePayload[MobileApp](req)
+      maybeApp <- repository.updateOne(validId, validPayload)
+      httpResponse <-  Future.successful { maybeApp.map(app => Ok(toJson(app))).getOrElse(NotFound) }
+    } yield (httpResponse)).logFailure.handleRecover
+  }
+  
+  private def verifyAppAlreadyRegistered(app: MobileApp) = {
+    for {
+      maybeApp <- repository.getByKey(app.name, app.company, app.store)
+      error <- Future {
+        maybeApp.map(_ => throw new Exception(
+          "Found existing app with same name, company, store combination " +
+            s"(${app.name}, ${app.company}, ${app.store})"))
+      }
+    } yield (error)
   }
 }
